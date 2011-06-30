@@ -1,0 +1,36 @@
+#!/bin/bash
+
+TEST_NAME="define"
+DCC="../src/dcc"
+CMP="diff -w"
+WC="wc -c"
+INFILE=${TEST_NAME}.frag
+REFFILE=${TEST_NAME}.out
+ERRFILE=${TEST_NAME}.err
+OUTFILE=${TEST_NAME}.put
+
+RETVAL=0
+
+echo "BEGIN test $TEST_NAME"
+
+$DCC < $INFILE 2> $ERRFILE > $OUTFILE
+if ${CMP} -s $OUTFILE $REFFILE; then
+	:
+else
+	echo "Output differs from reference file"
+	RETVAL=1
+fi
+
+if test -s $ERRFILE; then
+	echo "stderr is non-empty"
+	RETVAL=2
+fi
+
+if test $RETVAL = 0; then
+	echo "SUCCESS test $TEST_NAME"
+else
+	echo "FAIL test $TEST_NAME"
+fi
+echo
+
+exit $RETVAL

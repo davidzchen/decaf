@@ -1,0 +1,17 @@
+# Proposed extensions:
+
+## Lexer
+ 1. Octal integer constants
+ 2. Signed integer constants
+ 3. Beginning identifiers with `_`
+ 4. Bit operators
+ 5. continue keyword
+ 6. Tertiary operator `<cond> ? <if-true> : <if-false>`
+
+
+## Language features
+ 1. Lambdas/closures
+ 2. More advanced linker supporting libraries
+ 3. Pointers and address arithmetic
+ 4. Class constructors/destructors
+ 5. Static methods, variables

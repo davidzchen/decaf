@@ -1,0 +1,8 @@
+autoscan: warning: missing AC_CHECK_FUNCS([strtol]) wanted by: 
+	src/utility.cc:90
+autoscan: warning: missing AC_PROG_RANLIB wanted by: 
+	ltmain.sh:2454
+autoscan: warning: missing AC_TYPE_INT32_T wanted by: 
+	src/utility.cc:106
+autoscan: warning: missing AC_TYPE_SIZE_T wanted by: 
+	src/utility.cc:105
