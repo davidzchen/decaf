@@ -1,12 +1,57 @@
 # Proposed extensions:
 
+## Info
+
+Extended compiler is called lcc. The 'l' stands for "latte." Latte is an extended dialect
+of Decaf. Files should have extension .ltt. It is a play on the coffee theme. Plus, Latte
+may be caffeinated, especially with its proposed support of things like lambdas.
+
 ## Lexer
- 1. Octal integer constants
- 2. Signed integer constants
- 3. Beginning identifiers with `_`
- 4. Bit operators
- 5. continue keyword
- 6. Tertiary operator `<cond> ? <if-true> : <if-false>`
+
+### Octal integer constants
+
+ - Represented as `0[0-7]*`
+   - Decimal literals beginning with 0 are not allowed
+
+### Additional keywords
+
+continue		for loops
+import			for importing other decaf files
+unsigned		for qualifying integers
+
+### Additional operators
+
+tertiary operator	`<cond> ? <if-true> : <if-false>`
+bit operators		`& ~ ^ | << >>`
+
+### Additional types
+
+TODO: 
+char			character type and character literals surrounded by ''
+				TODO: Escape character support and support for character constants
+
+### Lambdas
+
+ - Uses lambda keyword
+ - Example:
+
+	array getFiltered(int threshold, array list)
+	{
+		return list.filter(
+			lambda (item elm)
+			{
+				return elm.value < threshold;
+			});
+	}
+
+
+
+### Minor changes
+
+ - identifiers can start with underscores
+
+
+
 
 
 ## Language features

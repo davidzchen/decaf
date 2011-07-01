@@ -56,12 +56,6 @@ typedef enum {
     T_Print, 			// Print
     T_ReadInteger, 		// ReadInteger
     T_ReadLine,			// ReadLine
-#ifdef DZC_EXT
-    T_Unsigned,			// unsigned
-    T_Continue,			// continue
-    T_LeftShift,		// <<
-    T_RightShift,		// >>
-#endif
     T_NumTokenTypes		// const: Number of tokens
 } TokenType;
 

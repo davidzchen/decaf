@@ -68,6 +68,9 @@ void AdvanceLocation(int c)
 	}
 }
 
+string tmp_string;
+struct yyltype tmp_loc;
+
 %}
 
  /* The section before the first %% is the Definitions section of the lex
@@ -78,7 +81,6 @@ void AdvanceLocation(int c)
   */
 
 Z_DDIGIT		[0-9]
-Z_ODIGIT		[0-7]
 Z_XDIGIT		[0-9a-fA-F]
 Z_IDENTIFIER		[a-zA-Z][a-zA-Z0-9_]*
 Z_ONEOP			[\+\-\*/;\{\}\[\]\.%=\(\)\<\>!\,]
@@ -90,17 +92,14 @@ Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}*([eE][\+\-]?{Z_DDIGIT}+)?
 %%             /* BEGIN RULES SECTION */
  /* All patterns and actions should be placed between the start and stop
   * %% markers which delimit the Rules section.
-  *
-  * TODO: String constants. Error handling for long identifiers.
-  * Modify tests for error output. xtoi does not handle capital X
   */ 
 
 "//".*$			{}
 "/*"			{
-			register int c;
+			int c;
 			
 			for ( ; ; ) {
-				while ((c = yyinput()) != '*' && c != EOF) {
+				while ((c = yyinput()) != '*' && c != EOF && c != 0) {
 					AdvanceLocation(c);
 				}
 				if (c == '*') {
@@ -111,14 +110,37 @@ Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}*([eE][\+\-]?{Z_DDIGIT}+)?
 					if (c == '/')
 						break;
 				}
-				if (c == EOF) {
+				if (c == EOF || c == 0) {
 					ReportError::UntermComment();
+					break;
 				}	
 			}
 			}
-\"[^\n\"]*\"		{ yylval.stringConstant = new char[strlen(yytext) + 1]; 
-			  strcpy(yylval.stringConstant, yytext); 
-			  return T_StringConstant; }
+\"			{
+			int c, i;
+
+			tmp_string = yytext;
+			for ( ; ; ) {
+				while ((c = yyinput()) != '"' && c != '\n' && c != EOF && c != 0) {
+					AdvanceLocation(c);
+					tmp_string.append(1, c);
+				}
+				if (c == '"') {
+					AdvanceLocation(c);
+					tmp_string.append(1, c);
+					yytext = (char *) tmp_string.c_str();
+					yylval.stringConstant = new char[tmp_string.size() + 1];
+					strcpy(yylval.stringConstant, tmp_string.c_str());
+					return T_StringConstant;
+				}
+				if (c == '\n' || c == EOF || c == 0) {
+					yytext = (char *) tmp_string.c_str();
+					ReportError::UntermString(&yylloc, yytext);
+					unput(c);
+					break;
+				}
+			}
+			}
 "<="			{ return T_LessEqual; }
 ">="			{ return T_GreaterEqual; }
 "=="			{ return T_Equal; }
@@ -222,4 +244,10 @@ static void DoBeforeEachAction()
 	for (i = 0; i < yyleng; i++) {
 		AdvanceLocation(yytext[i]);
 	}
+
+/*	printf("called firstline: %d firstcol %d lastline %d lastcol %d\n",
+	       yylloc.first_line,
+	       yylloc.first_column,
+	       yylloc.last_line,
+	       yylloc.last_column); */
 }

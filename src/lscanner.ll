@@ -11,7 +11,8 @@
  * or C++ variable declarations/prototypes that are needed by your code here.
  */
 
-#include <string.h>
+#include <cstring>
+#include <string>
 #include "lscanner.h"
 #include "utility.h" // for PrintDebug()
 #include "errors.h"
@@ -67,6 +68,9 @@ void AdvanceLocation(int c)
 	}
 }
 
+string tmp_string;
+struct yyltype tmp_loc;
+
 %}
 
  /* The section before the first %% is the Definitions section of the lex
@@ -78,28 +82,28 @@ void AdvanceLocation(int c)
 
 Z_DDIGIT		[0-9]
 Z_ODIGIT		[0-7]
-Z_BDIGIT		[01]
 Z_XDIGIT		[0-9a-fA-F]
+Z_BDIGIT		[01]
 Z_IDENTIFIER		[a-zA-Z_][a-zA-Z0-9_]*
-Z_ONEOP			[\+\-\*/;\{\}\[\]\.%&^~\|]
-Z_DINTCONSTANT		{Z_DDIGIT}+
-Z_OINTCONSTNAT		0{Z_ODIGIT}+
+Z_ONEOP			[\+\-\*/;\{\}\[\]\.%=\(\)\<\>!\,&^~\|']
+Z_DINTCONSTANT		0|[1-9]{Z_DDIGIT}*
+Z_OINTCONSTANT		0{Z_ODIGIT}+
 Z_XINTCONSTANT		0[xX]{Z_XDIGIT}+
-Z_BINTCONSTANT		0{bB}{Z_BDIGIT}+
-Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}+([eE][\+\-]?{Z_DDIGIT}+)?
+Z_BINTCONSTANT		0[bB]{Z_BDIGIT}+
+Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}*([eE][\+\-]?{Z_DDIGIT}+)?
 
 
 %%             /* BEGIN RULES SECTION */
  /* All patterns and actions should be placed between the start and stop
-  * %% markers which delimit the Rules section. 
+  * %% markers which delimit the Rules section.
   */ 
 
 "//".*$			{}
 "/*"			{
-			register int c;
+			int c;
 			
 			for ( ; ; ) {
-				while ((c = yyinput()) != '*' && c != EOF) {
+				while ((c = yyinput()) != '*' && c != EOF && c != 0) {
 					AdvanceLocation(c);
 				}
 				if (c == '*') {
@@ -110,9 +114,35 @@ Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}+([eE][\+\-]?{Z_DDIGIT}+)?
 					if (c == '/')
 						break;
 				}
-				if (c == EOF) {
+				if (c == EOF || c == 0) {
 					ReportError::UntermComment();
+					break;
 				}	
+			}
+			}
+\"			{
+			int c, i;
+
+			tmp_string = yytext;
+			for ( ; ; ) {
+				while ((c = yyinput()) != '"' && c != '\n' && c != EOF && c != 0) {
+					AdvanceLocation(c);
+					tmp_string.append(1, c);
+				}
+				if (c == '"') {
+					AdvanceLocation(c);
+					tmp_string.append(1, c);
+					yytext = (char *) tmp_string.c_str();
+					yylval.stringConstant = new char[tmp_string.size() + 1];
+					strcpy(yylval.stringConstant, tmp_string.c_str());
+					return T_StringConstant;
+				}
+				if (c == '\n' || c == EOF || c == 0) {
+					yytext = (char *) tmp_string.c_str();
+					ReportError::UntermString(&yylloc, yytext);
+					unput(c);
+					break;
+				}
 			}
 			}
 "<="			{ return T_LessEqual; }
@@ -124,13 +154,19 @@ Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}+([eE][\+\-]?{Z_DDIGIT}+)?
 "[]"			{ return T_Dims; }
 "<<"			{ return T_LeftShift; }
 ">>"			{ return T_RightShift; }
+"++"			{ return T_Increment; }
+"--"			{ return T_Decrement; }
 {Z_ONEOP}		{ return yytext[0]; }
+"lambda"		{ return T_Lambda; }
 "void"			{ return T_Void; }
+"unsigned"		{ return T_Unsigned; }
 "int"			{ return T_Int; }
 "double"		{ return T_Double; }
 "bool"			{ return T_Bool; }
+"char"			{ return T_Char; }
 "string"		{ return T_String; }
 "class"			{ return T_Class; }
+"import"		{ return T_Import; }
 "null"			{ return T_Null; }
 "while"			{ return T_While; }
 "for"			{ return T_For; }
@@ -144,6 +180,8 @@ Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}+([eE][\+\-]?{Z_DDIGIT}+)?
 "implements"		{ return T_Implements; }
 "interface"		{ return T_Interface; }
 "new"			{ return T_New; }
+"sizeof"		{ return T_Sizeof; }
+"typeof"		{ return T_Typeof; }
 "NewArray"		{ return T_NewArray; }
 "Print"			{ return T_Print; }
 "ReadInteger"		{ return T_ReadInteger; }
@@ -156,10 +194,22 @@ Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}+([eE][\+\-]?{Z_DDIGIT}+)?
 			  return T_IntConstant; }
 {Z_DINTCONSTANT}	{ yylval.integerConstant = atoi(yytext);
 			  return T_IntConstant; }
+{Z_OINTCONSTANT}	{ yylval.integerConstant = (int) strtol(yytext + 1, NULL, 8);
+			  return T_IntConstant; }
+{Z_BINTCONSTANT}	{ yylval.integerConstant = (int) strtol(yytext + 2, NULL, 2);
+			  return T_IntConstant; }
 {Z_DOUBLECONSTANT}	{ yylval.doubleConstant = strtod(yytext, NULL);
 			  return T_DoubleConstant; }
-{Z_IDENTIFIER}		{ strcpy(yylval.identifier, yytext);
-			  return T_Identifier; }
+{Z_IDENTIFIER}		{
+			if (strlen(yytext) > MaxIdentLen) {
+				ReportError::LongIdentifier(&yylloc, yytext);
+				strncpy(yylval.identifier, yytext, MaxIdentLen);
+				yylval.identifier[MaxIdentLen] = '\0';
+			 } else {
+			 	strcpy(yylval.identifier, yytext);
+			 }
+			 return T_Identifier; 
+			}
 [ \t\n]+		{}
 .			{ ReportError::UnrecogChar(&yylloc, *yytext); }
 %%
@@ -203,7 +253,7 @@ void InitScanner()
 static void DoBeforeEachAction()
 {
 	yylloc.first_line   = yylloc.last_line;
-	yylloc.first_column = yylloc.last_column;
+	yylloc.first_column = yylloc.last_column + 1;
 
 	if (yylloc.last_column == 0)
 		yylloc.first_column = 1;
@@ -213,4 +263,10 @@ static void DoBeforeEachAction()
 	for (i = 0; i < yyleng; i++) {
 		AdvanceLocation(yytext[i]);
 	}
+
+/*	printf("called firstline: %d firstcol %d lastline %d lastcol %d\n",
+	       yylloc.first_line,
+	       yylloc.first_column,
+	       yylloc.last_line,
+	       yylloc.last_column); */
 }

@@ -4,6 +4,8 @@
  * debugging information triggered by keys.
  */
 
+#define __STDC_LIMIT_MACROS
+
 #include "utility.h"
 #include <stdarg.h>
 #include <string.h>

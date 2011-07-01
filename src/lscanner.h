@@ -64,6 +64,9 @@ typedef enum {
     T_Decrement,		// --
     T_Sizeof,			// sizeof
     T_Typeof,			// typeof
+    T_Char,			// char
+    T_Import,			// import
+    T_Lambda,			// lambda
     T_NumTokenTypes		// const: Number of tokens
 } TokenType;
 
@@ -79,7 +82,9 @@ static const char *gTokenNames[T_NumTokenTypes] = {
   "T_Break", "T_Extends", "T_This", "T_Implements", "T_Interface",
   "T_New", "T_NewArray","T_Identifier", "T_StringConstant",
   "T_IntConstant", "T_DoubleConstant", "T_BoolConstant", "T_Print",
-  "T_ReadInteger", "T_ReadLine"
+  "T_ReadInteger", "T_ReadLine", "T_Unsigned", "T_Continue", "T_LeftShift",
+  "T_RightShift", "T_Increment", "T_Decrement", "T_Sizeof", "T_Typeof",
+  "T_Char", "T_Import", "T_Lambda"
 };
 
  
