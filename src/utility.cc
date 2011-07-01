@@ -112,7 +112,7 @@ int xtoi(const char *s)
 	result = 0;
 	factor = 1;
 
-	front = (s[0] == '0' && s[1] == 'x') ? 2 : 0;
+	front = (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) ? 2 : 0;
 
 	for (i = slen - 1; i >= front; i--) {
 		if (!isxdigit(*(s + i)))

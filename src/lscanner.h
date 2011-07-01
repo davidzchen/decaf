@@ -60,6 +60,10 @@ typedef enum {
     T_Continue,			// continue
     T_LeftShift,		// <<
     T_RightShift,		// >>
+    T_Increment,		// ++
+    T_Decrement,		// --
+    T_Sizeof,			// sizeof
+    T_Typeof,			// typeof
     T_NumTokenTypes		// const: Number of tokens
 } TokenType;
 

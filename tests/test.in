@@ -1,0 +1,30 @@
+#!/bin/bash
+
+TEST_NAME="@TESTNAME@"
+DCC="../src/dcc"
+CMP="diff -w"
+WC="wc -c"
+INFILE=${TEST_NAME}.@TESTEXT@
+REFFILE=${TEST_NAME}.out
+OUTFILE=${TEST_NAME}.put
+
+RETVAL=0
+
+echo "------ BEGIN test $TEST_NAME ------"
+
+$DCC < $INFILE > $OUTFILE 2>&1
+if ${CMP} $OUTFILE $REFFILE; then
+	:
+else
+	echo "Output differs from reference file"
+	RETVAL=1
+fi
+
+#if test $RETVAL = 0; then
+#	echo "SUCCESS test $TEST_NAME"
+#else
+#	echo "FAIL test $TEST_NAME"
+#fi
+echo
+
+exit $RETVAL

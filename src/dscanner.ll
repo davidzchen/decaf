@@ -11,7 +11,8 @@
  * or C++ variable declarations/prototypes that are needed by your code here.
  */
 
-#include <string.h>
+#include <cstring>
+#include <string>
 #include "dscanner.h"
 #include "utility.h" // for PrintDebug()
 #include "errors.h"
@@ -76,19 +77,22 @@ void AdvanceLocation(int c)
   * entries in the Rules section later. 
   */
 
-Z_DIGIT			[0-9]
-Z_OCTDIGIT		[0-7]
-Z_HEXDIGIT		[0-9a-fA-F]
+Z_DDIGIT		[0-9]
+Z_ODIGIT		[0-7]
+Z_XDIGIT		[0-9a-fA-F]
 Z_IDENTIFIER		[a-zA-Z][a-zA-Z0-9_]*
-Z_ONEOP			[\+\-\*/;\{\}\[\]\.%]
-Z_DINTCONSTANT		{Z_DIGIT}+
-Z_XINTCONSTANT		0[xX]{Z_HEXDIGIT}+
-Z_DOUBLECONSTANT	{Z_DIGIT}+"."{Z_DIGIT}+([eE][\+\-]?{Z_DIGIT}+)?
+Z_ONEOP			[\+\-\*/;\{\}\[\]\.%=\(\)\<\>!\,]
+Z_DINTCONSTANT		{Z_DDIGIT}+
+Z_XINTCONSTANT		0[xX]{Z_XDIGIT}+
+Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}*([eE][\+\-]?{Z_DDIGIT}+)?
 
 
 %%             /* BEGIN RULES SECTION */
  /* All patterns and actions should be placed between the start and stop
-  * %% markers which delimit the Rules section. 
+  * %% markers which delimit the Rules section.
+  *
+  * TODO: String constants. Error handling for long identifiers.
+  * Modify tests for error output. xtoi does not handle capital X
   */ 
 
 "//".*$			{}
@@ -112,6 +116,9 @@ Z_DOUBLECONSTANT	{Z_DIGIT}+"."{Z_DIGIT}+([eE][\+\-]?{Z_DIGIT}+)?
 				}	
 			}
 			}
+\"[^\n\"]*\"		{ yylval.stringConstant = new char[strlen(yytext) + 1]; 
+			  strcpy(yylval.stringConstant, yytext); 
+			  return T_StringConstant; }
 "<="			{ return T_LessEqual; }
 ">="			{ return T_GreaterEqual; }
 "=="			{ return T_Equal; }
@@ -152,8 +159,16 @@ Z_DOUBLECONSTANT	{Z_DIGIT}+"."{Z_DIGIT}+([eE][\+\-]?{Z_DIGIT}+)?
 			  return T_IntConstant; }
 {Z_DOUBLECONSTANT}	{ yylval.doubleConstant = strtod(yytext, NULL);
 			  return T_DoubleConstant; }
-{Z_IDENTIFIER}		{ strcpy(yylval.identifier, yytext);
-			  return T_Identifier; }
+{Z_IDENTIFIER}		{
+			if (strlen(yytext) > MaxIdentLen) {
+				ReportError::LongIdentifier(&yylloc, yytext);
+				strncpy(yylval.identifier, yytext, MaxIdentLen);
+				yylval.identifier[MaxIdentLen] = '\0';
+			 } else {
+			 	strcpy(yylval.identifier, yytext);
+			 }
+			 return T_Identifier; 
+			}
 [ \t\n]+		{}
 .			{ ReportError::UnrecogChar(&yylloc, *yytext); }
 %%
@@ -197,7 +212,7 @@ void InitScanner()
 static void DoBeforeEachAction()
 {
 	yylloc.first_line   = yylloc.last_line;
-	yylloc.first_column = yylloc.last_column;
+	yylloc.first_column = yylloc.last_column + 1;
 
 	if (yylloc.last_column == 0)
 		yylloc.first_column = 1;

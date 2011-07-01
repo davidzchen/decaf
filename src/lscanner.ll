@@ -76,16 +76,17 @@ void AdvanceLocation(int c)
   * entries in the Rules section later. 
   */
 
-Z_DIGIT			[0-9]
-Z_OCTDIGIT		[0-7]
-Z_HEXDIGIT		[0-9a-fA-F]
-Z_OCTDIGIT		[0-7]
+Z_DDIGIT		[0-9]
+Z_ODIGIT		[0-7]
+Z_BDIGIT		[01]
+Z_XDIGIT		[0-9a-fA-F]
 Z_IDENTIFIER		[a-zA-Z_][a-zA-Z0-9_]*
-Z_ONEOP			[\+\-\*/;\{\}\[\]\.%&^~|]
-Z_DINTCONSTANT		{Z_DIGIT}+
-Z_OINTCONSTNAT		0{Z_OCTDIGIT}+
-Z_XINTCONSTANT		0[xX]{Z_HEXDIGIT}+
-Z_DOUBLECONSTANT	{Z_DIGIT}+"."{Z_DIGIT}+([eE][\+\-]?{Z_DIGIT}+)?
+Z_ONEOP			[\+\-\*/;\{\}\[\]\.%&^~\|]
+Z_DINTCONSTANT		{Z_DDIGIT}+
+Z_OINTCONSTNAT		0{Z_ODIGIT}+
+Z_XINTCONSTANT		0[xX]{Z_XDIGIT}+
+Z_BINTCONSTANT		0{bB}{Z_BDIGIT}+
+Z_DOUBLECONSTANT	{Z_DDIGIT}+"."{Z_DDIGIT}+([eE][\+\-]?{Z_DDIGIT}+)?
 
 
 %%             /* BEGIN RULES SECTION */
@@ -121,6 +122,8 @@ Z_DOUBLECONSTANT	{Z_DIGIT}+"."{Z_DIGIT}+([eE][\+\-]?{Z_DIGIT}+)?
 "&&"			{ return T_And; }
 "||"			{ return T_Or; }
 "[]"			{ return T_Dims; }
+"<<"			{ return T_LeftShift; }
+">>"			{ return T_RightShift; }
 {Z_ONEOP}		{ return yytext[0]; }
 "void"			{ return T_Void; }
 "int"			{ return T_Int; }
@@ -135,6 +138,7 @@ Z_DOUBLECONSTANT	{Z_DIGIT}+"."{Z_DIGIT}+([eE][\+\-]?{Z_DIGIT}+)?
 "else"			{ return T_Else; }
 "return"		{ return T_Return; }
 "break"			{ return T_Break; }
+"continue"		{ return T_Continue; }
 "extends"		{ return T_Extends; }
 "this"			{ return T_This; }
 "implements"		{ return T_Implements; }
