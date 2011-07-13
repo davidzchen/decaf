@@ -1,0 +1,59 @@
+AM_CXXFLAGS = -g -Wno-unused -Wno-sign-compare
+AM_YFLAGS = -dvty
+AM_LFLAGS = -d
+
+CLEANFILES = dscanner.cc \
+	     lscanner.cc \
+	     dparser_tab.cc \
+	     dparser_tab.h \
+	     dparser_tab.output \
+	     lparser_tab.cc \
+	     lparser_tab.h \
+	     lparser_tab.output \
+	     calc_tab.cc \
+	     calc_scan.cc \
+	     calc_tab.h \
+	     calc_tab.output
+
+include_HEADERS = ast.h \
+		  ast_decl.h \
+		  ast_expr.h \
+		  ast_stmt.h \
+		  ast_type.h \
+		  list.h \
+		  location.h \
+		  errors.h \
+		  dparser.h \
+		  lparser.h \
+		  scanner.h \
+		  utility.h \
+		  calc.h
+
+bin_PROGRAMS = dcc lcc calc
+
+dcc_SOURCES = ast.cc \
+	      ast_decl.cc \
+	      ast_expr.cc \
+	      ast_stmt.cc \
+	      ast_type.cc \
+	      utility.cc \
+	      errors.cc \
+	      dparser_tab.yy \
+	      dscanner.ll \
+	      dcc.cc
+dcc_LDADD = -lc -lm -ll
+
+lcc_SOURCES = ast.cc \
+	      ast_decl.cc \
+	      ast_expr.cc \
+	      ast_stmt.cc \
+	      ast_type.cc \
+	      utility.cc \
+	      errors.cc \
+	      lparser_tab.yy \
+	      lscanner.ll \
+	      lcc.cc
+lcc_LDADD = -lc -lm -ll
+
+calc_SOURCES = calc_tab.yy calc_scan.ll
+calc_LDADD = -lc -lm -ll
