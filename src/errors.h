@@ -61,4 +61,6 @@ class ReportError {
   static void OutputError(yyltype *loc, string msg);
   static int numErrors;
 };
+
+extern const char *GetLineNumbered(int n);
 #endif

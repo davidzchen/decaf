@@ -15,10 +15,10 @@
  * position information about each lexeme scanned.
  */
 typedef struct yyltype {
-    int timestamp;                 // you can ignore this field
-    int first_line, first_column;
-    int last_line, last_column;      
-    char *text;                    // you can also ignore this field
+  int timestamp;                 // you can ignore this field
+  int first_line, first_column;
+  int last_line, last_column;      
+  char *text;                    // you can also ignore this field
 } yyltype;
 
 #define YYLTYPE yyltype

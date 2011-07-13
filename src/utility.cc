@@ -60,7 +60,7 @@ void PrintDebug(const char *key, const char *format, ...)
   char buf[BufferSize];
 
   if (!IsDebugOn(key))
-     return;
+    return;
   
   va_start(args, format);
   vsprintf(buf, format, args);
@@ -73,13 +73,15 @@ void ParseCommandLine(int argc, char *argv[])
   if (argc == 1)
     return;
   
-  if (strcmp(argv[1], "-d") != 0) { // first arg is not -d
-    printf("Incorrect Use:   ");
-    for (int i = 1; i < argc; i++) printf("%s ", argv[i]);
-    printf("\n");
-    printf("Correct Usage:   -d <debug-key-1> <debug-key-2> ... \n");
-    exit(2);
-  }
+  if (strcmp(argv[1], "-d") != 0) 
+    { // first arg is not -d
+      printf("Incorrect Use:   ");
+      for (int i = 1; i < argc; i++) 
+	printf("%s ", argv[i]);
+      printf("\n");
+      printf("Correct Usage:   -d <debug-key-1> <debug-key-2> ... \n");
+      exit(2);
+    }
 
   for (int i = 2; i < argc; i++)
     SetDebugForKey(argv[i], true);
@@ -89,51 +91,60 @@ void ParseCommandLine(int argc, char *argv[])
 
 int xtoi(const char *s)
 {
-	long int n = strtol(s, NULL, 16);
+  long int n = strtol(s, NULL, 16);
 
-	if (n == LONG_MAX || n >= INT32_MAX) {
-		return INT32_MAX;
-	} else if (n == LONG_MIN || n <= INT32_MIN) {
-		return INT32_MIN;
-	}
+  if (n == LONG_MAX || n >= INT32_MAX) 
+    {
+      return INT32_MAX;
+    } 
+  else if (n == LONG_MIN || n <= INT32_MIN) 
+    {
+      return INT32_MIN;
+    }
 
-	return (int) n;
+  return (int) n;
 }
 
 #else
 
 int xtoi(const char *s)
 {
-	size_t slen = strlen(s);
-	int32_t factor, n, i, front;
-	long int result;
+  size_t slen = strlen(s);
+  int32_t factor, n, i, front;
+  long int result;
+  
+  if (slen <= 0)
+    return 0;
 
-	if (slen <= 0)
-		return 0;
+  result = 0;
+  factor = 1;
+  
+  front = (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) ? 2 : 0;
 
-	result = 0;
-	factor = 1;
+  for (i = slen - 1; i >= front; i--) 
+    {
+      if (!isxdigit(*(s + i)))
+	return 0;
 
-	front = (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) ? 2 : 0;
-
-	for (i = slen - 1; i >= front; i--) {
-		if (!isxdigit(*(s + i)))
-			return 0;
-
-		if (*(s + i) >= 97) {
-			n = (*(s + i) - 97) + 10;
-		} else if (*(s + i) >= 65) {
-			n = (*(s + i) - 65) + 10;
-		} else {
-			n = *(s + i) - 48;
-		}
-
-		if ((result = result + (n * factor)) >= INT32_MAX)
-			return INT32_MAX;
-		factor *= 16;
+      if (*(s + i) >= 97) 
+	{
+	  n = (*(s + i) - 97) + 10;
+	} 
+      else if (*(s + i) >= 65) 
+	{
+	  n = (*(s + i) - 65) + 10;
+	} 
+      else 
+	{
+	  n = *(s + i) - 48;
 	}
 
-	return (int) result;
+      if ((result = result + (n * factor)) >= INT32_MAX)
+	return INT32_MAX;
+      factor *= 16;
+    }
+
+  return (int) result;
 }
 
 #endif

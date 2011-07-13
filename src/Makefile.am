@@ -1,19 +1,16 @@
 AM_CXXFLAGS = -g -Wno-unused -Wno-sign-compare
-AM_YFLAGS = -dvty
-AM_LFLAGS = -d
 
-CLEANFILES = dscanner.cc lscanner.cc
+lib_LTLIBRARIES = libtiramisu.la
+libtiramisu_la_SOURCES = \
+	errors.cc \
+	utility.cc
 
-include_HEADERS = location.h \
-		  errors.h \
-		  dscanner.h \
-		  lscanner.h \
-		  utility.h
+# libtiramisu_la_LIBADD = 
 
-bin_PROGRAMS = dcc lcc
+include_HEADERS = \
+	errors.h \
+	list.h \
+	location.h \
+	utility.h
 
-dcc_SOURCES = utility.cc errors.cc dscanner.ll dcc.cc
-dcc_LDADD = -lc -lm -ll
 
-lcc_SOURCES = utility.cc errors.cc lscanner.ll lcc.cc
-lcc_LDADD = -lc -lm -ll

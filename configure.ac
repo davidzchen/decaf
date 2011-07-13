@@ -1,6 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
+AC_PREREQ([2.67])
 AC_INIT([dcc], [0.1], [dzchen@stanford.edu])
 AC_CONFIG_SRCDIR([src/errors.cc])
 AC_CONFIG_HEADERS([config.h])
@@ -12,6 +13,8 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Checks for programs.
 AC_PROG_YACC
+#AC_PROG_CXX([clang++ g++])
+#AC_PROG_CC([clang gcc cc])
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LEX
@@ -21,7 +24,7 @@ AC_PROG_LIBTOOL
 AC_CHECK_LIB([m], [log])
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdlib.h string.h])
+AC_CHECK_HEADERS([stdlib.h string.h stddef.h getopt.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -33,8 +36,13 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([strtol])
+AC_CHECK_FUNCS([strdup])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-		 tests/Makefile])
+		 src/decaf/Makefile
+		 src/latte/Makefile
+		 tests/Makefile
+		 tests/scanner/Makefile
+		 tests/parse/Makefile])
 AC_OUTPUT
