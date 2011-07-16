@@ -70,11 +70,18 @@ void yyerror(const char *msg); // standard error-handling routine
 
 %nonassoc NOELSE
 %nonassoc T_Else
+%left T_Equal
+%left T_NotEqual
+%left '<'
+%left '>'
+%left T_LessEqual
+%left T_GreaterEqual
 %left '-'
 %left '+'
 %left '%'
 %left '/'
 %left '*'
+
 
 
 /* Non-terminal types
@@ -207,17 +214,18 @@ StmtList
 	;
 	
 Stmt
-	: Expr ';'		{}
+	: ExprStmt		{}
 	| WhileStmt		{}
 	| ReturnStmt		{}
 	| BreakStmt		{}
 	| PrintStmt		{}
 	| ForStmt		{}
 	| IfStmt		{}
+	| StmtBlock		{}
 	;
 	
 WhileStmt
-	: T_While '(' LogicalExpr ')' Stmt {}
+	: T_While '(' BinaryExpr ')' Stmt {}
 	;
 
 BreakStmt
@@ -235,7 +243,7 @@ ReturnStmt
 	
 ForStmt
 	: T_For '(' ExprStmt ExprStmt ')' Stmt {}
-	| T_For '(' ExprStmt ExprStmt Expr ')' Stmt {}
+	| T_For '(' ExprStmt ExprStmt PrimaryExpr ')' Stmt {}
 	;
 	
 ExprStmt
@@ -244,8 +252,8 @@ ExprStmt
 	;
 
 IfStmt
-	: T_If '(' LogicalExpr ')' Stmt %prec NOELSE {}
-	| T_If '(' LogicalExpr ')' Stmt T_Else Stmt {}
+	: T_If '(' BinaryExpr ')' Stmt %prec NOELSE {}
+	| T_If '(' BinaryExpr ')' Stmt T_Else Stmt {}
 	;
 	
 Expr
@@ -264,7 +272,7 @@ PrimaryExpr
 	;
 
 AssignExpr
-	: LogicalExpr		{}
+	: BinaryExpr		{}
 	| ReadIntegerExpr	{}
 	| ReadLineExpr		{}
 	| NewExpr		{}
@@ -285,41 +293,29 @@ NewExpr
 	;
 	
 NewArrayExpr
-	: T_NewArray '(' LogicalExpr ',' Type ')' {}
+	: T_NewArray '(' BinaryExpr ',' Type ')' {}
 	;
 	
-	
-LogicalExpr
-	: EqualityExpr		{}
-	| LogicalExpr T_Or EqualityExpr {}
-	| LogicalExpr T_And EqualityExpr {}
-	;
-
-EqualityExpr
-	: RelationalExpr	{}
-	| EqualityExpr T_Equal RelationalExpr {}
-	| EqualityExpr T_NotEqual RelationalExpr {}
-	;
-	
-RelationalExpr
-	: ArithmeticExpr	{}
-	| RelationalExpr '<' ArithmeticExpr {}
-	| RelationalExpr '>' ArithmeticExpr {}
-	| RelationalExpr T_GreaterEqual ArithmeticExpr {}
-	| RelationalExpr T_LessEqual ArithmeticExpr {}
-	;
-	
-ArithmeticExpr
+BinaryExpr
 	: UnaryExpr		{}
-	| ArithmeticExpr '+' UnaryExpr {}
-	| ArithmeticExpr '-' UnaryExpr {}
-	| ArithmeticExpr '*' UnaryExpr {}
-	| ArithmeticExpr '/' UnaryExpr {}
-	| ArithmeticExpr '%' UnaryExpr {}
+	| BinaryExpr T_Or UnaryExpr {}
+	| BinaryExpr T_And UnaryExpr {}
+	| BinaryExpr '<' UnaryExpr {}
+	| BinaryExpr '>' UnaryExpr {}
+	| BinaryExpr T_GreaterEqual UnaryExpr {}
+	| BinaryExpr T_LessEqual UnaryExpr {}
+	| BinaryExpr T_Equal UnaryExpr {}
+	| BinaryExpr T_NotEqual UnaryExpr {}
+	| BinaryExpr '+' UnaryExpr {}
+	| BinaryExpr '-' UnaryExpr {}
+	| BinaryExpr '*' UnaryExpr {}
+	| BinaryExpr '/' UnaryExpr {}
+	| BinaryExpr '%' UnaryExpr {}
 	;
 	
 UnaryExpr
-	: Expr			{}
+	: LValue		{}
+	| Constant		{}
 	| '-' UnaryExpr		{}
 	| '!' UnaryExpr		{}
 	;
