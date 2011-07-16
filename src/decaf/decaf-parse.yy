@@ -55,17 +55,26 @@ void yyerror(const char *msg); // standard error-handling routine
  * Bison will assign unique numbers to these and export the #define
  * in the generated y.tab.h header file.
  */
-%token   T_Void T_Bool T_Int T_Double T_String T_Class 
-%token   T_LessEqual T_GreaterEqual T_Equal T_NotEqual T_Dims
-%token   T_And T_Or T_Null T_Extends T_This T_Interface T_Implements
-%token   T_While T_For T_If T_Else T_Return T_Break
-%token   T_New T_NewArray T_Print T_ReadInteger T_ReadLine
+ 
+%token T_Void T_Bool T_Int T_Double T_String T_Class 
+%token T_LessEqual T_GreaterEqual T_Equal T_NotEqual T_Dims
+%token T_And T_Or T_Null T_Extends T_This T_Interface T_Implements
+%token T_While T_For T_If T_Else T_Return T_Break
+%token T_New T_NewArray T_Print T_ReadInteger T_ReadLine
 
-%token   <identifier> T_Identifier
-%token   <stringConstant> T_StringConstant 
-%token   <integerConstant> T_IntConstant
-%token   <doubleConstant> T_DoubleConstant
-%token   <boolConstant> T_BoolConstant
+%token <identifier> T_Identifier
+%token <stringConstant> T_StringConstant 
+%token <integerConstant> T_IntConstant
+%token <doubleConstant> T_DoubleConstant
+%token <boolConstant> T_BoolConstant
+
+%nonassoc NOELSE
+%nonassoc T_Else
+%left '-'
+%left '+'
+%left '%'
+%left '/'
+%left '*'
 
 
 /* Non-terminal types
@@ -82,6 +91,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <declList>  DeclList 
 %type <decl>      Decl
 
+
 %%
 /* Rules
  * -----
@@ -89,31 +99,247 @@ void yyerror(const char *msg); // standard error-handling routine
  * %% markers which delimit the Rules section.
 	 
  */
-Program   :    DeclList            {  printf("Program\n");
-                                      @1; 
-                                      /* pp2: The @1 is needed to convince 
-                                       * yacc to set up yylloc. You can remove 
-                                       * it once you have other uses of @n*/
-                                      Program *program = new Program($1);
-                                      // if no errors, advance to next phase
-                                      if (ReportError::NumErrors() == 0) 
-                                          program->Print(0);
-                                    }
-          ;
+Program   
+	: DeclList		{
+				  @1;
+				  /* pp2: The @1 is needed to convince 
+				   * yacc to set up yylloc. You can remove 
+				   * it once you have other uses of @n*/
+				  Program *program = new Program($1);
+				  // if no errors, advance to next phase
+				  if (ReportError::NumErrors() == 0) 
+					program->Print(0);
+                        	}
+	;
 
-DeclList  :    DeclList Decl        { printf("DeclList Decl\n");
-	  			      ($$=$1)->Append($2); 
-				    }
-          |    Decl                 { printf("Decl\n");
-	  			      ($$ = new List<Decl*>)->Append($1); }
-          ;
+DeclList  
+	: DeclList Decl		{ ($$ = $1)->Append($2); }
+	| Decl			{ ($$ = new List<Decl*>)->Append($1); }
+	;
 
-Decl      :    T_Void               { printf("Decl T_Void\n"); 
-	  			      /* pp2: replace with correct rules  */ 
-				    } 
-          ;
-          
+Decl      
+	: VarDecl		{ /*$$ = new VarDecl*/ }
+	| ClassDecl		{}
+	| InterfaceDecl		{}
+	| FnDecl		{}
+	;
 
+VarDecl   
+	: Variable ';'		{ /*$$ = $1;*/ }
+	;
+
+Variable  
+	: Type T_Identifier	{ /*$$ = new VarDecl($2, $1);*/ }
+	;
+
+Type      
+	: T_Void		{ /*$$ = Type::voidType;*/ }
+	| T_Bool		{ /*$$ = Type::boolType;*/ }
+	| T_Int			{ /*$$ = Type::intType;*/ }
+	| T_Double		{ /*$$ = Type::doubleType;*/ }
+	| T_String		{ /*$$ = Type::stringType;*/ }
+	| T_Identifier		{ /*$$ = new NamedType($1);*/ }
+	| Type T_Dims		{ /*$$ = new ArrayType(yylloc, $1);*/ }
+	;
+
+ClassDecl 
+	: T_Class T_Identifier ClassExtends ClassImplements '{' FieldList '}' {}
+	;
+
+ClassExtends
+	: T_Extends T_Identifier {}
+	| /* empty */
+	;
+	
+ClassImplements
+	: T_Implements IdentifierList {}
+	| /* empty */
+	;
+
+InterfaceDecl
+	: T_Interface T_Identifier '{' PrototypeList '}' {}
+	;
+	
+FnDecl
+	: FnDef	StmtBlock	{}
+	;
+	
+FieldList
+	: FieldList VarDecl	{}
+	| FieldList Prototype	{}
+	| /* empty */
+	;
+
+FormalsList
+	: Variable 		{}
+	| FormalsList ',' Variable {}
+	| /* empty */
+	;
+
+Prototype     
+	: FnDef ';' {}
+	;
+
+FnDef
+	: Type T_Identifier '(' FormalsList ')' {}
+	;
+
+PrototypeList
+	: PrototypeList Prototype {}
+	| Prototype		{}
+	;
+
+IdentifierList
+	: IdentifierList T_Identifier {}
+	| T_Identifier		{}
+	;
+
+StmtBlock
+	: '{' StmtList '}'	{}
+	| '{' '}'		{}
+	;
+
+StmtList
+	: StmtList VarDecl	{}
+	| StmtList Stmt		{}
+	| Stmt			{}
+	| VarDecl		{}
+	;
+	
+Stmt
+	: Expr ';'		{}
+	| WhileStmt		{}
+	| ReturnStmt		{}
+	| BreakStmt		{}
+	| PrintStmt		{}
+	| ForStmt		{}
+	| IfStmt		{}
+	;
+	
+WhileStmt
+	: T_While '(' LogicalExpr ')' Stmt {}
+	;
+
+BreakStmt
+	: T_Break ';'		{}
+	;
+	
+PrintStmt
+	: T_Print '(' ExprList ')' ';' {}
+	;
+	
+ReturnStmt
+	: T_Return ';'		{}
+	| T_Return AssignExpr ';' {}
+	;
+	
+ForStmt
+	: T_For '(' ExprStmt ExprStmt ')' Stmt {}
+	| T_For '(' ExprStmt ExprStmt Expr ')' Stmt {}
+	;
+	
+ExprStmt
+	: PrimaryExpr ';'	{}
+	| ';'			{}
+	;
+
+IfStmt
+	: T_If '(' LogicalExpr ')' Stmt %prec NOELSE {}
+	| T_If '(' LogicalExpr ')' Stmt T_Else Stmt {}
+	;
+	
+Expr
+	: Constant		{}
+	| '(' PrimaryExpr ')'	{}
+	;
+
+ExprList
+	: Expr			{}
+	| ExprList ',' Expr	{}
+	;
+
+PrimaryExpr
+	: AssignExpr		{}
+	| PrimaryExpr ',' AssignExpr {}
+	;
+
+AssignExpr
+	: LogicalExpr		{}
+	| ReadIntegerExpr	{}
+	| ReadLineExpr		{}
+	| NewExpr		{}
+	| NewArrayExpr		{}
+	| LValue '=' AssignExpr {}
+	;
+	
+ReadIntegerExpr
+	: T_ReadInteger '(' ')'	{}
+	;
+	
+ReadLineExpr
+	: T_ReadLine '(' ')'	{}
+	;
+	
+NewExpr
+	: T_New T_Identifier	{}
+	;
+	
+NewArrayExpr
+	: T_NewArray '(' LogicalExpr ',' Type ')' {}
+	;
+	
+	
+LogicalExpr
+	: EqualityExpr		{}
+	| LogicalExpr T_Or EqualityExpr {}
+	| LogicalExpr T_And EqualityExpr {}
+	;
+
+EqualityExpr
+	: RelationalExpr	{}
+	| EqualityExpr T_Equal RelationalExpr {}
+	| EqualityExpr T_NotEqual RelationalExpr {}
+	;
+	
+RelationalExpr
+	: ArithmeticExpr	{}
+	| RelationalExpr '<' ArithmeticExpr {}
+	| RelationalExpr '>' ArithmeticExpr {}
+	| RelationalExpr T_GreaterEqual ArithmeticExpr {}
+	| RelationalExpr T_LessEqual ArithmeticExpr {}
+	;
+	
+ArithmeticExpr
+	: UnaryExpr		{}
+	| ArithmeticExpr '+' UnaryExpr {}
+	| ArithmeticExpr '-' UnaryExpr {}
+	| ArithmeticExpr '*' UnaryExpr {}
+	| ArithmeticExpr '/' UnaryExpr {}
+	| ArithmeticExpr '%' UnaryExpr {}
+	;
+	
+UnaryExpr
+	: Expr			{}
+	| '-' UnaryExpr		{}
+	| '!' UnaryExpr		{}
+	;
+	
+LValue
+	: T_Identifier		{}
+	| T_This		{}
+	| LValue '[' PrimaryExpr ']' {}
+	| LValue '(' ')'	{}
+	| LValue '(' ExprList ')' {}
+	| LValue '.' T_Identifier {}
+	;
+	
+Constant
+	: T_IntConstant		{}
+	| T_DoubleConstant	{}
+	| T_BoolConstant	{}
+	| T_StringConstant	{}
+	| T_Null		{}
+	;
 
 %%
 

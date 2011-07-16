@@ -10,6 +10,9 @@ test:
 clean-local:
 	cd tests && $(MAKE) clean
 
+check-local:
+	cd tests && $(MAKE) check
+
 check-scanner:
 	cd tests && $(MAKE) check-scanner
 

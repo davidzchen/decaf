@@ -28,18 +28,18 @@ public:
  * We could use a NULL pointer, but then it adds a lot of checking for
  * NULL. By using a valid, but no-op, node, we save that trouble */
 class EmptyExpr : public Expr {
-public:
-	const char *GetPrintNameForNode() { return "Empty"; }
+  public:
+    const char *GetPrintNameForNode() { return "Empty"; }
 };
 
 class IntConstant : public Expr  {
-protected:
-	int value;
+  protected:
+    int value;
   
-public:
-	IntConstant(yyltype loc, int val);
-	const char *GetPrintNameForNode() { return "IntConstant"; }
-	void PrintChildren(int indentLevel);
+  public:
+    IntConstant(yyltype loc, int val);
+    const char *GetPrintNameForNode() { return "IntConstant"; }
+    void PrintChildren(int indentLevel);
 };
 
 class DoubleConstant : public Expr  {

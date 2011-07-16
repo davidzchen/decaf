@@ -18,11 +18,11 @@ class Identifier;
 class Stmt;
 
 class Decl : public Node {
-protected:
-	Identifier *id;
-  
-public:
-	Decl(Identifier *name);
+  protected:
+    Identifier *id;
+
+  public:
+    Decl(Identifier *name);
 };
 
 class VarDecl : public Decl {

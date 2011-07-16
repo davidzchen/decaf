@@ -1,0 +1,8 @@
+int foo(int i, foo j)
+{
+	int i;
+	(i = 1);
+	for (i = 1; i < 12; i = i + 1) {
+		i = 0;
+	}
+}
