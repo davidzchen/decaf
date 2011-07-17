@@ -39,13 +39,33 @@ void yyerror(const char *msg); // standard error-handling routine
  *      attributes to your non-terminal symbols.
  */
 %union {
-    int integerConstant;
-    bool boolConstant;
-    char *stringConstant;
-    double doubleConstant;
-    char identifier[MaxIdentLen+1]; // +1 for terminating null
-    Decl *decl;
-    List<Decl*> *declList;
+    int              integerConstant;
+    bool             boolConstant;
+    char             *stringConstant;
+    double           doubleConstant;
+    char             identifier[MaxIdentLen+1];
+    Decl             *decl;
+    List<Decl*>      *declList;
+    VarDecl          *varDecl;
+    ClassDecl        *classDecl;
+    InterfaceDecl    *interfaceDecl;
+    FnDecl           *fnDecl;
+    Type             *type;
+    NamedType        *namedType;
+    ArrayType        *arrayType;
+    List<NamedType*> *implementsTypeList;
+    List<VarDecl*>   *varDeclList;
+    StmtBlock        *stmtBlock;
+    List<Stmt*>      *stmtList;
+    Stmt             *stmt;
+    WhileStmt        *whileStmt;
+    ReturnStmt       *returnStmt;
+    PrintStmt        *printStmt;
+    BreakStmt        *breakStmt;
+    ForStmt          *forStmt;
+    IfStmt           *ifStmt;
+    Expr             *expr;
+    List<Expr*>      *exprList;
 }
 
 
@@ -95,9 +115,28 @@ void yyerror(const char *msg); // standard error-handling routine
  * of the union named "declList" which is of type List<Decl*>.
  * pp2: You'll need to add many of these of your own.
  */
-%type <declList>  DeclList 
-%type <decl>      Decl
-
+ 
+%type <declList>        DeclList FieldList PrototypeList
+%type <decl>            Decl
+%type <type>            Type
+%type <varDecl>         VarDecl Variable
+%type <classDecl>       ClassDecl
+%type <interfaceDecl>   InterfaceDecl
+%type <fnDecl>          FnDecl Prototype FnDef
+%type <namedType>       ClassExtends
+%type <implementsTypeList> ImplementsTypeList ClassImplements
+%type <varDeclList>     FormalsList VarDeclList
+%type <stmtBlock>       StmtBlock
+%type <stmtList>        StmtList
+%type <stmt>            Stmt
+%type <whileStmt>       WhileStmt
+%type <returnStmt>      ReturnStmt
+%type <printStmt>       PrintStmt
+%type <breakStmt>       BreakStmt
+%type <forStmt>         ForStmt
+%type <ifStmt>          IfStmt
+%type <expr>            Expr ExprStmt
+%type <exprList>        ExprList
 
 %%
 /* Rules
@@ -125,150 +164,205 @@ DeclList
 	;
 
 Decl      
-	: VarDecl		{ /*$$ = new VarDecl*/ }
-	| ClassDecl		{}
-	| InterfaceDecl		{}
-	| FnDecl		{}
+	: VarDecl		{ $$ = $1; }
+	| ClassDecl		{ $$ = $1; }
+	| InterfaceDecl		{ $$ = $1; }
+	| FnDecl		{ $$ = $1; }
 	;
 
 VarDecl   
-	: Variable ';'		{ /*$$ = $1;*/ }
+	: Variable ';'		{ $$ = $1; }
 	;
 
-Variable  
-	: Type T_Identifier	{ /*$$ = new VarDecl($2, $1);*/ }
+Variable
+	: Type T_Identifier	{
+	                          Identifier *i = new Identifier(@2, $2);
+	                          $$ = new VarDecl(i, $1); 
+	                        }
 	;
 
 Type      
-	: T_Void		{ /*$$ = Type::voidType;*/ }
-	| T_Bool		{ /*$$ = Type::boolType;*/ }
-	| T_Int			{ /*$$ = Type::intType;*/ }
-	| T_Double		{ /*$$ = Type::doubleType;*/ }
-	| T_String		{ /*$$ = Type::stringType;*/ }
-	| T_Identifier		{ /*$$ = new NamedType($1);*/ }
-	| Type T_Dims		{ /*$$ = new ArrayType(yylloc, $1);*/ }
+	: T_Void		{ $$ = Type::voidType; }
+	| T_Bool		{ $$ = Type::boolType; }
+	| T_Int			{ $$ = Type::intType; }
+	| T_Double		{ $$ = Type::doubleType; }
+	| T_String		{ $$ = Type::stringType; }
+	| T_Identifier		{ 
+				  Identifier *i = new Identifier(@1, $1);
+				  $$ = new NamedType(i); 
+				}
+	| Type T_Dims		{ $$ = new ArrayType(@1, $1); }
 	;
 
 ClassDecl 
-	: T_Class T_Identifier ClassExtends ClassImplements '{' FieldList '}' {}
+	: T_Class T_Identifier ClassExtends ClassImplements '{' FieldList '}' {
+				  Identifier *i = new Identifier(@2, $2);
+				  $$ = new ClassDecl(i, $3, $4, $6);
+				}
+	| T_Class T_Identifier ClassExtends ClassImplements '{' '}' {
+				  Identifier *i = new Identifier(@2, $2);
+				  $$ = new ClassDecl(i, $3, $4, new List<Decl*>);
+				}
 	;
 
 ClassExtends
-	: T_Extends T_Identifier {}
-	| /* empty */
+	: T_Extends T_Identifier { 
+				  Identifier *i = new Identifier(@2, $2);
+				  $$ = new NamedType(i); 
+				}
+	| /* empty */		{ $$ = NULL; }
 	;
 	
 ClassImplements
-	: T_Implements IdentifierList {}
-	| /* empty */
+	: T_Implements ImplementsTypeList { 
+				  $$ = $2; 
+				}
+	| /* empty */		{ $$ = new List<NamedType*>; }
+	;
+	
+ImplementsTypeList
+	: ImplementsTypeList T_Identifier { 
+				  Identifier *i = new Identifier(@2, $2);
+				  NamedType *t = new NamedType(i);
+				  ($$ = $1)->Append(t); 
+				}
+	| T_Identifier		{ 
+				  Identifier *i = new Identifier(@1, $1);
+				  NamedType *t = new NamedType(i);
+				  ($$ = new List<NamedType*>)->Append(t); 
+				}
 	;
 
 InterfaceDecl
-	: T_Interface T_Identifier '{' PrototypeList '}' {}
+	: T_Interface T_Identifier '{' PrototypeList '}' {
+				  Identifier *i = new Identifier(@2, $2);
+				  $$ = new InterfaceDecl(i, $4);
+				}
 	;
 	
 FnDecl
-	: FnDef	StmtBlock	{}
+	: FnDef	StmtBlock	{ 
+				  FnDecl *f = $1;
+				  f->SetFunctionBody($2);
+				}
 	;
 	
 FieldList
-	: FieldList VarDecl	{}
-	| FieldList Prototype	{}
-	| /* empty */
+	: FieldList VarDecl	{ ($$ = $1)->Append($2); }
+	| FieldList FnDecl	{ ($$ = $1)->Append($2); }
+	| VarDecl		{ ($$ = new List<Decl*>)->Append($1); }
+	| FnDecl		{ ($$ = new List<Decl*>)->Append($1); }
 	;
 
 FormalsList
-	: Variable 		{}
-	| FormalsList ',' Variable {}
-	| /* empty */
+	: Variable 		{ ($$ = new List<VarDecl*>)->Append($1); }
+	| FormalsList ',' Variable {
+				  ($$ = $1)->Append($3);
+				}
 	;
 
 Prototype     
-	: FnDef ';' {}
+	: FnDef ';' 		{ $$ = $1; }
 	;
 
 FnDef
-	: Type T_Identifier '(' FormalsList ')' {}
+	: Type T_Identifier '(' FormalsList ')' {
+				  Identifier *i = new Identifier(@2, $2);
+				  $$ = new FnDecl(i, $1, $4);
+				}
+	| Type T_Identifier '(' ')' {
+				  Identifier *i = new Identifier(@2, $2);
+				  $$ = new FnDecl(i, $1, new List<VarDecl*>);
+				}
 	;
 
 PrototypeList
-	: PrototypeList Prototype {}
-	| Prototype		{}
-	;
-
-IdentifierList
-	: IdentifierList T_Identifier {}
-	| T_Identifier		{}
+	: PrototypeList Prototype {
+				  ($$ = $1)->Append($2);
+				}
+	| Prototype		{ ($$ = new List<Decl*>)->Append($1); }
 	;
 
 StmtBlock
-	: '{' StmtList '}'	{}
-	| '{' '}'		{}
+	: '{' VarDeclList StmtList '}'	{
+				  $$ = new StmtBlock($2, $3);
+				}
+	| '{' '}'		{ 
+				  $$ = new StmtBlock(new List<VarDecl*>,
+				  		     new List<Stmt*>);
+				}
 	;
 
 StmtList
-	: StmtList VarDecl	{}
-	| StmtList Stmt		{}
-	| Stmt			{}
-	| VarDecl		{}
+	: StmtList Stmt		{ ($$ = $1)->Append($2); }
+	| Stmt			{ ($$ = new List<Stmt*>)->Append($1); }
 	;
-	
+
+VarDeclList
+	: VarDeclList VarDecl	{ ($$ = $1)->Append($2); }
+	| VarDecl		{ ($$ = new List<VarDecl*>)->Append($1); }
+	;
+
 Stmt
-	: ExprStmt		{}
-	| WhileStmt		{}
-	| ReturnStmt		{}
-	| BreakStmt		{}
-	| PrintStmt		{}
-	| ForStmt		{}
-	| IfStmt		{}
-	| StmtBlock		{}
+	: ExprStmt		{ $$ = $1; }
+	| WhileStmt		{ $$ = $1; }
+	| ReturnStmt		{ $$ = $1; }
+	| BreakStmt		{ $$ = $1; }
+	| PrintStmt		{ $$ = $1; }
+	| ForStmt		{ $$ = $1; }
+	| IfStmt		{ $$ = $1; }
+	| StmtBlock		{ $$ = $1; }
 	;
 	
 WhileStmt
-	: T_While '(' BinaryExpr ')' Stmt {}
+	: T_While '(' Expr ')' Stmt {
+				  $$ = new WhileStmt($3, $5);
+				}
 	;
 
 BreakStmt
-	: T_Break ';'		{}
+	: T_Break ';'		{ $$ = new BreakStmt(@1); }
 	;
-	
+
 PrintStmt
-	: T_Print '(' ExprList ')' ';' {}
+	: T_Print '(' ExprList ')' ';' {
+				  $$ = new PrintStmt($3);
+				}
 	;
 	
 ReturnStmt
-	: T_Return ';'		{}
-	| T_Return AssignExpr ';' {}
+	: T_Return ';'		{ $$ = new ReturnStmt(@1, new EmptyExpr); }
+	| T_Return Expr ';' {
+				  $$ = new ReturnStmt(@1, $2);
+				}
 	;
 	
 ForStmt
-	: T_For '(' ExprStmt ExprStmt ')' Stmt {}
-	| T_For '(' ExprStmt ExprStmt PrimaryExpr ')' Stmt {}
+	: T_For '(' ExprStmt ExprStmt ')' Stmt {
+				  $$ = new ForStmt($3, $4, new EmptyExpr, $6);
+				}
+	| T_For '(' ExprStmt ExprStmt Expr ')' Stmt {
+				  $$ = new ForStmt($3, $4, $5, $7);
+				}
 	;
 	
 ExprStmt
-	: PrimaryExpr ';'	{}
-	| ';'			{}
+	: Expr ';'              { $$ = $1; }
+	| ';'			{ $$ = new EmptyExpr; }
 	;
 
 IfStmt
-	: T_If '(' BinaryExpr ')' Stmt %prec NOELSE {}
-	| T_If '(' BinaryExpr ')' Stmt T_Else Stmt {}
-	;
-	
-Expr
-	: Constant		{}
-	| '(' PrimaryExpr ')'	{}
+	: T_If '(' UnaryExpr ')' Stmt %prec NOELSE {}
+	| T_If '(' UnaryExpr ')' Stmt T_Else Stmt {}
 	;
 
 ExprList
-	: Expr			{}
-	| ExprList ',' Expr	{}
+	: ExprList ',' Expr	{ ($$ = $1)->Append($3); }
+	| Expr			{ ($$ = new List<Expr*>)->Append($1); }
 	;
-
-PrimaryExpr
-	: AssignExpr		{}
-	| PrimaryExpr ',' AssignExpr {}
+	
+Expr
+	: AssignExpr            {} 
 	;
 
 AssignExpr
@@ -277,9 +371,9 @@ AssignExpr
 	| ReadLineExpr		{}
 	| NewExpr		{}
 	| NewArrayExpr		{}
-	| LValue '=' AssignExpr {}
+	| LValue '=' AssignExpr	{}
 	;
-	
+
 ReadIntegerExpr
 	: T_ReadInteger '(' ')'	{}
 	;
@@ -315,20 +409,25 @@ BinaryExpr
 	
 UnaryExpr
 	: LValue		{}
-	| Constant		{}
 	| '-' UnaryExpr		{}
 	| '!' UnaryExpr		{}
 	;
 	
 LValue
-	: T_Identifier		{}
-	| T_This		{}
-	| LValue '[' PrimaryExpr ']' {}
+	: PrimaryExpr		{}
+	| LValue '[' Expr ']'	{}
 	| LValue '(' ')'	{}
 	| LValue '(' ExprList ')' {}
 	| LValue '.' T_Identifier {}
 	;
-	
+
+PrimaryExpr
+	: T_Identifier		{}
+	| T_This		{}
+	| Constant		{}
+	| '(' Expr ')'		{}
+	;
+
 Constant
 	: T_IntConstant		{}
 	| T_DoubleConstant	{}
@@ -360,6 +459,6 @@ Constant
  */
 void InitParser()
 {
-   PrintDebug("parser", "Initializing parser");
-   yydebug = false;
+  PrintDebug("parser", "Initializing parser");
+  yydebug = false;
 }

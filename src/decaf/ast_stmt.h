@@ -23,19 +23,19 @@ class Expr;
 class Program : public Node
 {
   protected:
-     List<Decl*> *decls;
+    List<Decl*> *decls;
      
   public:
-     Program(List<Decl*> *declList);
-     const char *GetPrintNameForNode() { return "Program"; }
-     void PrintChildren(int indentLevel);
+    Program(List<Decl*> *declList);
+    const char *GetPrintNameForNode() { return "Program"; }
+    void PrintChildren(int indentLevel);
 };
 
 class Stmt : public Node
 {
   public:
-     Stmt() : Node() {}
-     Stmt(yyltype loc) : Node(loc) {}
+    Stmt() : Node() {}
+    Stmt(yyltype loc) : Node(loc) {}
 };
 
 class StmtBlock : public Stmt 
