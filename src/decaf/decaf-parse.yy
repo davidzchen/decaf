@@ -99,6 +99,8 @@ void yyerror(const char *msg); // standard error-handling routine
 %nonassoc T_Else
 %nonassoc NOMETHOD
 %right '('
+%left T_Or
+%left T_And
 %left T_Equal
 %left T_NotEqual
 %left '<'
@@ -109,7 +111,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %left '+'
 %left '%'
 %left '/'
-%left '*'
+%right '*'
 
 
 /* Non-terminal types
@@ -143,8 +145,9 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <breakStmt>       BreakStmt
 %type <forStmt>         ForStmt
 %type <ifStmt>          IfStmt
-%type <expr>            Expr ExprStmt AssignExpr BinaryExpr UnaryExpr 
-			LValue PrimaryExpr Constant
+%type <expr>            Expr ExprStmt AssignExpr UnaryExpr LValue
+			PrimaryExpr Constant LogicalExpr RelationalExpr
+			EqualityExpr AdditiveExpr MultiplicativeExpr
 %type <exprList>        ExprList
 %type <readIntegerExpr> ReadIntegerExpr
 %type <readLineExpr>    ReadLineExpr
@@ -304,6 +307,8 @@ StmtBlock
 	: '{' VarDeclList StmtList '}'	{
 				  $$ = new StmtBlock($2, $3);
 				}
+	| '{' VarDeclList '}'	{ $$ = new StmtBlock($2, new List<Stmt*>); }
+	| '{' StmtList '}' 	{ $$ = new StmtBlock(new List<VarDecl*>, $2); }
 	| '{' '}'		{ 
 				  $$ = new StmtBlock(new List<VarDecl*>,
 				  		     new List<Stmt*>);
@@ -369,8 +374,12 @@ ExprStmt
 	;
 
 IfStmt
-	: T_If '(' UnaryExpr ')' Stmt %prec NOELSE {}
-	| T_If '(' UnaryExpr ')' Stmt T_Else Stmt {}
+	: T_If '(' Expr ')' Stmt %prec NOELSE {
+				  $$ = new IfStmt($3, $5, NULL);
+				}
+	| T_If '(' Expr ')' Stmt T_Else Stmt {
+				  $$ = new IfStmt($3, $5, $7);
+				}
 	;
 
 ExprList
@@ -383,7 +392,7 @@ Expr
 	;
 
 AssignExpr
-	: BinaryExpr		{ $$ = $1; }
+	: LogicalExpr		{ $$ = $1; }
 	| ReadIntegerExpr	{ $$ = $1; }
 	| ReadLineExpr		{ $$ = $1; }
 	| NewExpr		{ $$ = $1; }
@@ -406,62 +415,81 @@ NewExpr
 	;
 	
 NewArrayExpr
-	: T_NewArray '(' BinaryExpr ',' Type ')' {
+	: T_NewArray '(' Expr ',' Type ')' {
 				  $$ = new NewArrayExpr(@1, $3, $5);
 				}
 	;
 	
-BinaryExpr
-	: UnaryExpr		{ $$ = $1; }
-	| BinaryExpr T_Or UnaryExpr {
+LogicalExpr
+	: RelationalExpr	{ $$ = $1; }
+	| LogicalExpr T_Or RelationalExpr {
 				  Operator *op = new Operator(@2, "||");
 				  $$ = new LogicalExpr($1, op, $3);
 				}
-	| BinaryExpr T_And UnaryExpr {
+	| LogicalExpr T_And RelationalExpr {
 				  Operator *op = new Operator(@2, "&&");
 				  $$ = new LogicalExpr($1, op, $3);
 				}
-	| BinaryExpr '<' UnaryExpr {
+	;
+	
+RelationalExpr
+	: EqualityExpr		{ $$ = $1; }
+	| RelationalExpr '<' EqualityExpr {
 				  Operator *op = new Operator(@2, "<");
 				  $$ = new RelationalExpr($1, op, $3);
 				}
-	| BinaryExpr '>' UnaryExpr {
+	| RelationalExpr '>' EqualityExpr {
 				  Operator *op = new Operator(@2, ">");
 				  $$ = new RelationalExpr($1, op, $3);
 				}
-	| BinaryExpr T_GreaterEqual UnaryExpr {
+	| RelationalExpr T_GreaterEqual EqualityExpr {
 				  Operator *op = new Operator(@2, ">=");
 				  $$ = new RelationalExpr($1, op, $3);
 				}
-	| BinaryExpr T_LessEqual UnaryExpr {
+	| RelationalExpr T_LessEqual EqualityExpr {
 				  Operator *op = new Operator(@2, "<=");
 				  $$ = new RelationalExpr($1, op, $3);
 				}
-	| BinaryExpr T_Equal UnaryExpr {
+	;
+	
+EqualityExpr
+	: AdditiveExpr		{ $$ = $1; }
+	| EqualityExpr T_Equal AdditiveExpr {
 				  Operator *op = new Operator(@2, "==");
 				  $$ = new EqualityExpr($1, op, $3);
 				}
-	| BinaryExpr T_NotEqual UnaryExpr {
+	| EqualityExpr T_NotEqual AdditiveExpr {
 				  Operator *op = new Operator(@2, "!=");
 				  $$ = new EqualityExpr($1, op, $3);
 				}
-	| BinaryExpr '+' UnaryExpr {
+	;
+	
+AdditiveExpr
+	: MultiplicativeExpr	{ $$ = $1; }
+	| AdditiveExpr '+' MultiplicativeExpr {
 				  Operator *op = new Operator(@2, "+");
 				  $$ = new ArithmeticExpr($1, op, $3);
 				}
-	| BinaryExpr '-' UnaryExpr {
+	| AdditiveExpr '-' MultiplicativeExpr {
 				  Operator *op = new Operator(@2, "-");
 				  $$ = new ArithmeticExpr($1, op, $3);
 				}
-	| BinaryExpr '*' UnaryExpr {
+	;
+	
+MultiplicativeExpr
+	: UnaryExpr		{ $$ = $1; }
+	
+	
+	
+	| MultiplicativeExpr '*' UnaryExpr {
 				  Operator *op = new Operator(@2, "*");
 				  $$ = new ArithmeticExpr($1, op, $3);
 				}
-	| BinaryExpr '/' UnaryExpr {
+	| MultiplicativeExpr '/' UnaryExpr {
 				  Operator *op = new Operator(@2, "/");
 				  $$ = new ArithmeticExpr($1, op, $3);
 				}
-	| BinaryExpr '%' UnaryExpr {
+	| MultiplicativeExpr '%' UnaryExpr {
 				  Operator *op = new Operator(@2, "%");
 				  $$ = new ArithmeticExpr($1, op, $3);
 				}
