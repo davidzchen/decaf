@@ -18,10 +18,11 @@ class NamedType; // for new
 class Type; // for NewArray
 
 
-class Expr : public Stmt {
-public:
-	Expr(yyltype loc) : Stmt(loc) {}
-	Expr() : Stmt() {}
+class Expr : public Stmt 
+{
+  public:
+    Expr(yyltype loc) : Stmt(loc) {}
+    Expr() : Stmt() {}
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -137,10 +138,11 @@ class LogicalExpr : public CompoundExpr
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
 };
 
-class AssignExpr : public CompoundExpr {
-public:
-	AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
-	const char *GetPrintNameForNode() { return "AssignExpr"; }
+class AssignExpr : public CompoundExpr 
+{
+  public:
+    AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    const char *GetPrintNameForNode() { return "AssignExpr"; }
 };
 
 class LValue : public Expr 

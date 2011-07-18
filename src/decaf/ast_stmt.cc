@@ -72,26 +72,33 @@ void IfStmt::PrintChildren(int indentLevel)
 {
   test->Print(indentLevel+1, "(test) ");
   body->Print(indentLevel+1, "(then) ");
-  if (elseBody) elseBody->Print(indentLevel+1, "(else) ");
+  if (elseBody) 
+    {
+      elseBody->Print(indentLevel+1, "(else) ");
+    }
 }
 
 
-ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
-    Assert(e != NULL);
-    (expr=e)->SetParent(this);
+ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) 
+{ 
+  Assert(e != NULL);
+  (expr=e)->SetParent(this);
 }
 
-void ReturnStmt::PrintChildren(int indentLevel) {
-    expr->Print(indentLevel+1);
+void ReturnStmt::PrintChildren(int indentLevel) 
+{
+  expr->Print(indentLevel+1);
 }
   
-PrintStmt::PrintStmt(List<Expr*> *a) {    
-    Assert(a != NULL);
-    (args=a)->SetParentAll(this);
+PrintStmt::PrintStmt(List<Expr*> *a) 
+{    
+  Assert(a != NULL);
+  (args=a)->SetParentAll(this);
 }
 
-void PrintStmt::PrintChildren(int indentLevel) {
-    args->PrintAll(indentLevel+1, "(args) ");
+void PrintStmt::PrintChildren(int indentLevel) 
+{
+  args->PrintAll(indentLevel+1, "(args) ");
 }
 
 

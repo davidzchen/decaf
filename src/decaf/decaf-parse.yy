@@ -66,6 +66,13 @@ void yyerror(const char *msg); // standard error-handling routine
     IfStmt           *ifStmt;
     Expr             *expr;
     List<Expr*>      *exprList;
+    AssignExpr       *assignExpr;
+    FieldAccess      *fieldAccess;
+    NewExpr          *newExpr;
+    ReadIntegerExpr  *readIntegerExpr;
+    ReadLineExpr     *readLineExpr;
+    NewArrayExpr     *newArrayExpr;
+    
 }
 
 
@@ -90,6 +97,8 @@ void yyerror(const char *msg); // standard error-handling routine
 
 %nonassoc NOELSE
 %nonassoc T_Else
+%nonassoc NOMETHOD
+%right '('
 %left T_Equal
 %left T_NotEqual
 %left '<'
@@ -101,7 +110,6 @@ void yyerror(const char *msg); // standard error-handling routine
 %left '%'
 %left '/'
 %left '*'
-
 
 
 /* Non-terminal types
@@ -123,7 +131,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <classDecl>       ClassDecl
 %type <interfaceDecl>   InterfaceDecl
 %type <fnDecl>          FnDecl Prototype FnDef
-%type <namedType>       ClassExtends
+%type <namedType>       ClassExtends NamedType
 %type <implementsTypeList> ImplementsTypeList ClassImplements
 %type <varDeclList>     FormalsList VarDeclList
 %type <stmtBlock>       StmtBlock
@@ -135,8 +143,13 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <breakStmt>       BreakStmt
 %type <forStmt>         ForStmt
 %type <ifStmt>          IfStmt
-%type <expr>            Expr ExprStmt
+%type <expr>            Expr ExprStmt AssignExpr BinaryExpr UnaryExpr 
+			LValue PrimaryExpr Constant
 %type <exprList>        ExprList
+%type <readIntegerExpr> ReadIntegerExpr
+%type <readLineExpr>    ReadLineExpr
+%type <newExpr>         NewExpr
+%type <newArrayExpr>    NewArrayExpr
 
 %%
 /* Rules
@@ -187,11 +200,15 @@ Type
 	| T_Int			{ $$ = Type::intType; }
 	| T_Double		{ $$ = Type::doubleType; }
 	| T_String		{ $$ = Type::stringType; }
-	| T_Identifier		{ 
+	| NamedType		{ $$ = $1; } 
+	| Type T_Dims		{ $$ = new ArrayType(@1, $1); }
+	;
+
+NamedType
+	: T_Identifier		{ 
 				  Identifier *i = new Identifier(@1, $1);
 				  $$ = new NamedType(i); 
 				}
-	| Type T_Dims		{ $$ = new ArrayType(@1, $1); }
 	;
 
 ClassDecl 
@@ -362,78 +379,146 @@ ExprList
 	;
 	
 Expr
-	: AssignExpr            {} 
+	: AssignExpr            { $$ = $1; } 
 	;
 
 AssignExpr
-	: BinaryExpr		{}
-	| ReadIntegerExpr	{}
-	| ReadLineExpr		{}
-	| NewExpr		{}
-	| NewArrayExpr		{}
-	| LValue '=' AssignExpr	{}
+	: BinaryExpr		{ $$ = $1; }
+	| ReadIntegerExpr	{ $$ = $1; }
+	| ReadLineExpr		{ $$ = $1; }
+	| NewExpr		{ $$ = $1; }
+	| NewArrayExpr		{ $$ = $1; }
+	| LValue '=' AssignExpr	{ Operator *op = new Operator(@2, "=");
+				  $$ = new AssignExpr($1, op, $3);
+				}
 	;
 
 ReadIntegerExpr
-	: T_ReadInteger '(' ')'	{}
+	: T_ReadInteger '(' ')'	{ $$ = new ReadIntegerExpr(@1); }
 	;
 	
 ReadLineExpr
-	: T_ReadLine '(' ')'	{}
+	: T_ReadLine '(' ')'	{ $$ = new ReadLineExpr(@1); }
 	;
 	
 NewExpr
-	: T_New T_Identifier	{}
+	: T_New NamedType	{ $$ = new NewExpr(@1, $2); }
 	;
 	
 NewArrayExpr
-	: T_NewArray '(' BinaryExpr ',' Type ')' {}
+	: T_NewArray '(' BinaryExpr ',' Type ')' {
+				  $$ = new NewArrayExpr(@1, $3, $5);
+				}
 	;
 	
 BinaryExpr
-	: UnaryExpr		{}
-	| BinaryExpr T_Or UnaryExpr {}
-	| BinaryExpr T_And UnaryExpr {}
-	| BinaryExpr '<' UnaryExpr {}
-	| BinaryExpr '>' UnaryExpr {}
-	| BinaryExpr T_GreaterEqual UnaryExpr {}
-	| BinaryExpr T_LessEqual UnaryExpr {}
-	| BinaryExpr T_Equal UnaryExpr {}
-	| BinaryExpr T_NotEqual UnaryExpr {}
-	| BinaryExpr '+' UnaryExpr {}
-	| BinaryExpr '-' UnaryExpr {}
-	| BinaryExpr '*' UnaryExpr {}
-	| BinaryExpr '/' UnaryExpr {}
-	| BinaryExpr '%' UnaryExpr {}
+	: UnaryExpr		{ $$ = $1; }
+	| BinaryExpr T_Or UnaryExpr {
+				  Operator *op = new Operator(@2, "||");
+				  $$ = new LogicalExpr($1, op, $3);
+				}
+	| BinaryExpr T_And UnaryExpr {
+				  Operator *op = new Operator(@2, "&&");
+				  $$ = new LogicalExpr($1, op, $3);
+				}
+	| BinaryExpr '<' UnaryExpr {
+				  Operator *op = new Operator(@2, "<");
+				  $$ = new RelationalExpr($1, op, $3);
+				}
+	| BinaryExpr '>' UnaryExpr {
+				  Operator *op = new Operator(@2, ">");
+				  $$ = new RelationalExpr($1, op, $3);
+				}
+	| BinaryExpr T_GreaterEqual UnaryExpr {
+				  Operator *op = new Operator(@2, ">=");
+				  $$ = new RelationalExpr($1, op, $3);
+				}
+	| BinaryExpr T_LessEqual UnaryExpr {
+				  Operator *op = new Operator(@2, "<=");
+				  $$ = new RelationalExpr($1, op, $3);
+				}
+	| BinaryExpr T_Equal UnaryExpr {
+				  Operator *op = new Operator(@2, "==");
+				  $$ = new EqualityExpr($1, op, $3);
+				}
+	| BinaryExpr T_NotEqual UnaryExpr {
+				  Operator *op = new Operator(@2, "!=");
+				  $$ = new EqualityExpr($1, op, $3);
+				}
+	| BinaryExpr '+' UnaryExpr {
+				  Operator *op = new Operator(@2, "+");
+				  $$ = new ArithmeticExpr($1, op, $3);
+				}
+	| BinaryExpr '-' UnaryExpr {
+				  Operator *op = new Operator(@2, "-");
+				  $$ = new ArithmeticExpr($1, op, $3);
+				}
+	| BinaryExpr '*' UnaryExpr {
+				  Operator *op = new Operator(@2, "*");
+				  $$ = new ArithmeticExpr($1, op, $3);
+				}
+	| BinaryExpr '/' UnaryExpr {
+				  Operator *op = new Operator(@2, "/");
+				  $$ = new ArithmeticExpr($1, op, $3);
+				}
+	| BinaryExpr '%' UnaryExpr {
+				  Operator *op = new Operator(@2, "%");
+				  $$ = new ArithmeticExpr($1, op, $3);
+				}
 	;
 	
 UnaryExpr
-	: LValue		{}
-	| '-' UnaryExpr		{}
-	| '!' UnaryExpr		{}
+	: LValue		{ $$ = $1; }
+	| '-' UnaryExpr		{
+				  Operator *op = new Operator(@1, "-");
+				  $$ = new ArithmeticExpr(op, $2);
+				}
+	| '!' UnaryExpr		{
+				  Operator *op = new Operator(@1, "!");
+				  $$ = new LogicalExpr(op, $2);
+				}
 	;
 	
 LValue
-	: PrimaryExpr		{}
-	| LValue '[' Expr ']'	{}
-	| LValue '(' ')'	{}
-	| LValue '(' ExprList ')' {}
-	| LValue '.' T_Identifier {}
+	: PrimaryExpr		{ $$ = $1; }
+	| LValue '[' Expr ']'	{ $$ = new ArrayAccess(@1, $1, $3); }
+	| T_Identifier '(' ')'	{ 
+				  Identifier *id = new Identifier(@1, $1);
+				  $$ = new Call(@1, NULL, id, new List<Expr*>); 
+				}
+	| T_Identifier '(' ExprList ')' {
+				  Identifier *id = new Identifier(@1, $1);
+				  $$ = new Call(@1, NULL, id, $3);
+				}
+	| LValue '.' T_Identifier %prec NOMETHOD {
+				  Identifier *id = new Identifier(@3, $3);
+				  $$ = new FieldAccess($1, id);
+				}
+	| LValue '.' T_Identifier '(' ')' { 
+				  Identifier *id = new Identifier(@3, $3);
+				  $$ = new Call(@1, $1, id, new List<Expr*>);
+				}
+	| LValue '.' T_Identifier '(' ExprList ')' {
+				  Identifier *id = new Identifier(@3, $3);
+				  $$ = new Call(@1, $1, id, $5);
+				}
 	;
 
 PrimaryExpr
-	: T_Identifier		{}
-	| T_This		{}
-	| Constant		{}
-	| '(' Expr ')'		{}
+	: T_Identifier		{ Identifier *id = new Identifier(@1, $1);
+				  $$ = new FieldAccess(NULL, id); 
+				}
+	| T_This		{ $$ = new This(@1); }
+	| Constant		{ $$ = $1; }
+	| '(' Expr ')'		{ $$ = $2; }
 	;
 
 Constant
-	: T_IntConstant		{}
-	| T_DoubleConstant	{}
-	| T_BoolConstant	{}
-	| T_StringConstant	{}
-	| T_Null		{}
+	: T_IntConstant		{ $$ = new IntConstant(@1, $1); }
+	| T_DoubleConstant	{ $$ = new DoubleConstant(@1, $1); }
+	| T_BoolConstant	{ $$ = new BoolConstant(@1, $1); }
+	| T_StringConstant	{ $$ = new StringConstant(@1, $1); }
+	| T_Null		{ $$ = new NullConstant(@1); }
 	;
 
 %%
