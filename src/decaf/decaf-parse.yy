@@ -88,6 +88,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %token T_And T_Or T_Null T_Extends T_This T_Interface T_Implements
 %token T_While T_For T_If T_Else T_Return T_Break
 %token T_New T_NewArray T_Print T_ReadInteger T_ReadLine
+%token T_Switch T_Case T_Default T_Incr T_Decr
 
 %token <identifier> T_Identifier
 %token <stringConstant> T_StringConstant 
@@ -112,7 +113,10 @@ void yyerror(const char *msg); // standard error-handling routine
 %left '%'
 %left '/'
 %right '*'
-
+%right T_Incr
+%right T_Decr
+%right NEG
+%right '!'
 
 /* Non-terminal types
  * ------------------
@@ -497,13 +501,21 @@ MultiplicativeExpr
 	
 UnaryExpr
 	: LValue		{ $$ = $1; }
-	| '-' UnaryExpr		{
+	| '-' UnaryExpr %prec NEG {
 				  Operator *op = new Operator(@1, "-");
 				  $$ = new ArithmeticExpr(op, $2);
 				}
 	| '!' UnaryExpr		{
 				  Operator *op = new Operator(@1, "!");
 				  $$ = new LogicalExpr(op, $2);
+				}
+	| UnaryExpr T_Incr	{
+				  Operator *op = new Operator(@2, "++");
+				  $$ = new PostfixExpr($1, op);
+				}
+	| UnaryExpr T_Decr 	{
+				  Operator *op = new Operator(@2, "--");
+				  $$ = new PostfixExpr($1, op);
 				}
 	;
 	

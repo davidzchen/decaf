@@ -105,6 +105,7 @@ class CompoundExpr : public Expr
   public:
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);            // for unary
+    CompoundExpr(Expr *lhs, Operator *op);            // for postfix
     void PrintChildren(int indentLevel);
 };
 
@@ -136,6 +137,13 @@ class LogicalExpr : public CompoundExpr
     LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
+};
+
+class PostfixExpr : public CompoundExpr
+{
+  public:
+    PostfixExpr(Expr *lhs, Operator *op) : CompoundExpr(lhs, op) {}
+    const char *GetPrintNameForNode() { return "PostfixExpr"; }
 };
 
 class AssignExpr : public CompoundExpr 

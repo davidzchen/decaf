@@ -15,6 +15,16 @@ dcc_SOURCES = \
 	decaf-lex.ll \
 	dcc.cc
 
+include_HEADERS = \
+	ast.h \
+	ast_decl.h \
+	ast_expr.h \
+	ast_stmt.h \
+	ast_type.h \
+	decaf-parse.h \
+	parse.h \
+	scanner.h
+
 CLEANFILES = \
 	decaf-parse.cc \
 	decaf-lex.cc \

@@ -52,7 +52,7 @@ DOUBLE            ({INTEGER}"."{DIGIT}*{EXPONENT}?)
 BEG_STRING        (\"[^"\n]*)
 STRING            ({BEG_STRING}\")
 IDENTIFIER        ([a-zA-Z][a-zA-Z_0-9]*)
-OPERATOR          ([-+/*%=.,;!<>()[\]{}])
+OPERATOR          ([-+/*%=.,;!<>()[\]{}:])
 BEG_COMMENT       ("/*")
 END_COMMENT       ("*/")
 SINGLE_COMMENT    ("//"[^\n]*)
@@ -103,7 +103,9 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "Print"             { return T_Print;       }
 "ReadInteger"       { return T_ReadInteger; }
 "ReadLine"          { return T_ReadLine;    }
-
+"switch"            { return T_Switch;      }
+"default"           { return T_Default;     }
+"case"              { return T_Case;        }
 
 
  /* -------------------- Operators ----------------------------- */
@@ -114,6 +116,8 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "&&"                { return T_And;         }
 "||"                { return T_Or;          }
 "[]"                { return T_Dims;        }
+"++"                { return T_Incr;        }
+"--"                { return T_Decr;        }
 {OPERATOR}          { return yytext[0];     }
 
  /* -------------------- Constants ------------------------------ */

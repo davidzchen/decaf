@@ -15,6 +15,16 @@ ltc_SOURCES = \
 	latte-lex.ll \
 	ltc.cc
 
+include_HEADERS = \
+	ast.h \
+	ast_decl.h \
+	ast_expr.h \
+	ast_stmt.h \
+	ast_type.h \
+	latte-parse.h \
+	parse.h \
+	scanner.h
+
 CLEANFILES = \
 	latte-lex.cc \
 	latte-parse.cc \
