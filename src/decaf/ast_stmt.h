@@ -61,6 +61,42 @@ class ConditionalStmt : public Stmt
     ConditionalStmt(Expr *testExpr, Stmt *body);
 };
 
+class CaseStmt : public Stmt
+{
+  protected:
+    Expr *i;
+    List<Stmt*> *stmts;
+    
+  public:
+    CaseStmt(Expr *intConst, List<Stmt*> *stmtList);
+    const char *GetPrintNameForNode() { return "Case"; }
+    void PrintChildren(int indentLevel);
+};
+
+class DefaultStmt : public Stmt
+{
+  protected:
+    List<Stmt*> *stmts;
+    
+  public:
+    DefaultStmt(List<Stmt*> *stmts);
+    const char *GetPrintNameForNode() { return "Default"; }
+    void PrintChildren(int indentLevel);
+};
+
+class SwitchStmt : public Stmt
+{
+  protected:
+    Expr *test;
+    List<CaseStmt*> *cases;
+    DefaultStmt *defaultCase;
+    
+  public:
+    SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts, DefaultStmt *defaultStmt);
+    const char *GetPrintNameForNode() { return "SwitchStmt"; }
+    void PrintChildren(int indentLevel);
+};
+
 class LoopStmt : public ConditionalStmt 
 {
   public:

@@ -72,7 +72,10 @@ void yyerror(const char *msg); // standard error-handling routine
     ReadIntegerExpr  *readIntegerExpr;
     ReadLineExpr     *readLineExpr;
     NewArrayExpr     *newArrayExpr;
-    
+    SwitchStmt       *switchStmt;
+    CaseStmt         *caseStmt;
+    List<CaseStmt*>  *caseStmtList;
+    DefaultStmt      *defaultStmt;
 }
 
 
@@ -99,6 +102,10 @@ void yyerror(const char *msg); // standard error-handling routine
 %nonassoc NOELSE
 %nonassoc T_Else
 %nonassoc NOMETHOD
+%nonassoc EMPTYCASE
+%nonassoc EMPTYDEFAULT
+%nonassoc NONEMPTYCASE
+%nonassoc NONEMPTYDEFAULT
 %right '('
 %left T_Or
 %left T_And
@@ -157,6 +164,10 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <readLineExpr>    ReadLineExpr
 %type <newExpr>         NewExpr
 %type <newArrayExpr>    NewArrayExpr
+%type <switchStmt>      SwitchStmt
+%type <caseStmt>        CaseStmt
+%type <caseStmtList>    CaseStmtList
+%type <defaultStmt>     DefaultStmt
 
 %%
 /* Rules
@@ -337,9 +348,41 @@ Stmt
 	| PrintStmt		{ $$ = $1; }
 	| ForStmt		{ $$ = $1; }
 	| IfStmt		{ $$ = $1; }
+	| SwitchStmt            { $$ = $1; }
 	| StmtBlock		{ $$ = $1; }
 	;
+
+SwitchStmt
+	: T_Switch '(' Expr ')' '{' CaseStmtList DefaultStmt '}' {
+				  $$ = new SwitchStmt($3, $6, $7);
+				}
+	;
+
+CaseStmtList
+	: CaseStmtList CaseStmt { ($$ = $1)->Append($2); }
+	| CaseStmt		{ ($$ = new List<CaseStmt*>)->Append($1); }
+	;
+
+CaseStmt
+	: T_Case T_IntConstant ':' StmtList %prec NONEMPTYCASE { 
+				  IntConstant *ic = new IntConstant(@2, $2);
+				  $$ = new CaseStmt(ic, $4);
+				}
+	| T_Case T_IntConstant ':' %prec EMPTYCASE {
+				  IntConstant *ic = new IntConstant(@2, $2);
+				  $$ = new CaseStmt(ic, new List<Stmt*>);
+				}
+	;
 	
+DefaultStmt
+	: T_Default ':' StmtList %prec NONEMPTYDEFAULT { 
+				  $$ = new DefaultStmt($3);
+				}
+	| T_Default ':' %prec EMPTYDEFAULT { 
+				  $$ = new DefaultStmt(new List<Stmt*>);
+				}
+	;
+
 WhileStmt
 	: T_While '(' Expr ')' Stmt {
 				  $$ = new WhileStmt($3, $5);

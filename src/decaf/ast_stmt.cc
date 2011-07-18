@@ -40,6 +40,46 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b)
   (body=b)->SetParent(this);
 }
 
+CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList)
+{
+  Assert(intConst != NULL && stmtList != NULL);
+  (i = intConst)->SetParent(this);
+  (stmts = stmtList)->SetParentAll(this);
+}
+void CaseStmt::PrintChildren(int indentLevel)
+{
+  i->Print(indentLevel+1);
+  stmts->PrintAll(indentLevel+1);
+}
+
+DefaultStmt::DefaultStmt(List<Stmt*> *stmtList)
+{
+  Assert(stmtList != NULL);
+  (stmts = stmtList)->SetParentAll(this);
+}
+void DefaultStmt::PrintChildren(int indentLevel)
+{
+  stmts->PrintAll(indentLevel+1);
+}
+
+SwitchStmt::SwitchStmt(Expr *testExpr, 
+		       List<CaseStmt*> *caseStmts, 
+		       DefaultStmt *defaultStmt)
+{
+  Assert(testExpr != NULL && caseStmts != NULL && defaultStmt != NULL);
+  (test = testExpr)->SetParent(this);
+  (cases = caseStmts)->SetParentAll(this);
+  (defaultCase = defaultStmt)->SetParent(this);
+}
+
+void SwitchStmt::PrintChildren(int indentLevel)
+{
+  test->Print(indentLevel+1);
+  cases->PrintAll(indentLevel+1);
+  defaultCase->Print(indentLevel+1);
+}
+
+
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) 
 { 
   Assert(i != NULL && t != NULL && s != NULL && b != NULL);
