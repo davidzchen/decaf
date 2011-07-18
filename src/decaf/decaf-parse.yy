@@ -184,8 +184,15 @@ Program
 				   * it once you have other uses of @n*/
 				  Program *program = new Program($1);
 				  // if no errors, advance to next phase
-				  if (ReportError::NumErrors() == 0) 
-					program->Print(0);
+				  if (ReportError::NumErrors() == 0)
+				    {
+				      //program->Print(0);
+				      
+				      /*
+				       * pp3: if no errors, check program
+				       */
+				      program->Check();
+				    }
                         	}
 	;
 

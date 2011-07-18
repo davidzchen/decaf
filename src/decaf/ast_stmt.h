@@ -29,6 +29,7 @@ class Program : public Node
     Program(List<Decl*> *declList);
     const char *GetPrintNameForNode() { return "Program"; }
     void PrintChildren(int indentLevel);
+    void Check();
 };
 
 class Stmt : public Node
