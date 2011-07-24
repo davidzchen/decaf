@@ -32,8 +32,10 @@
 #ifndef _H_ast
 #define _H_ast
 
+#include <iostream>
 #include <stdlib.h>   // for NULL
 #include <location.h>
+using namespace std;
 
 class Node  {
   protected:
@@ -67,6 +69,8 @@ class Identifier : public Node
     Identifier(yyltype loc, const char *name);
     const char *GetPrintNameForNode()   { return "Identifier"; }
     void PrintChildren(int indentLevel);
+    friend ostream& operator<<(ostream& out, Identifier *id) { return out << id->name; }
+    char *getName() { return name; }
 };
 
 

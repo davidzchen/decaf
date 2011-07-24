@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.67])
 AC_INIT([dcc], [0.3], [dzchen@stanford.edu])
-AC_CONFIG_SRCDIR([src/errors.cc])
+AC_CONFIG_SRCDIR([src/utility.cc])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -44,5 +44,7 @@ AC_CONFIG_FILES([Makefile
 		 src/latte/Makefile
 		 tests/Makefile
 		 tests/scanner/Makefile
-		 tests/parse/Makefile])
+		 tests/parse/Makefile
+		 tests/scope/Makefile
+		 tests/semantic/Makefile])
 AC_OUTPUT

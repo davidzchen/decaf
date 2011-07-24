@@ -2,11 +2,9 @@
  * ------------
  */
 
-#include "ast.h"
-#include "ast_type.h"
-#include "ast_decl.h"
 #include <string.h> // strdup
 #include <stdio.h>  // printf
+#include "ast.h"
 
 Node::Node(yyltype loc) 
 {

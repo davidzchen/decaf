@@ -14,7 +14,8 @@
 #define _H_ast_stmt
 
 #include <list.h>
-#include "ast.h"
+#include <symtable.h>
+#include <ast.h>
 
 class Decl;
 class VarDecl;
@@ -22,33 +23,36 @@ class Expr;
   
 class Program : public Node
 {
-  protected:
-    List<Decl*> *decls;
+ protected:
+  List<Decl*> *decls;
+  SymTable *env;
      
-  public:
-    Program(List<Decl*> *declList);
-    const char *GetPrintNameForNode() { return "Program"; }
-    void PrintChildren(int indentLevel);
-    void Check();
+ public:
+  Program(List<Decl*> *declList);
+  const char *GetPrintNameForNode() { return "Program"; }
+  void PrintChildren(int indentLevel);
+  void Check();
 };
 
 class Stmt : public Node
 {
-  public:
-    Stmt() : Node() {}
-    Stmt(yyltype loc) : Node(loc) {}
+ public:
+  Stmt() : Node() {}
+  Stmt(yyltype loc) : Node(loc) {}
+  bool CheckDecls(SymTable *env) { return true; }
 };
 
 class StmtBlock : public Stmt 
 {
-  protected:
-    List<VarDecl*> *decls;
-    List<Stmt*> *stmts;
+ protected:
+  List<VarDecl*> *decls;
+  List<Stmt*> *stmts;
     
-  public:
-    StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
-    const char *GetPrintNameForNode() { return "StmtBlock"; }
-    void PrintChildren(int indentLevel);
+ public:
+  StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
+  const char *GetPrintNameForNode() { return "StmtBlock"; }
+  void PrintChildren(int indentLevel);
+  bool CheckDecls(SymTable *env);
 };
 
   

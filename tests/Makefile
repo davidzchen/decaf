@@ -168,7 +168,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(top_builddir)/./install-sh -c -d
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = /Users/dzc/Build/dcc
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -257,6 +257,7 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) check-local
 check: check-am
 all-am: Makefile all-local
 installdirs:
@@ -351,19 +352,19 @@ ps-am:
 
 uninstall-am:
 
-.MAKE: install-am install-strip
+.MAKE: check-am install-am install-strip
 
-.PHONY: all all-am all-local check check-am clean clean-generic \
-	clean-libtool clean-local distclean distclean-generic \
-	distclean-libtool distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am
+.PHONY: all all-am all-local check check-am check-local clean \
+	clean-generic clean-libtool clean-local distclean \
+	distclean-generic distclean-libtool distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am
 
 
 clean-local:
@@ -374,11 +375,21 @@ all-local:
 	cd scanner && $(MAKE) $(AM_MAKEFLAGS)
 	cd parse && $(MAKE) $(AM_MAKEFLAGS)
 
+check-local: check-scanner check-parse check-scope check-semantic
+
 check-scanner:
 	cd scanner && $(MAKE) $(AM_MAKEFLAGS) check
 
 check-parse:
 	cd parse && $(MAKE) $(AM_MAKEFLAGS) check
+
+check-scope:
+	cd scope && $(MAKE) $(AM_MAKEFLAGS) check
+
+check-semantic:
+	cd semantic && $(MAKE) $(AM_MAKEFLAGS) check
+
+.PHONY: clean-local all-local check-scanner check-parse check-scope check-semantic
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

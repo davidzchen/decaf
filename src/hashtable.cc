@@ -1,8 +1,8 @@
-/* File: hashtable.cc
+/* File: hashtable.cc 
  * ------------------
  * Implementation of Hashtable class.
  */
-   
+
 
 /* Hashtable::Enter
  * ----------------

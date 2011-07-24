@@ -104,4 +104,8 @@ To clean all Autotools-generated files, run:
 
     clean
 
+PARSER ERROR RECOVERY
+=========================
+
+
 

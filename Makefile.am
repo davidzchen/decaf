@@ -2,7 +2,9 @@
 AM_CXXFLAGS = -G -Wno-unused -Wno-sign-compare
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src src/decaf src/latte
+SUBDIRS = src src/decaf
+#SUBDIRS = src src/decaf src/latte
+
 EXTRA_DIST = bootstrap clean synthesize tests
 
 test:

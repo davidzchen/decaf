@@ -13,6 +13,7 @@ ltc_SOURCES = \
 	ast_type.cc \
 	latte-parse.yy \
 	latte-lex.ll \
+	errors.cc \
 	ltc.cc
 
 include_HEADERS = \
@@ -23,6 +24,7 @@ include_HEADERS = \
 	ast_type.h \
 	latte-parse.h \
 	parse.h \
+	errors.h \
 	scanner.h
 
 CLEANFILES = \

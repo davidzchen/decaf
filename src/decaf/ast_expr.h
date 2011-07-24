@@ -10,9 +10,9 @@
 #ifndef _H_ast_expr
 #define _H_ast_expr
 
-#include "ast.h"
-#include "ast_stmt.h"
 #include <list.h>
+#include <ast.h>
+#include "ast_stmt.h"
 
 class NamedType; // for new
 class Type; // for NewArray
@@ -94,6 +94,7 @@ class Operator : public Node
     Operator(yyltype loc, const char *tok);
     const char *GetPrintNameForNode() { return "Operator"; }
     void PrintChildren(int indentLevel);
+    friend ostream& operator<<(ostream& out, Operator *o) { return out << o->tokenString; }
 };
  
 class CompoundExpr : public Expr 

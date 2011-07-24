@@ -7,6 +7,10 @@
 #include "ast_decl.h"
 #include "ast_expr.h"
 
+/* Class: Program
+ * --------------
+ * Implementation of Program class
+ */
 
 Program::Program(List<Decl*> *d) 
 {
@@ -20,15 +24,36 @@ void Program::PrintChildren(int indentLevel)
   printf("\n");
 }
 
-void Program::Check() {
-    /* pp3: here is where the semantic analyzer is kicked off.
-     *      The general idea is perform a tree traversal of the
-     *      entire program, examining all constructs for compliance
-     *      with the semantic rules.  Each node can have its own way of
-     *      checking itself, which makes for a great use of inheritance
-     *      and polymorphism in the node classes.
-     */
+void Program::Check() 
+{
+  /* pp3: here is where the semantic analyzer is kicked off.
+   *      The general idea is perform a tree traversal of the
+   *      entire program, examining all constructs for compliance
+   *      with the semantic rules.  Each node can have its own way of
+   *      checking itself, which makes for a great use of inheritance
+   *      and polymorphism in the node classes.
+   */
+
+  // Pass 1: Build symbol table
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      if (!decls->Nth(i)->CheckDecls(env))
+	return;
+    }
+
+  env->print(0);
+
+  // Pass 2: Semantic check
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      //decls->Nth(i)->Check();
+    }
 }
+
+/* Class: StmtBlock
+ * ----------------
+ * Implementation of StmtBlock class
+ */
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) 
 {
@@ -42,6 +67,35 @@ void StmtBlock::PrintChildren(int indentLevel)
   decls->PrintAll(indentLevel+1);
   stmts->PrintAll(indentLevel+1);
 }
+
+bool StmtBlock::CheckDecls(SymTable *env)
+{
+  SymTable *blockEnv;
+
+  if ((blockEnv = env->addScope()) == false)
+    return false;
+
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      if (!decls->Nth(i)->CheckDecls(blockEnv))
+	return false;
+    }
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      if (!stmts->Nth(i)->CheckDecls(blockEnv))
+	return false;
+    }
+
+  return true;
+}
+
+
+
+/* Class: ConditionalStmt
+ * ----------------------
+ * Implementation of ConditionalStmt class
+ */
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) 
 {
@@ -90,7 +144,7 @@ void SwitchStmt::PrintChildren(int indentLevel)
 }
 
 
-ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) 
+ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b) : LoopStmt(t, b) 
 { 
   Assert(i != NULL && t != NULL && s != NULL && b != NULL);
   (init=i)->SetParent(this);

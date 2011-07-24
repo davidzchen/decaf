@@ -14,8 +14,10 @@
 #define _errors_h_
 
 #include <string>
-#include "location.h"
+#include <location.h>
+
 using namespace std;
+
 class Type;
 class Identifier;
 class Expr;
@@ -47,7 +49,14 @@ class Operator;
  * as an argument. You cannot pass NULL for these arguments.
  */
 
-typedef enum {LookingForType, LookingForClass, LookingForInterface, LookingForVariable, LookingForFunction} reasonT;
+typedef enum 
+{
+  LookingForType, 
+  LookingForClass, 
+  LookingForInterface, 
+  LookingForVariable, 
+  LookingForFunction
+} reasonT;
 
 class ReportError {
  public:
@@ -110,4 +119,6 @@ class ReportError {
   static void OutputError(yyltype *loc, string msg);
   static int numErrors;
 };
+
+
 #endif

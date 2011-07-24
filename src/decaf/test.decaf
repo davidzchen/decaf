@@ -1,0 +1,11 @@
+class A
+{
+  int foo;
+  int baz;
+}
+
+int main()
+{
+  int foo;
+
+}

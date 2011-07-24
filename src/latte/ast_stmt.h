@@ -23,19 +23,20 @@ class Expr;
 class Program : public Node
 {
   protected:
-     List<Decl*> *decls;
+    List<Decl*> *decls;
      
   public:
-     Program(List<Decl*> *declList);
-     const char *GetPrintNameForNode() { return "Program"; }
-     void PrintChildren(int indentLevel);
+    Program(List<Decl*> *declList);
+    const char *GetPrintNameForNode() { return "Program"; }
+    void PrintChildren(int indentLevel);
+    void Check();
 };
 
 class Stmt : public Node
 {
   public:
-     Stmt() : Node() {}
-     Stmt(yyltype loc) : Node(loc) {}
+    Stmt() : Node() {}
+    Stmt(yyltype loc) : Node(loc) {}
 };
 
 class StmtBlock : public Stmt 
@@ -59,6 +60,42 @@ class ConditionalStmt : public Stmt
   
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
+};
+
+class CaseStmt : public Stmt
+{
+  protected:
+    Expr *i;
+    List<Stmt*> *stmts;
+    
+  public:
+    CaseStmt(Expr *intConst, List<Stmt*> *stmtList);
+    const char *GetPrintNameForNode() { return "Case"; }
+    void PrintChildren(int indentLevel);
+};
+
+class DefaultStmt : public Stmt
+{
+  protected:
+    List<Stmt*> *stmts;
+    
+  public:
+    DefaultStmt(List<Stmt*> *stmts);
+    const char *GetPrintNameForNode() { return "Default"; }
+    void PrintChildren(int indentLevel);
+};
+
+class SwitchStmt : public Stmt
+{
+  protected:
+    Expr *test;
+    List<CaseStmt*> *cases;
+    DefaultStmt *defaultCase;
+    
+  public:
+    SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts, DefaultStmt *defaultStmt);
+    const char *GetPrintNameForNode() { return "SwitchStmt"; }
+    void PrintChildren(int indentLevel);
 };
 
 class LoopStmt : public ConditionalStmt 

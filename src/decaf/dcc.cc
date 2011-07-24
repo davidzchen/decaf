@@ -21,10 +21,10 @@
  */
 int main(int argc, char *argv[])
 {
-    ParseCommandLine(argc, argv);
-    InitScanner();
-    InitParser();
-    yyparse();
-    return (ReportError::NumErrors() == 0? 0 : -1);
+  ParseCommandLine(argc, argv);
+  InitScanner();
+  InitParser();
+  yyparse();
+  return (ReportError::NumErrors() == 0? 0 : -1);
 }
 

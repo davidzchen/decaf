@@ -9,8 +9,8 @@
 #ifndef _H_ast_type
 #define _H_ast_type
 
-#include "ast.h"
-#include "list.h"
+#include <ast.h>
+#include <list.h>
 
 
 class Type : public Node 
@@ -26,7 +26,10 @@ class Type : public Node
     Type(const char *str);
     
     const char *GetPrintNameForNode() { return "Type"; }
+    friend ostream& operator<<(ostream& out, Type *t) { t->PrintToStream(out); return out; }
     void PrintChildren(int indentLevel);
+    virtual bool IsEquivalentTo(Type *other) { return this == other; }
+    virtual void PrintToStream(ostream& out) { out << typeName; }
 };
 
 class NamedType : public Type 
@@ -39,6 +42,7 @@ class NamedType : public Type
     
     const char *GetPrintNameForNode() { return "NamedType"; }
     void PrintChildren(int indentLevel);
+    void PrintToStream(ostream& out) { out << id; }
 };
 
 class ArrayType : public Type 
@@ -51,6 +55,7 @@ class ArrayType : public Type
     
     const char *GetPrintNameForNode() { return "ArrayType"; }
     void PrintChildren(int indentLevel);
+    void PrintToStream(ostream& out) { out << elemType << "[]"; }
 };
 
  
