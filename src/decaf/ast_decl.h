@@ -4,6 +4,10 @@
  * manage declarations. There are 4 subclasses of the base class,
  * specialized for declarations of variables, functions, classes,
  * and interfaces.
+ *
+ * pp3: You will need to extend the Decl classes to implement
+ * semantic processing including detection of declaration conflicts
+ * and managing scoping issues.
  */
 
 #ifndef _H_ast_decl
@@ -28,8 +32,12 @@ class Decl : public Node
 
   public:
     Decl(Identifier *name);
-    friend ostream& operator<<(ostream& out, Decl *d) { return out << d->id; }
+    friend ostream& operator<<(ostream& out, Decl *d)
+    {
+      return out << d->id;
+    }
     bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env) { return true; }
 };
 
 class VarDecl : public Decl 
@@ -39,9 +47,13 @@ class VarDecl : public Decl
     
   public:
     VarDecl(Identifier *name, Type *type);
-    const char *GetPrintNameForNode() { return "VarDecl"; }
+    const char *GetPrintNameForNode()
+    {
+      return "VarDecl";
+    }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env);
 };
 
 class ClassDecl : public Decl 
@@ -50,25 +62,35 @@ class ClassDecl : public Decl
     List<Decl*> *members;
     NamedType *extends;
     List<NamedType*> *implements;
+    SymTable *classEnv;
 
   public:
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
-    const char *GetPrintNameForNode() { return "ClassDecl"; }
+    const char *GetPrintNameForNode()
+    {
+      return "ClassDecl";
+    }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env);
 };
 
 class InterfaceDecl : public Decl 
 {
   protected:
     List<Decl*> *members;
+    SymTable *interfaceEnv;
     
   public:
     InterfaceDecl(Identifier *name, List<Decl*> *members);
-    const char *GetPrintNameForNode() { return "InterfaceDecl"; }
+    const char *GetPrintNameForNode()
+    {
+      return "InterfaceDecl";
+    }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env);
 };
 
 class FnDecl : public Decl 
@@ -79,11 +101,16 @@ class FnDecl : public Decl
     Stmt *body;
     
   public:
-    FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
+    FnDecl(Identifier *name, Type *returnType,
+           List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
-    const char *GetPrintNameForNode() { return "FnDecl"; }
+    const char *GetPrintNameForNode()
+    {
+      return "FnDecl";
+    }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env);
 };
 
 #endif

@@ -16,6 +16,7 @@ Program::Program(List<Decl*> *d)
 {
   Assert(d != NULL);
   (decls=d)->SetParentAll(this);
+  env = NULL;
 }
 
 void Program::PrintChildren(int indentLevel) 
@@ -34,6 +35,8 @@ void Program::Check()
    *      and polymorphism in the node classes.
    */
 
+  env = new SymTable();
+
   // Pass 1: Build symbol table
   for (int i = 0; i < decls->NumElements(); i++)
     {
@@ -46,7 +49,8 @@ void Program::Check()
   // Pass 2: Semantic check
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      //decls->Nth(i)->Check();
+      if (!decls->Nth(i)->Check())
+        return;
     }
 }
 
@@ -60,6 +64,7 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s)
   Assert(d != NULL && s != NULL);
   (decls=d)->SetParentAll(this);
   (stmts=s)->SetParentAll(this);
+  blockEnv = NULL;
 }
 
 void StmtBlock::PrintChildren(int indentLevel) 
@@ -70,8 +75,6 @@ void StmtBlock::PrintChildren(int indentLevel)
 
 bool StmtBlock::CheckDecls(SymTable *env)
 {
-  SymTable *blockEnv;
-
   if ((blockEnv = env->addScope()) == false)
     return false;
 
@@ -90,7 +93,26 @@ bool StmtBlock::CheckDecls(SymTable *env)
   return true;
 }
 
+bool StmtBlock::Check(SymTable *env)
+{
+  /*
+   * Note: don't use env passed as argument. Use blockEnv
+   */
 
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      if (!decls->Nth(i)->Check(blockEnv))
+        return false;
+    }
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      if (!stmts->Nth(i)->Check(blockEnv))
+        return false;
+    }
+
+  return true;
+}
 
 /* Class: ConditionalStmt
  * ----------------------
@@ -104,27 +126,54 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b)
   (body=b)->SetParent(this);
 }
 
+/* Class: CaseStmt
+ * ---------------
+ * Implementation of CaseStmt class
+ */
+
 CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList)
 {
   Assert(intConst != NULL && stmtList != NULL);
   (i = intConst)->SetParent(this);
   (stmts = stmtList)->SetParentAll(this);
 }
+
 void CaseStmt::PrintChildren(int indentLevel)
 {
   i->Print(indentLevel+1);
   stmts->PrintAll(indentLevel+1);
 }
 
+bool CaseStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: DefaultStmt
+ * ---------------
+ * Implementation of DefaultStmt class
+ */
+
 DefaultStmt::DefaultStmt(List<Stmt*> *stmtList)
 {
   Assert(stmtList != NULL);
   (stmts = stmtList)->SetParentAll(this);
 }
+
 void DefaultStmt::PrintChildren(int indentLevel)
 {
   stmts->PrintAll(indentLevel+1);
 }
+
+bool DefaultStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: SwitchStmt
+ * ---------------
+ * Implementation of SwitchStmt class
+ */
 
 SwitchStmt::SwitchStmt(Expr *testExpr, 
 		       List<CaseStmt*> *caseStmts, 
@@ -143,6 +192,15 @@ void SwitchStmt::PrintChildren(int indentLevel)
   defaultCase->Print(indentLevel+1);
 }
 
+bool SwitchStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: ForStmt
+ * ---------------
+ * Implementation of ForStmt class
+ */
 
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b) : LoopStmt(t, b) 
 { 
@@ -159,11 +217,31 @@ void ForStmt::PrintChildren(int indentLevel)
   body->Print(indentLevel+1, "(body) ");
 }
 
+bool ForStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: WhileStmt
+ * ---------------
+ * Implementation of WhileStmt class
+ */
+
 void WhileStmt::PrintChildren(int indentLevel) 
 {
   test->Print(indentLevel+1, "(test) ");
   body->Print(indentLevel+1, "(body) ");
 }
+
+bool WhileStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: IfStmt
+ * ---------------
+ * Implementation of IfStmt class
+ */
 
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) 
 { 
@@ -182,6 +260,15 @@ void IfStmt::PrintChildren(int indentLevel)
     }
 }
 
+bool IfStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: ReturnStmt
+ * ---------------
+ * Implementation of ReturnStmt class
+ */
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) 
 { 
@@ -193,6 +280,16 @@ void ReturnStmt::PrintChildren(int indentLevel)
 {
   expr->Print(indentLevel+1);
 }
+
+bool ReturnStmt::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: PrintStmt
+ * ---------------
+ * Implementation of PrintStmt class
+ */
   
 PrintStmt::PrintStmt(List<Expr*> *a) 
 {    
@@ -205,4 +302,7 @@ void PrintStmt::PrintChildren(int indentLevel)
   args->PrintAll(indentLevel+1, "(args) ");
 }
 
-
+bool PrintStmt::Check(SymTable *env)
+{
+  return true;
+}

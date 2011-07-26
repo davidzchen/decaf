@@ -7,6 +7,9 @@
  *
  * pp2: You will need to add new expression and statement node c
  * classes for the additional grammar elements (Switch/Postfix)
+ *
+ * pp3: You will need to extend the Stmt classes to implement
+ * semantic analysis for rules pertaining to statements.
  */
 
 
@@ -23,36 +26,39 @@ class Expr;
   
 class Program : public Node
 {
- protected:
-  List<Decl*> *decls;
-  SymTable *env;
+  protected:
+    List<Decl*> *decls;
+    SymTable *env;
      
- public:
-  Program(List<Decl*> *declList);
-  const char *GetPrintNameForNode() { return "Program"; }
-  void PrintChildren(int indentLevel);
-  void Check();
+  public:
+    Program(List<Decl*> *declList);
+    const char *GetPrintNameForNode() { return "Program"; }
+    void PrintChildren(int indentLevel);
+    void Check();
 };
 
 class Stmt : public Node
 {
- public:
-  Stmt() : Node() {}
-  Stmt(yyltype loc) : Node(loc) {}
-  bool CheckDecls(SymTable *env) { return true; }
+  public:
+    Stmt() : Node() {}
+    Stmt(yyltype loc) : Node(loc) {}
+    bool CheckDecls(SymTable *env) { return true; }
+    bool Check(SymTable *env) { return true; }
 };
 
 class StmtBlock : public Stmt 
 {
- protected:
-  List<VarDecl*> *decls;
-  List<Stmt*> *stmts;
+  protected:
+    List<VarDecl*> *decls;
+    List<Stmt*> *stmts;
+    SymTable *blockEnv;
     
- public:
-  StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
-  const char *GetPrintNameForNode() { return "StmtBlock"; }
-  void PrintChildren(int indentLevel);
-  bool CheckDecls(SymTable *env);
+  public:
+    StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
+    const char *GetPrintNameForNode() { return "StmtBlock"; }
+    void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env);
 };
 
   
@@ -64,6 +70,7 @@ class ConditionalStmt : public Stmt
   
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
+    bool Check(SymTable *env) { return true; }
 };
 
 class CaseStmt : public Stmt
@@ -76,6 +83,7 @@ class CaseStmt : public Stmt
     CaseStmt(Expr *intConst, List<Stmt*> *stmtList);
     const char *GetPrintNameForNode() { return "Case"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class DefaultStmt : public Stmt
@@ -87,6 +95,7 @@ class DefaultStmt : public Stmt
     DefaultStmt(List<Stmt*> *stmts);
     const char *GetPrintNameForNode() { return "Default"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class SwitchStmt : public Stmt
@@ -97,9 +106,11 @@ class SwitchStmt : public Stmt
     DefaultStmt *defaultCase;
     
   public:
-    SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts, DefaultStmt *defaultStmt);
+    SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts,
+               DefaultStmt *defaultStmt);
     const char *GetPrintNameForNode() { return "SwitchStmt"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -107,6 +118,7 @@ class LoopStmt : public ConditionalStmt
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
+    bool Check(SymTable *env) { return true; }
 };
 
 class ForStmt : public LoopStmt 
@@ -118,6 +130,7 @@ class ForStmt : public LoopStmt
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
     const char *GetPrintNameForNode() { return "ForStmt"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class WhileStmt : public LoopStmt 
@@ -126,6 +139,7 @@ class WhileStmt : public LoopStmt
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
     const char *GetPrintNameForNode() { return "WhileStmt"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class IfStmt : public ConditionalStmt 
@@ -137,6 +151,7 @@ class IfStmt : public ConditionalStmt
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
     const char *GetPrintNameForNode() { return "IfStmt"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class BreakStmt : public Stmt 
@@ -144,6 +159,7 @@ class BreakStmt : public Stmt
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
     const char *GetPrintNameForNode() { return "BreakStmt"; }
+    bool Check(SymTable *env) { return true; }
 };
 
 class ReturnStmt : public Stmt  
@@ -155,6 +171,7 @@ class ReturnStmt : public Stmt
     ReturnStmt(yyltype loc, Expr *expr);
     const char *GetPrintNameForNode() { return "ReturnStmt"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 class PrintStmt : public Stmt
@@ -166,6 +183,7 @@ class PrintStmt : public Stmt
     PrintStmt(List<Expr*> *arguments);
     const char *GetPrintNameForNode() { return "PrintStmt"; }
     void PrintChildren(int indentLevel);
+    bool Check(SymTable *env);
 };
 
 

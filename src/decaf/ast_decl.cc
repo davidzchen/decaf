@@ -57,6 +57,11 @@ bool VarDecl::CheckDecls(SymTable *env)
   return true;
 }
 
+bool VarDecl::Check(SymTable *env)
+{
+  return type->Check(env);
+}
+
 
 /* Class: ClassDecl
  * ----------------
@@ -77,6 +82,7 @@ ClassDecl::ClassDecl(Identifier *n,
     }
   (implements = imp)->SetParentAll(this);
   (members = m)->SetParentAll(this);
+  classEnv = NULL;
 }
 
 void ClassDecl::PrintChildren(int indentLevel) 
@@ -92,7 +98,6 @@ void ClassDecl::PrintChildren(int indentLevel)
 
 bool ClassDecl::CheckDecls(SymTable *env)
 {
-  SymTable *classEnv;
   Symbol *sym = NULL;
   
   if ((sym = env->findLocal(id->getName())) != NULL)
@@ -110,6 +115,23 @@ bool ClassDecl::CheckDecls(SymTable *env)
 	return false;
     }
  
+  return true;
+}
+
+bool ClassDecl::Check(SymTable *env)
+{
+  /* pp3-checkpoint: Scope checking
+   *   1. Check extends declared
+   *   2. Check each VarDecl and FnDecl
+   *     - For each FnDecl with name matching a FnDecl from one of
+   *       interfaces being implemented, check type signature
+   */
+
+  if (!extends->Check(env))
+    return false;
+
+  /* FIXME: implement (2) */
+
   return true;
 }
 
@@ -132,7 +154,6 @@ void InterfaceDecl::PrintChildren(int indentLevel)
 
 bool InterfaceDecl::CheckDecls(SymTable *env)
 {
-  SymTable *interfaceEnv;
   Symbol *sym = NULL;
 
   if ((sym = env->findLocal(id->getName())) != NULL)
@@ -152,6 +173,22 @@ bool InterfaceDecl::CheckDecls(SymTable *env)
 
   return true;
 }
+
+bool InterfaceDecl::Check(SymTable *env)
+{
+  /* pp3-checkpoint: Scope checking
+   *   1. Check each FnDecl
+   */
+
+  for (int i = 0; i < members->NumElements(); i++)
+    {
+      if (!members->Nth(i)->Check(env))
+        return false;
+    }
+
+  return true;
+}
+
 
 /* Class: FnDecl
  * -------------
@@ -176,6 +213,7 @@ void FnDecl::PrintChildren(int indentLevel)
   returnType->Print(indentLevel + 1, "(return type) ");
   id->Print(indentLevel + 1);
   formals->PrintAll(indentLevel + 1, "(formals) ");
+
   if (body) 
     {
       body->Print(indentLevel + 1, "(body) ");
@@ -184,7 +222,6 @@ void FnDecl::PrintChildren(int indentLevel)
 
 bool FnDecl::CheckDecls(SymTable *env)
 {
-  SymTable *fnEnv;
   Symbol *sym;
 
   if ((sym = env->findLocal(id->getName())) != NULL)
@@ -193,17 +230,43 @@ bool FnDecl::CheckDecls(SymTable *env)
       return false;
     }
 
-  if ((fnEnv = env->addWithScope(id->getName(), this, S_FUNCTION)) == false)
+  for (int i = 0; i < formals->NumElements(); i++)
+    {
+      if (!formals->Nth(i)->CheckDecls(env))
+	return false;
+    }
+
+  if (body)
+    {
+      if (!body->CheckDecls(env))
+        return false;
+    }
+
+  return true;
+}
+
+bool FnDecl::Check(SymTable *env)
+{
+  /* pp3-checkpoint: scope checking
+   *   1. Check return type
+   *   2. Check formals
+   *   3. If body, call body's check
+   */
+
+  if (!returnType->Check(env))
     return false;
 
   for (int i = 0; i < formals->NumElements(); i++)
     {
-      if (!formals->Nth(i)->CheckDecls(fnEnv))
-	return false;
+      if (!formals->Nth(i)->Check(env))
+        return false;
     }
 
-  if (!body->CheckDecls(fnEnv))
-    return false;
+  if (body)
+    {
+      if (!body->Check(env))
+        return false;
+    }
 
   return true;
 }

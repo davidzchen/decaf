@@ -4,6 +4,9 @@
  * expressions in the parse tree.  For each expression in the
  * language (add, call, New, etc.) there is a corresponding
  * node class for that construct. 
+ *
+ * pp3: You will need to extend the Expr classes to implement
+ * semantic analysis for rules pertaining to expressions.
  */
 
 

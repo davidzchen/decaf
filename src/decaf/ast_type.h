@@ -4,6 +4,9 @@
  * store type information. The base Type class is used
  * for built-in types, the NamedType for classes and interfaces,
  * and the ArrayType for arrays of other types.  
+ *
+ * pp3: You will need to extend the Type classes to implement
+ * the type system and rules for type equivalency and compatibility.
  */
  
 #ifndef _H_ast_type
@@ -30,6 +33,7 @@ class Type : public Node
     void PrintChildren(int indentLevel);
     virtual bool IsEquivalentTo(Type *other) { return this == other; }
     virtual void PrintToStream(ostream& out) { out << typeName; }
+    bool Check(SymTable *env) { return true; }
 };
 
 class NamedType : public Type 
@@ -43,6 +47,7 @@ class NamedType : public Type
     const char *GetPrintNameForNode() { return "NamedType"; }
     void PrintChildren(int indentLevel);
     void PrintToStream(ostream& out) { out << id; }
+    bool Check(SymTable *env);
 };
 
 class ArrayType : public Type 
@@ -56,6 +61,7 @@ class ArrayType : public Type
     const char *GetPrintNameForNode() { return "ArrayType"; }
     void PrintChildren(int indentLevel);
     void PrintToStream(ostream& out) { out << elemType << "[]"; }
+    bool Check(SymTable *env);
 };
 
  

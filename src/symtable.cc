@@ -112,6 +112,7 @@ void SymTable::print(int indentLevel)
 
   Iterator<Symbol*> iter = table->GetIterator();
   Symbol *sym;
+
   while ((sym = iter.GetNextValue()) != NULL)
     {
       sym->print(indentLevel);
