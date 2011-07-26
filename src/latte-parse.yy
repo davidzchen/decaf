@@ -16,9 +16,10 @@
  * file inclusions or C++ variable declarations/prototypes that are needed
  * by your code here.
  */
+#include "errors.h"
 #include "scanner.h" // for yylex
-#include "parse.h"
-#include <errors.h>
+#include "ltc.h"
+
 
 void yyerror(const char *msg); // standard error-handling routine
 

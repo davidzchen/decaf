@@ -8,6 +8,10 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 
+/* Class: IntConstant
+ * ------------------
+ * Implementation for IntConstant class
+ */
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) 
 {
@@ -19,6 +23,11 @@ void IntConstant::PrintChildren(int indentLevel)
   printf("%d", value);
 }
 
+/* Class: DoubleConstant
+ * ------------------
+ * Implementation for DoubleConstant class
+ */
+
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) 
 {
   value = val;
@@ -28,6 +37,11 @@ void DoubleConstant::PrintChildren(int indentLevel)
 { 
   printf("%g", value);
 }
+
+/* Class: BoolConstant
+ * ------------------
+ * Implementation for BoolConstant class
+ */
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) 
 {
@@ -39,15 +53,26 @@ void BoolConstant::PrintChildren(int indentLevel)
   printf("%s", value ? "true" : "false");
 }
 
+/* Class: StringConstant
+ * ------------------
+ * Implementation for StringConstant class
+ */
+
 StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) 
 {
   Assert(val != NULL);
   value = strdup(val);
 }
+
 void StringConstant::PrintChildren(int indentLevel) 
 { 
   printf("%s",value);
 }
+
+/* Class: Operator
+ * ------------------
+ * Implementation for Operator class
+ */
 
 Operator::Operator(yyltype loc, const char *tok) : Node(loc) 
 {
@@ -60,13 +85,18 @@ void Operator::PrintChildren(int indentLevel)
   printf("%s",tokenString);
 }
 
+/* Class: CompoundExpr
+ * ------------------
+ * Implementation for CompoundExpr class
+ */
+
 CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r) 
   : Expr(Join(l->GetLocation(), r->GetLocation())) 
 {
   Assert(l != NULL && o != NULL && r != NULL);
-  (op=o)->SetParent(this);
-  (left=l)->SetParent(this); 
-  (right=r)->SetParent(this);
+  (op = o)->SetParent(this);
+  (left = l)->SetParent(this);
+  (right = r)->SetParent(this);
 }
 
 CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
@@ -74,8 +104,8 @@ CompoundExpr::CompoundExpr(Operator *o, Expr *r)
 {
   Assert(o != NULL && r != NULL);
   left = NULL; 
-  (op=o)->SetParent(this);
-  (right=r)->SetParent(this);
+  (op = o)->SetParent(this);
+  (right = r)->SetParent(this);
 }
 
 CompoundExpr::CompoundExpr(Expr *l, Operator *o)
@@ -83,8 +113,8 @@ CompoundExpr::CompoundExpr(Expr *l, Operator *o)
 {
   Assert(l != NULL && o != NULL);
   right = NULL;
-  (left=l)->SetParent(this);
-  (op=o)->SetParent(this);
+  (left = l)->SetParent(this);
+  (op = o)->SetParent(this);
 }
 
 void CompoundExpr::PrintChildren(int indentLevel) 
@@ -99,7 +129,111 @@ void CompoundExpr::PrintChildren(int indentLevel)
       right->Print(indentLevel+1);
     }
 }
-   
+
+bool CompoundExpr::Check(SymTable *env)
+{
+  if (left && !left->Check(env))
+    return false;
+
+  if (right && !right->Check(env))
+    return false;
+}
+
+/* Class: ArithmeticExpr
+ * ------------------
+ * Implementation for ArithmeticExpr class
+ */
+
+bool ArithmeticExpr::Check(SymTable *env)
+{
+  if (left && !left->Check(env))
+    return false;
+
+  if (!right->Check(env))
+    return false;
+}
+
+/* Class: RelationalExpr
+ * ------------------
+ * Implementation for RelationalExpr class
+ */
+
+bool RelationalExpr::Check(SymTable *env)
+{
+  if (!left->Check(env))
+    return false;
+
+  if (!right->Check(env))
+    return false;
+}
+
+/* Class: EqualityExpr
+ * ------------------
+ * Implementation for EqualityExpr class
+ */
+
+bool EqualityExpr::Check(SymTable *env)
+{
+  if (!left->Check(env))
+    return false;
+
+  if (!right->Check(env))
+    return false;
+}
+
+/* Class: LogicalExpr
+ * ------------------
+ * Implementation for LogicalExpr class
+ */
+
+bool LogicalExpr::Check(SymTable *env)
+{
+  if (left && !left->Check(env))
+    return false;
+
+  if (!right->Check(env))
+    return false;
+}
+
+/* Class: PostfixExpr
+ * ------------------
+ * Implementation for PostfixExpr class
+ */
+
+bool PostfixExpr::Check(SymTable *env)
+{
+  if (!left->Check(env))
+    return false;
+}
+
+/* Class: AssignExpr
+ * ------------------
+ * Implementation for AssignExpr class
+ */
+
+bool AssignExpr::Check(SymTable *env)
+{
+  if (!left->Check(env))
+    return false;
+
+  if (!right->Check(env))
+      return false;
+}
+
+/* Class: This
+ * ----------
+ * Implementation of This class
+ */
+
+bool This::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: ArrayAccess
+ * ------------------
+ * Implementation for ArrayAccess class
+ */
   
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) 
 {
@@ -112,6 +246,16 @@ void ArrayAccess::PrintChildren(int indentLevel)
   base->Print(indentLevel+1);
   subscript->Print(indentLevel+1, "(subscript) ");
 }
+
+bool ArrayAccess::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: FieldAccess
+ * ------------------
+ * Implementation for FieldAccess class
+ */
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
   : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) 
@@ -126,10 +270,24 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
 }
 
 
-  void FieldAccess::PrintChildren(int indentLevel) {
-    if (base) base->Print(indentLevel+1);
-    field->Print(indentLevel+1);
-  }
+void FieldAccess::PrintChildren(int indentLevel)
+{
+  if (base)
+    {
+      base->Print(indentLevel+1);
+    }
+  field->Print(indentLevel+1);
+}
+
+bool FieldAccess::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: Call
+ * ------------------
+ * Implementation for Call class
+ */
 
 Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  
 {
@@ -152,7 +310,16 @@ void Call::PrintChildren(int indentLevel)
   field->Print(indentLevel+1);
   actuals->PrintAll(indentLevel+1, "(actuals) ");
 }
- 
+
+bool Call::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: NewExpr
+ * ------------------
+ * Implementation for NewExpr class
+ */
 
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) 
 {
@@ -165,6 +332,16 @@ void NewExpr::PrintChildren(int indentLevel)
   cType->Print(indentLevel+1);
 }
 
+bool NewExpr::Check(SymTable *env)
+{
+  return true;
+}
+
+/* Class: NewArrayExpr
+ * ------------------
+ * Implementation for NewArrayExpr class
+ */
+
 NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) 
 {
   Assert(sz != NULL && et != NULL);
@@ -176,4 +353,9 @@ void NewArrayExpr::PrintChildren(int indentLevel)
 {
   size->Print(indentLevel+1);
   elemType->Print(indentLevel+1);
+}
+
+bool NewArrayExpr::Check(SymTable *env)
+{
+  return true;
 }

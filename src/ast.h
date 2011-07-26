@@ -38,10 +38,16 @@
 
 #include <iostream>
 #include <stdlib.h>   // for NULL
-#include <location.h>
+#include "location.h"
+#include "symtable.h"
+#include "errors.h"
+
 using namespace std;
 
-class Node  {
+class SymTable;
+
+class Node
+{
   protected:
     yyltype *location;
     Node *parent;
@@ -72,11 +78,15 @@ class Identifier : public Node
     
   public:
     Identifier(yyltype loc, const char *name);
-    const char *GetPrintNameForNode()   { return "Identifier"; }
+    const char *GetPrintNameForNode() { return "Identifier"; }
     void PrintChildren(int indentLevel);
-    friend ostream& operator<<(ostream& out, Identifier *id) { return out << id->name; }
+    friend ostream& operator<<(ostream& out, Identifier *id)
+    {
+      return out << id->name;
+    }
     char *getName() { return name; }
-    bool Check(SymTable *env) { return true; }
+    bool Check(SymTable *env);
+    bool Check(SymTable *env, int type);
 };
 
 
@@ -89,8 +99,8 @@ class Error : public Node
 {
   public:
     Error() : Node() {}
-    const char *GetPrintNameForNode()   { return "Error"; }
-    bool Check(SymTable *env) { return true; }
+    const char *GetPrintNameForNode() { return "Error"; }
+    bool check(SymTable *env) { return true; }
 };
 
 

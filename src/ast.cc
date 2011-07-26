@@ -52,3 +52,19 @@ void Identifier::PrintChildren(int indentLevel)
 {
   printf("%s", name);
 }
+
+bool Identifier::Check(SymTable *env)
+{
+  if (!env->find(name))
+    return false;
+
+  return true;
+}
+
+bool Identifier::Check(SymTable *env, int type)
+{
+  if (!env->find(name, type))
+    return false;
+
+  return true;
+}

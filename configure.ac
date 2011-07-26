@@ -8,7 +8,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([-Wall -Werror])
-LT_INIT
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Checks for programs.
@@ -18,7 +17,6 @@ AC_PROG_YACC
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LEX
-AC_PROG_LIBTOOL
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [log])
@@ -40,11 +38,9 @@ AC_CHECK_FUNCS([strdup])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-		 src/decaf/Makefile
-		 src/latte/Makefile
-		 tests/Makefile
-		 tests/scanner/Makefile
-		 tests/parse/Makefile
-		 tests/scope/Makefile
-		 tests/semantic/Makefile])
+                 tests/Makefile
+                 tests/scanner/Makefile
+                 tests/parse/Makefile
+                 tests/scope/Makefile
+                 tests/semantic/Makefile])
 AC_OUTPUT

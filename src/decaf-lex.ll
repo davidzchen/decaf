@@ -6,11 +6,12 @@
 %{
 
 #include <string.h>
-#include "scanner.h"
-#include <utility.h> // for PrintDebug()
-#include <errors.h>
-#include "parse.h" // for token codes, yylval
 #include <vector>
+#include "scanner.h"
+#include "utility.h" // for PrintDebug()
+#include "errors.h"
+#include "dcc.h" // for token codes, yylval
+
 using namespace std;
 
 #define TAB_SIZE 8

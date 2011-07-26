@@ -12,22 +12,19 @@
 /* Class: Decl 
  * -----------
  * Implementation of Decl class
- */         
+ */
+
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) 
 {
   Assert(n != NULL);
   (id = n)->SetParent(this); 
 }
 
-bool Decl::CheckDecls(SymTable *env)
-{
-  return true;
-}
-
 /* Class: VarDecl 
  * -------------- 
  * Implementation of VarDecl class
  */
+
 VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) 
 {
   Assert(n != NULL && t != NULL);
@@ -54,6 +51,7 @@ bool VarDecl::CheckDecls(SymTable *env)
     {
       return false;
     }
+
   return true;
 }
 
@@ -83,6 +81,7 @@ ClassDecl::ClassDecl(Identifier *n,
   (implements = imp)->SetParentAll(this);
   (members = m)->SetParentAll(this);
   classEnv = NULL;
+  vFunctions = NULL;
 }
 
 void ClassDecl::PrintChildren(int indentLevel) 
@@ -118,17 +117,77 @@ bool ClassDecl::CheckDecls(SymTable *env)
   return true;
 }
 
+/* Checks if the class extends another class. If it does, then set the class's
+ * symbol table's super pointer to the symbol table of the super class. Then,
+ * for each interface the class implements, iterate through each of the
+ * interface's member functions and add them to the virtual function hash
+ * table. If a vfunction in the table has the same name, then check whether
+ * the type signatures are the same. If they are the same, then skip. Otherwise,
+ * print error and return.
+ */
+bool ClassDecl::Inherit(SymTable *env)
+{
+  if (extends)
+    {
+      if (!extends->Check(env))
+        return false;
+
+      Symbol *baseClass = env->find(extends->GetName(), S_CLASS);
+      Assert(baseClass != NULL);
+
+      classEnv->setSuper(baseClass->getEnv());
+    }
+
+  vFunctions = new Hashtable<VFunction*>;
+
+  for (int i = 0; i < implements->NumElements(); i++)
+    {
+      NamedType *interface = implements->Nth(i);
+      if (!interface->Check(env))
+        return false;
+
+      Symbol *intfSym = env->find(interface->GetName(), S_INTERFACE);
+      Assert(intfSym != NULL);
+
+      InterfaceDecl *intfDecl = dynamic_cast<InterfaceDecl*>(intfSym->getNode());
+      Assert(intfDecl != 0);
+
+      List<Decl*> *intfMembers = intfDecl->getMembers();
+      for (int j = 0; j < intfMembers->NumElements(); j++)
+        {
+          FnDecl *fn = dynamic_cast<FnDecl*>(intfMembers->Nth(j));
+          Assert(fn != 0);
+
+          VFunction *vf = NULL;
+          if ((vf = vFunctions->Lookup(fn->GetName())) == NULL)
+            {
+              vFunctions->Enter(fn->GetName(), new VFunction(fn, implements->Nth(i)));
+              continue;
+            }
+
+          if (!fn->TypeEqual(vf->getPrototype()))
+            {
+              // XXX: what if two interfaces have the same function with
+              //      different type signatures?
+              ReportError::OverrideMismatch(fn);
+              return false;
+            }
+        }
+    }
+
+  return true;
+}
+
+/* Preconditions:
+ *   1. Class hierarchy is set up.
+ *   2. There are no conflicts among interfaces being implemented
+ *   3. All the functions from interfaces being implemented have been added to
+ *      the vFunctions table.
+ *
+ * pp3-checkpoint: for scope checking,
+ */
 bool ClassDecl::Check(SymTable *env)
 {
-  /* pp3-checkpoint: Scope checking
-   *   1. Check extends declared
-   *   2. Check each VarDecl and FnDecl
-   *     - For each FnDecl with name matching a FnDecl from one of
-   *       interfaces being implemented, check type signature
-   */
-
-  if (!extends->Check(env))
-    return false;
 
   /* FIXME: implement (2) */
 
@@ -174,12 +233,11 @@ bool InterfaceDecl::CheckDecls(SymTable *env)
   return true;
 }
 
+/* pp3-checkpoint: Scope checking
+ *   1. Check each FnDecl
+ */
 bool InterfaceDecl::Check(SymTable *env)
 {
-  /* pp3-checkpoint: Scope checking
-   *   1. Check each FnDecl
-   */
-
   for (int i = 0; i < members->NumElements(); i++)
     {
       if (!members->Nth(i)->Check(env))
@@ -269,4 +327,34 @@ bool FnDecl::Check(SymTable *env)
     }
 
   return true;
+}
+
+bool FnDecl::TypeEqual(FnDecl *fn)
+{
+  if (!returnType->IsEquivalentTo(fn->GetReturnType()))
+    return false;
+
+  List<VarDecl*> *otherFormals = fn->GetFormals();
+
+  if (formals->NumElements() != otherFormals->NumElements())
+    return false;
+
+  for (int i = 0; i < otherFormals->NumElements(); i++)
+    {
+      if (!formals->Nth(i)->GetType()->IsEquivalentTo(otherFormals->Nth(i)->GetType()))
+        return false;
+    }
+
+  return true;
+}
+
+/* Class: VFunction
+ * ----------------
+ * Implementation for VFunction class
+ */
+
+VFunction::VFunction(FnDecl *p, NamedType *type)
+{
+  prototype = p;
+  intfType = type;
 }

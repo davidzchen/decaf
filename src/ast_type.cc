@@ -52,13 +52,16 @@ NamedType::NamedType(Identifier *i) : Type(*i->GetLocation())
 
 void NamedType::PrintChildren(int indentLevel) 
 {
-  id->Print(indentLevel+1);
+  id->Print(indentLevel + 1);
 }
 
 bool NamedType::Check(SymTable *env)
 {
   if (!env->find(id->getName()))
-    return false;
+    {
+      ReportError::IdentifierNotDeclared(id, LookingForType);
+      return false;
+    }
 
   return true;
 }
@@ -76,7 +79,7 @@ ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc)
 
 void ArrayType::PrintChildren(int indentLevel) 
 {
-  elemType->Print(indentLevel+1);
+  elemType->Print(indentLevel + 1);
 }
 
 bool ArrayType::Check(SymTable *env)

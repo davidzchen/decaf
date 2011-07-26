@@ -34,8 +34,9 @@ void Program::Check()
    *      checking itself, which makes for a great use of inheritance
    *      and polymorphism in the node classes.
    */
+  ClassDecl *d;
 
-  env = new SymTable();
+  env = new SymTable;
 
   // Pass 1: Build symbol table
   for (int i = 0; i < decls->NumElements(); i++)
@@ -44,12 +45,28 @@ void Program::Check()
 	return;
     }
 
-  env->print(0);
-
-  // Pass 2: Semantic check
+  // Pass 2: Set up class inheritance hierarchy
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      if (!decls->Nth(i)->Check())
+      try
+        {
+          d = dynamic_cast<ClassDecl*>(decls->Nth(i));
+          if (d == 0)
+            continue;
+
+          if (!d->Inherit(env))
+            return;
+        }
+      catch (exception& e)
+        {
+          continue;
+        }
+    }
+
+  // Pass 2: Scope check and type check
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      if (!decls->Nth(i)->Check(env))
         return;
     }
 }
@@ -62,15 +79,15 @@ void Program::Check()
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) 
 {
   Assert(d != NULL && s != NULL);
-  (decls=d)->SetParentAll(this);
-  (stmts=s)->SetParentAll(this);
+  (decls = d)->SetParentAll(this);
+  (stmts = s)->SetParentAll(this);
   blockEnv = NULL;
 }
 
 void StmtBlock::PrintChildren(int indentLevel) 
 {
-  decls->PrintAll(indentLevel+1);
-  stmts->PrintAll(indentLevel+1);
+  decls->PrintAll(indentLevel + 1);
+  stmts->PrintAll(indentLevel + 1);
 }
 
 bool StmtBlock::CheckDecls(SymTable *env)
@@ -122,8 +139,8 @@ bool StmtBlock::Check(SymTable *env)
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) 
 {
   Assert(t != NULL && b != NULL);
-  (test=t)->SetParent(this); 
-  (body=b)->SetParent(this);
+  (test = t)->SetParent(this);
+  (body = b)->SetParent(this);
 }
 
 /* Class: CaseStmt
@@ -205,8 +222,8 @@ bool SwitchStmt::Check(SymTable *env)
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b) : LoopStmt(t, b) 
 { 
   Assert(i != NULL && t != NULL && s != NULL && b != NULL);
-  (init=i)->SetParent(this);
-  (step=s)->SetParent(this);
+  (init = i)->SetParent(this);
+  (step = s)->SetParent(this);
 }
 
 void ForStmt::PrintChildren(int indentLevel) 
@@ -273,7 +290,7 @@ bool IfStmt::Check(SymTable *env)
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) 
 { 
   Assert(e != NULL);
-  (expr=e)->SetParent(this);
+  (expr = e)->SetParent(this);
 }
 
 void ReturnStmt::PrintChildren(int indentLevel) 
@@ -294,7 +311,7 @@ bool ReturnStmt::Check(SymTable *env)
 PrintStmt::PrintStmt(List<Expr*> *a) 
 {    
   Assert(a != NULL);
-  (args=a)->SetParentAll(this);
+  (args = a)->SetParentAll(this);
 }
 
 void PrintStmt::PrintChildren(int indentLevel) 

@@ -13,9 +13,9 @@
 #ifndef _H_ast_decl
 #define _H_ast_decl
 
-#include <list.h>
-#include <symtable.h>
-#include <ast.h>
+#include "list.h"
+#include "symtable.h"
+#include "ast.h"
 #include "ast_decl.h"
 #include "ast_stmt.h"
 #include "ast_type.h"
@@ -24,6 +24,7 @@ class Type;
 class NamedType;
 class Identifier;
 class Stmt;
+class VFunction;
 
 class Decl : public Node 
 {
@@ -36,8 +37,10 @@ class Decl : public Node
     {
       return out << d->id;
     }
-    bool CheckDecls(SymTable *env);
-    bool Check(SymTable *env) { return true; }
+    void PrintToStream(ostream& out) { out << id; }
+    virtual bool CheckDecls(SymTable *env) { return true; }
+    virtual bool Check(SymTable *env) { return true; }
+    char *GetName() { return id->getName(); }
 };
 
 class VarDecl : public Decl 
@@ -54,6 +57,7 @@ class VarDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    Type *GetType() { return type; }
 };
 
 class ClassDecl : public Decl 
@@ -63,6 +67,7 @@ class ClassDecl : public Decl
     NamedType *extends;
     List<NamedType*> *implements;
     SymTable *classEnv;
+    Hashtable<VFunction*> *vFunctions;
 
   public:
     ClassDecl(Identifier *name, NamedType *extends, 
@@ -73,8 +78,11 @@ class ClassDecl : public Decl
     }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
+    bool Inherit(SymTable *env);
     bool Check(SymTable *env);
 };
+
+
 
 class InterfaceDecl : public Decl 
 {
@@ -91,6 +99,7 @@ class InterfaceDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    List<Decl*> *getMembers() { return members; }
 };
 
 class FnDecl : public Decl 
@@ -111,6 +120,21 @@ class FnDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    Type *GetReturnType() { return returnType; }
+    List<VarDecl*> *GetFormals() { return formals; }
+    bool TypeEqual(FnDecl *fn);
+};
+
+class VFunction
+{
+  protected:
+    FnDecl *prototype;
+    NamedType *intfType;
+
+  public:
+    VFunction(FnDecl *p, NamedType *type);
+    FnDecl *getPrototype() { return prototype; }
+    NamedType *getIntfType() { return intfType; }
 };
 
 #endif

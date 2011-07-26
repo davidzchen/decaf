@@ -16,9 +16,10 @@
  * file inclusions or C++ variable declarations/prototypes that are needed
  * by your code here.
  */
+#include "errors.h"
 #include "scanner.h" // for yylex
-#include "parse.h"
-#include <errors.h>
+#include "dcc.h"
+
 
 void yyerror(const char *msg); // standard error-handling routine
 
@@ -263,8 +264,8 @@ ClassImplements
 	;
 	
 ImplementsTypeList
-	: ImplementsTypeList T_Identifier { 
-				  Identifier *i = new Identifier(@2, $2);
+	: ImplementsTypeList ',' T_Identifier { 
+				  Identifier *i = new Identifier(@3, $3);
 				  NamedType *t = new NamedType(i);
 				  ($$ = $1)->Append(t); 
 				}

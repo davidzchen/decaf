@@ -5,15 +5,11 @@
  */
 
 
-#define __USING_LCC 1
-
 #include <string.h>
 #include <stdio.h>
-
 #include <utility.h>
 #include <errors.h>
-
-#include "parse.h"
+#include "ltc.h"
 
 
 /* Function: main()
