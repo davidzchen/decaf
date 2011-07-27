@@ -15,6 +15,7 @@
 
 
 
+
 pkgdatadir = $(datadir)/dcc
 pkgincludedir = $(includedir)/dcc
 pkglibdir = $(libdir)/dcc
@@ -41,6 +42,29 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
+am__install_max = 40
+am__nobase_strip_setup = \
+  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
+am__nobase_strip = \
+  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
+am__nobase_list = $(am__nobase_strip_setup); \
+  for p in $$list; do echo "$$p $$p"; done | \
+  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
+  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
+    if (++n[$$2] == $(am__install_max)) \
+      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
+    END { for (dir in files) print dir, files[dir] }'
+am__base_list = \
+  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
+  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
+am__installdirs = "$(DESTDIR)$(bindir)"
+SCRIPTS = $(bin_SCRIPTS)
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
@@ -49,6 +73,8 @@ am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
 am__v_at_0 = @
 SOURCES =
 DIST_SOURCES =
+am__tty_colors = \
+red=; grn=; lgn=; blu=; std=
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = ${SHELL} /Users/dzc/git/dcc/missing --run aclocal-1.11
 AMTAR = ${SHELL} /Users/dzc/git/dcc/missing --run tar
@@ -146,6 +172,38 @@ target_alias =
 top_build_prefix = ../../
 top_builddir = ../..
 top_srcdir = ../..
+bin_SCRIPTS = \
+        bad1.test \
+        bad2.test \
+        bad3.test \
+        bad4.test \
+        bad5.test \
+        bad6.test \
+        bad7.test \
+        bad8.test \
+        bad9.test \
+        bad10.test \
+        bad11.test \
+        matrix.test \
+        new.test \
+        queue.test \
+        stack.test \
+        t1.test \
+        t2.test \
+        t3.test \
+        t4.test \
+        t5.test \
+        t6.test \
+        t7.test \
+        t9.test \
+        t10.test \
+        t12.test \
+        t13.test
+
+TESTS = $(bin_SCRIPTS)
+TESTS_ENVIRONMENT = top_builddir=$(top_builddir)/tests/semantic
+EXTRA_DIST = $(TESTS) *.out *.decaf test.in gentest.pl
+GEN = ./gentest.pl
 all: all-am
 
 .SUFFIXES:
@@ -179,12 +237,138 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+install-binSCRIPTS: $(bin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n' \
+	    -e 'h;s|.*|.|' \
+	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
+	      if (++n[d] == $(am__install_max)) { \
+		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
+	    else { print "f", d "/" $$4, $$1 } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	     test -z "$$files" || { \
+	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(bindir)$$dir'"; \
+	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	     } \
+	; done
+
+uninstall-binSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	       sed -e 's,.*/,,;$(transform)'`; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(bindir)" && rm -f $$files
 tags: TAGS
 TAGS:
 
 ctags: CTAGS
 CTAGS:
 
+
+check-TESTS: $(TESTS)
+	@failed=0; all=0; xfail=0; xpass=0; skip=0; \
+	srcdir=$(srcdir); export srcdir; \
+	list=' $(TESTS) '; \
+	$(am__tty_colors); \
+	if test -n "$$list"; then \
+	  for tst in $$list; do \
+	    if test -f ./$$tst; then dir=./; \
+	    elif test -f $$tst; then dir=; \
+	    else dir="$(srcdir)/"; fi; \
+	    if $(TESTS_ENVIRONMENT) $${dir}$$tst; then \
+	      all=`expr $$all + 1`; \
+	      case " $(XFAIL_TESTS) " in \
+	      *[\ \	]$$tst[\ \	]*) \
+		xpass=`expr $$xpass + 1`; \
+		failed=`expr $$failed + 1`; \
+		col=$$red; res=XPASS; \
+	      ;; \
+	      *) \
+		col=$$grn; res=PASS; \
+	      ;; \
+	      esac; \
+	    elif test $$? -ne 77; then \
+	      all=`expr $$all + 1`; \
+	      case " $(XFAIL_TESTS) " in \
+	      *[\ \	]$$tst[\ \	]*) \
+		xfail=`expr $$xfail + 1`; \
+		col=$$lgn; res=XFAIL; \
+	      ;; \
+	      *) \
+		failed=`expr $$failed + 1`; \
+		col=$$red; res=FAIL; \
+	      ;; \
+	      esac; \
+	    else \
+	      skip=`expr $$skip + 1`; \
+	      col=$$blu; res=SKIP; \
+	    fi; \
+	    echo "$${col}$$res$${std}: $$tst"; \
+	  done; \
+	  if test "$$all" -eq 1; then \
+	    tests="test"; \
+	    All=""; \
+	  else \
+	    tests="tests"; \
+	    All="All "; \
+	  fi; \
+	  if test "$$failed" -eq 0; then \
+	    if test "$$xfail" -eq 0; then \
+	      banner="$$All$$all $$tests passed"; \
+	    else \
+	      if test "$$xfail" -eq 1; then failures=failure; else failures=failures; fi; \
+	      banner="$$All$$all $$tests behaved as expected ($$xfail expected $$failures)"; \
+	    fi; \
+	  else \
+	    if test "$$xpass" -eq 0; then \
+	      banner="$$failed of $$all $$tests failed"; \
+	    else \
+	      if test "$$xpass" -eq 1; then passes=pass; else passes=passes; fi; \
+	      banner="$$failed of $$all $$tests did not behave as expected ($$xpass unexpected $$passes)"; \
+	    fi; \
+	  fi; \
+	  dashes="$$banner"; \
+	  skipped=""; \
+	  if test "$$skip" -ne 0; then \
+	    if test "$$skip" -eq 1; then \
+	      skipped="($$skip test was not run)"; \
+	    else \
+	      skipped="($$skip tests were not run)"; \
+	    fi; \
+	    test `echo "$$skipped" | wc -c` -le `echo "$$banner" | wc -c` || \
+	      dashes="$$skipped"; \
+	  fi; \
+	  report=""; \
+	  if test "$$failed" -ne 0 && test -n "$(PACKAGE_BUGREPORT)"; then \
+	    report="Please report to $(PACKAGE_BUGREPORT)"; \
+	    test `echo "$$report" | wc -c` -le `echo "$$banner" | wc -c` || \
+	      dashes="$$report"; \
+	  fi; \
+	  dashes=`echo "$$dashes" | sed s/./=/g`; \
+	  if test "$$failed" -eq 0; then \
+	    echo "$$grn$$dashes"; \
+	  else \
+	    echo "$$red$$dashes"; \
+	  fi; \
+	  echo "$$banner"; \
+	  test -z "$$skipped" || echo "$$skipped"; \
+	  test -z "$$report" || echo "$$report"; \
+	  echo "$$dashes$$std"; \
+	  test "$$failed" -eq 0; \
+	else :; fi
 
 distdir: $(DISTFILES)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -217,9 +401,13 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile
+all-am: Makefile $(SCRIPTS)
 installdirs:
+	for dir in "$(DESTDIR)$(bindir)"; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -247,7 +435,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f Makefile
@@ -271,7 +459,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am:
+install-exec-am: install-binSCRIPTS
 
 install-html: install-html-am
 
@@ -309,20 +497,103 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am:
+uninstall-am: uninstall-binSCRIPTS
 
-.MAKE: install-am install-strip
+.MAKE: check-am install-am install-strip
 
-.PHONY: all all-am check check-am clean clean-generic distclean \
-	distclean-generic distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
+.PHONY: all all-am check check-TESTS check-am clean clean-generic \
+	clean-local distclean distclean-generic distdir dvi dvi-am \
+	html html-am info info-am install install-am \
+	install-binSCRIPTS install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic pdf pdf-am ps ps-am uninstall uninstall-am
+	mostlyclean-generic pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-binSCRIPTS
 
+
+clean-local:
+	rm -rf *.err *.put *.test
+
+bad1.test:
+	$(AM_V_GEN)$(GEN) -f bad1 -e decaf && chmod +x bad1.test
+
+bad2.test:
+	$(AM_V_GEN)$(GEN) -f bad2 -e decaf && chmod +x bad2.test
+
+bad3.test:
+	$(AM_V_GEN)$(GEN) -f bad3 -e decaf && chmod +x bad3.test
+
+bad4.test:
+	$(AM_V_GEN)$(GEN) -f bad4 -e decaf && chmod +x bad4.test
+
+bad5.test:
+	$(AM_V_GEN)$(GEN) -f bad5 -e decaf && chmod +x bad5.test
+
+bad6.test:
+	$(AM_V_GEN)$(GEN) -f bad6 -e decaf && chmod +x bad6.test
+
+bad7.test:
+	$(AM_V_GEN)$(GEN) -f bad7 -e decaf && chmod +x bad7.test
+
+bad8.test:
+	$(AM_V_GEN)$(GEN) -f bad8 -e decaf && chmod +x bad8.test
+
+bad9.test:
+	$(AM_V_GEN)$(GEN) -f bad9 -e decaf && chmod +x bad9.test
+
+bad10.test:
+	$(AM_V_GEN)$(GEN) -f bad10 -e decaf && chmod +x bad10.test
+
+bad11.test:
+	$(AM_V_GEN)$(GEN) -f bad11 -e decaf && chmod +x bad11.test
+
+matrix.test:
+	$(AM_V_GEN)$(GEN) -f matrix -e decaf && chmod +x matrix.test
+
+new.test:
+	$(AM_V_GEN)$(GEN) -f new -e decaf && chmod +x new.test
+
+queue.test:
+	$(AM_V_GEN)$(GEN) -f queue -e decaf && chmod +x queue.test
+
+stack.test:
+	$(AM_V_GEN)$(GEN) -f stack -e decaf && chmod +x stack.test
+
+t1.test:
+	$(AM_V_GEN)$(GEN) -f t1 -e decaf && chmod +x t1.test
+
+t2.test:
+	$(AM_V_GEN)$(GEN) -f t2 -e decaf && chmod +x t2.test
+
+t3.test:
+	$(AM_V_GEN)$(GEN) -f t3 -e decaf && chmod +x t3.test
+
+t4.test:
+	$(AM_V_GEN)$(GEN) -f t4 -e decaf && chmod +x t4.test
+
+t5.test:
+	$(AM_V_GEN)$(GEN) -f t5 -e decaf && chmod +x t5.test
+
+t6.test:
+	$(AM_V_GEN)$(GEN) -f t6 -e decaf && chmod +x t6.test
+
+t7.test:
+	$(AM_V_GEN)$(GEN) -f t7 -e decaf && chmod +x t7.test
+
+t9.test:
+	$(AM_V_GEN)$(GEN) -f t9 -e decaf && chmod +x t9.test
+
+t10.test:
+	$(AM_V_GEN)$(GEN) -f t10 -e decaf && chmod +x t10.test
+
+t12.test:
+	$(AM_V_GEN)$(GEN) -f t12 -e decaf && chmod +x t12.test
+
+t13.test:
+	$(AM_V_GEN)$(GEN) -f t13 -e decaf && chmod +x t13.test
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

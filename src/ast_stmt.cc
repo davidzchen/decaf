@@ -47,18 +47,11 @@ void Program::Check()
   // Pass 2: Set up class inheritance hierarchy
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      try
-        {
-          d = dynamic_cast<ClassDecl*>(decls->Nth(i));
-          if (d == 0)
-            continue;
+      d = dynamic_cast<ClassDecl*>(decls->Nth(i));
+      if (d == 0)
+        continue;
 
-          d->Inherit(env);
-        }
-      catch (exception& e)
-        {
-          continue;
-        }
+      d->Inherit(env);
     }
 
   // Pass 2: Scope check and type check
@@ -148,6 +141,7 @@ CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList)
   Assert(intConst != NULL && stmtList != NULL);
   (i = intConst)->SetParent(this);
   (stmts = stmtList)->SetParentAll(this);
+  caseEnv = NULL;
 }
 
 void CaseStmt::PrintChildren(int indentLevel)
@@ -156,9 +150,33 @@ void CaseStmt::PrintChildren(int indentLevel)
   stmts->PrintAll(indentLevel+1);
 }
 
+bool CaseStmt::CheckDecls(SymTable *env)
+{
+  bool ret = true;
+
+  if ((caseEnv = env->addScope()) == false)
+    return false;
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      ret &= stmts->Nth(i)->CheckDecls(env);
+    }
+
+  return ret;
+}
+
 bool CaseStmt::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  ret &= i->Check(env);
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      ret &= stmts->Nth(i)->Check(env);
+    }
+
+  return ret;
 }
 
 /* Class: DefaultStmt
@@ -177,9 +195,31 @@ void DefaultStmt::PrintChildren(int indentLevel)
   stmts->PrintAll(indentLevel+1);
 }
 
+bool DefaultStmt::CheckDecls(SymTable *env)
+{
+  bool ret = true;
+
+  if ((caseEnv = env->addScope()) == false)
+    return false;
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      ret &= stmts->Nth(i)->CheckDecls(env);
+    }
+
+  return ret;
+}
+
 bool DefaultStmt::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      ret &= stmts->Nth(i)->Check(env);
+    }
+
+  return ret;
 }
 
 /* Class: SwitchStmt
@@ -202,6 +242,20 @@ void SwitchStmt::PrintChildren(int indentLevel)
   test->Print(indentLevel+1);
   cases->PrintAll(indentLevel+1);
   defaultCase->Print(indentLevel+1);
+}
+
+bool SwitchStmt::CheckDecls(SymTable *env)
+{
+  bool ret = true;
+
+  for (int i = 0; i < cases->NumElements(); i++)
+    {
+      ret &= cases->Nth(i)->Check(env);
+    }
+
+  ret &= defaultCase->Check(env);
+
+  return ret;
 }
 
 bool SwitchStmt::Check(SymTable *env)
@@ -229,6 +283,11 @@ void ForStmt::PrintChildren(int indentLevel)
   body->Print(indentLevel+1, "(body) ");
 }
 
+bool ForStmt::CheckDecls(SymTable *env)
+{
+  return body->CheckDecls(env);
+}
+
 bool ForStmt::Check(SymTable *env)
 {
   return true;
@@ -245,9 +304,14 @@ void WhileStmt::PrintChildren(int indentLevel)
   body->Print(indentLevel+1, "(body) ");
 }
 
+bool WhileStmt::CheckDecls(SymTable *env)
+{
+  return body->CheckDecls(env);
+}
+
 bool WhileStmt::Check(SymTable *env)
 {
-  return true;
+  return body->Check(env);
 }
 
 /* Class: IfStmt
@@ -270,6 +334,20 @@ void IfStmt::PrintChildren(int indentLevel)
     {
       elseBody->Print(indentLevel+1, "(else) ");
     }
+}
+
+bool IfStmt::CheckDecls(SymTable *env)
+{
+  bool ret = true;
+
+  ret &= body->CheckDecls(env);
+
+  if (elseBody)
+    {
+      ret &= elseBody->CheckDecls(env);
+    }
+
+  return ret;
 }
 
 bool IfStmt::Check(SymTable *env)

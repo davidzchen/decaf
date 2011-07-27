@@ -129,32 +129,21 @@ bool ClassDecl::Inherit(SymTable *env)
 
   if (extends)
     {
-      if (!extends->Check(env))
+      Symbol *baseClass = NULL;
+      if ((baseClass = env->find(extends->GetName(), S_CLASS)) != NULL)
         {
-          ret = false;
-        }
-      else
-        {
-          Symbol *baseClass = env->find(extends->GetName(), S_CLASS);
-          Assert(baseClass != NULL);
-
           classEnv->setSuper(baseClass->getEnv());
         }
     }
 
   vFunctions = new Hashtable<VFunction*>;
-
   for (int i = 0; i < implements->NumElements(); i++)
     {
       NamedType *interface = implements->Nth(i);
-      if (!interface->Check(env))
-        {
-          ret = false;
-          continue;
-        }
+      Symbol *intfSym = NULL;
 
-      Symbol *intfSym = env->find(interface->GetName(), S_INTERFACE);
-      Assert(intfSym != NULL);
+      if ((intfSym = env->find(interface->GetName(), S_INTERFACE)) == NULL)
+        continue;
 
       InterfaceDecl *intfDecl = dynamic_cast<InterfaceDecl*>(intfSym->getNode());
       Assert(intfDecl != 0);
@@ -201,14 +190,30 @@ bool ClassDecl::Check(SymTable *env)
 
   Assert(env != NULL && classEnv != NULL);
 
+  if (extends)
+    {
+      if ((sym = env->find(extends->GetName())) == NULL)
+        {
+          ReportError::IdentifierNotDeclared(extends->GetIdent(), LookingForClass);
+          ret = false;
+        }
+    }
+  for (int i = 0; i < implements->NumElements(); i++)
+    {
+      NamedType *intf = implements->Nth(i);
+      if ((sym = env->find(intf->GetName())) == NULL)
+        {
+          ReportError::IdentifierNotDeclared(intf->GetIdent(), LookingForInterface);
+          ret = false;
+        }
+    }
+
   for (int i = 0; i < members->NumElements(); i++)
     {
-      //printf("%d ", i);
       FnDecl *method = dynamic_cast<FnDecl*>(members->Nth(i));
       VarDecl *field = NULL;
       if (method != 0)
         {
-          //printf("method %s\n", method->GetName());
           if ((sym = classEnv->findSuper(method->GetName(), S_FUNCTION)) != NULL)
             {
               FnDecl *otherMethod = dynamic_cast<FnDecl*>(sym->getNode());
@@ -225,7 +230,6 @@ bool ClassDecl::Check(SymTable *env)
         {
           field = dynamic_cast<VarDecl*>(members->Nth(i));
           Assert(field != 0);
-          //printf("field %s\n", field->GetName());
           if ((sym = classEnv->findSuper(field->GetName(), S_VARIABLE)) != NULL)
             {
               ReportError::DeclConflict(field, dynamic_cast<Decl*>(sym->getNode()));
@@ -265,6 +269,8 @@ bool ClassDecl::Check(SymTable *env)
     {
       ReportError::InterfaceNotImplemented(this, intfType);
     }
+
+  delete incompleteIntfs;
 
   return ret;
 }

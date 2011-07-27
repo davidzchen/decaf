@@ -78,11 +78,13 @@ class CaseStmt : public Stmt
   protected:
     Expr *i;
     List<Stmt*> *stmts;
+    SymTable *caseEnv;
     
   public:
     CaseStmt(Expr *intConst, List<Stmt*> *stmtList);
     const char *GetPrintNameForNode() { return "Case"; }
     void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
 };
 
@@ -90,11 +92,13 @@ class DefaultStmt : public Stmt
 {
   protected:
     List<Stmt*> *stmts;
+    SymTable *caseEnv;
     
   public:
     DefaultStmt(List<Stmt*> *stmts);
     const char *GetPrintNameForNode() { return "Default"; }
     void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
 };
 
@@ -110,6 +114,7 @@ class SwitchStmt : public Stmt
                DefaultStmt *defaultStmt);
     const char *GetPrintNameForNode() { return "SwitchStmt"; }
     void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
 };
 
@@ -118,6 +123,7 @@ class LoopStmt : public ConditionalStmt
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
+    virtual bool CheckDecls(SymTable *env) { return true; }
     virtual bool Check(SymTable *env) { return true; }
 };
 
@@ -130,6 +136,7 @@ class ForStmt : public LoopStmt
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
     const char *GetPrintNameForNode() { return "ForStmt"; }
     void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
 };
 
@@ -139,6 +146,7 @@ class WhileStmt : public LoopStmt
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
     const char *GetPrintNameForNode() { return "WhileStmt"; }
     void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
 };
 
@@ -151,6 +159,7 @@ class IfStmt : public ConditionalStmt
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
     const char *GetPrintNameForNode() { return "IfStmt"; }
     void PrintChildren(int indentLevel);
+    bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
 };
 
