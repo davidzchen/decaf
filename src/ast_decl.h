@@ -108,6 +108,7 @@ class FnDecl : public Decl
     List<VarDecl*> *formals;
     Type *returnType;
     Stmt *body;
+    SymTable *fnEnv;
     
   public:
     FnDecl(Identifier *name, Type *returnType,
@@ -130,11 +131,14 @@ class VFunction
   protected:
     FnDecl *prototype;
     NamedType *intfType;
+    bool implemented;
 
   public:
     VFunction(FnDecl *p, NamedType *type);
     FnDecl *getPrototype() { return prototype; }
     NamedType *getIntfType() { return intfType; }
+    bool isImplemented() { return implemented; }
+    void setImplemented(bool im) { implemented = im; }
 };
 
 #endif

@@ -102,7 +102,6 @@ bool ClassDecl::CheckDecls(SymTable *env)
   if ((sym = env->findLocal(id->getName())) != NULL)
     {
       ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
-      return false;
     }
 
   if ((classEnv = env->addWithScope(id->getName(), this, S_CLASS)) == NULL)
@@ -110,8 +109,7 @@ bool ClassDecl::CheckDecls(SymTable *env)
 
   for (int i = 0; i < members->NumElements(); i++)
     {
-      if (!members->Nth(i)->CheckDecls(classEnv))
-	return false;
+      members->Nth(i)->CheckDecls(classEnv);
     }
  
   return true;
@@ -127,15 +125,21 @@ bool ClassDecl::CheckDecls(SymTable *env)
  */
 bool ClassDecl::Inherit(SymTable *env)
 {
+  bool ret = true;
+
   if (extends)
     {
       if (!extends->Check(env))
-        return false;
+        {
+          ret = false;
+        }
+      else
+        {
+          Symbol *baseClass = env->find(extends->GetName(), S_CLASS);
+          Assert(baseClass != NULL);
 
-      Symbol *baseClass = env->find(extends->GetName(), S_CLASS);
-      Assert(baseClass != NULL);
-
-      classEnv->setSuper(baseClass->getEnv());
+          classEnv->setSuper(baseClass->getEnv());
+        }
     }
 
   vFunctions = new Hashtable<VFunction*>;
@@ -144,7 +148,10 @@ bool ClassDecl::Inherit(SymTable *env)
     {
       NamedType *interface = implements->Nth(i);
       if (!interface->Check(env))
-        return false;
+        {
+          ret = false;
+          continue;
+        }
 
       Symbol *intfSym = env->find(interface->GetName(), S_INTERFACE);
       Assert(intfSym != NULL);
@@ -169,13 +176,13 @@ bool ClassDecl::Inherit(SymTable *env)
             {
               // XXX: what if two interfaces have the same function with
               //      different type signatures?
+              ret = false;
               ReportError::OverrideMismatch(fn);
-              return false;
             }
         }
     }
 
-  return true;
+  return ret;
 }
 
 /* Preconditions:
@@ -188,10 +195,78 @@ bool ClassDecl::Inherit(SymTable *env)
  */
 bool ClassDecl::Check(SymTable *env)
 {
+  bool ret = true;
+  Symbol *sym = NULL;
+  VFunction *vf = NULL;
 
-  /* FIXME: implement (2) */
+  Assert(env != NULL && classEnv != NULL);
 
-  return true;
+  for (int i = 0; i < members->NumElements(); i++)
+    {
+      //printf("%d ", i);
+      FnDecl *method = dynamic_cast<FnDecl*>(members->Nth(i));
+      VarDecl *field = NULL;
+      if (method != 0)
+        {
+          //printf("method %s\n", method->GetName());
+          if ((sym = classEnv->findSuper(method->GetName(), S_FUNCTION)) != NULL)
+            {
+              FnDecl *otherMethod = dynamic_cast<FnDecl*>(sym->getNode());
+              if (!method->TypeEqual(otherMethod))
+                {
+                  ReportError::OverrideMismatch(method);
+                  ret = false;
+                }
+            }
+
+          ret &= method->Check(classEnv);
+        }
+      else
+        {
+          field = dynamic_cast<VarDecl*>(members->Nth(i));
+          Assert(field != 0);
+          //printf("field %s\n", field->GetName());
+          if ((sym = classEnv->findSuper(field->GetName(), S_VARIABLE)) != NULL)
+            {
+              ReportError::DeclConflict(field, dynamic_cast<Decl*>(sym->getNode()));
+              ret = false;
+            }
+          ret &= field->Check(classEnv);
+        }
+    }
+
+  Iterator<VFunction*> iter = vFunctions->GetIterator();
+  Hashtable<NamedType*> *incompleteIntfs = new Hashtable<NamedType*>;
+  while ((vf = iter.GetNextValue()) != NULL)
+    {
+      sym = classEnv->findInClass(vf->getPrototype()->GetName(), S_FUNCTION);
+      if (sym == NULL)
+        {
+          incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
+          continue;
+        }
+      FnDecl *method = dynamic_cast<FnDecl*>(sym->getNode());
+      Assert(method != 0);
+
+      if (method->TypeEqual(vf->getPrototype()))
+        {
+          vf->setImplemented(true);
+        }
+      else
+        {
+          incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
+          ret = false;
+        }
+    }
+
+  Iterator<NamedType*> iter2 = incompleteIntfs->GetIterator();
+  NamedType *intfType = NULL;
+  while ((intfType = iter2.GetNextValue()) != NULL)
+    {
+      ReportError::InterfaceNotImplemented(this, intfType);
+    }
+
+  return ret;
 }
 
 /* Class: InterfaceDecl
@@ -214,11 +289,12 @@ void InterfaceDecl::PrintChildren(int indentLevel)
 bool InterfaceDecl::CheckDecls(SymTable *env)
 {
   Symbol *sym = NULL;
+  bool ret = true;
 
   if ((sym = env->findLocal(id->getName())) != NULL)
     {
       ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
-      return false;
+      ret = false;
     }
 
   if ((interfaceEnv = env->addWithScope(id->getName(), this, S_INTERFACE)) == false)
@@ -226,11 +302,10 @@ bool InterfaceDecl::CheckDecls(SymTable *env)
 
   for (int i = 0; i < members->NumElements(); i++)
     {
-      if (!members->Nth(i)->CheckDecls(interfaceEnv))
-	return false;
+      ret &= members->Nth(i)->CheckDecls(interfaceEnv);
     }
 
-  return true;
+  return ret;
 }
 
 /* pp3-checkpoint: Scope checking
@@ -238,13 +313,14 @@ bool InterfaceDecl::CheckDecls(SymTable *env)
  */
 bool InterfaceDecl::Check(SymTable *env)
 {
+  bool ret = true;
+
   for (int i = 0; i < members->NumElements(); i++)
     {
-      if (!members->Nth(i)->Check(env))
-        return false;
+      ret &= members->Nth(i)->Check(env);
     }
 
-  return true;
+  return ret;
 }
 
 
@@ -259,6 +335,7 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n)
   (returnType = r)->SetParent(this);
   (formals = d)->SetParentAll(this);
   body = NULL;
+  fnEnv = NULL;
 }
 
 void FnDecl::SetFunctionBody(Stmt *b) 
@@ -281,52 +358,53 @@ void FnDecl::PrintChildren(int indentLevel)
 bool FnDecl::CheckDecls(SymTable *env)
 {
   Symbol *sym;
+  bool ret = true;
 
   if ((sym = env->findLocal(id->getName())) != NULL)
     {
+      ret = false;
       ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
-      return false;
     }
+
+  if ((fnEnv = env->addWithScope(id->getName(), this, S_FUNCTION)) == false)
+      return false;
 
   for (int i = 0; i < formals->NumElements(); i++)
     {
-      if (!formals->Nth(i)->CheckDecls(env))
-	return false;
+      ret &= formals->Nth(i)->CheckDecls(fnEnv);
     }
 
   if (body)
     {
-      if (!body->CheckDecls(env))
+      if (!body->CheckDecls(fnEnv))
         return false;
     }
 
-  return true;
+  return ret;
 }
 
+/* pp3-checkpoint: scope checking
+ *   1. Check return type
+ *   2. Check formals
+ *   3. If body, call body's check
+ */
 bool FnDecl::Check(SymTable *env)
 {
-  /* pp3-checkpoint: scope checking
-   *   1. Check return type
-   *   2. Check formals
-   *   3. If body, call body's check
-   */
+  bool ret = true;
 
-  if (!returnType->Check(env))
-    return false;
+  ret &= returnType->Check(env);
 
   for (int i = 0; i < formals->NumElements(); i++)
     {
-      if (!formals->Nth(i)->Check(env))
-        return false;
+      ret &= formals->Nth(i)->Check(env);
     }
 
   if (body)
     {
-      if (!body->Check(env))
-        return false;
+      ret &= body->Check(env);
     }
 
-  return true;
+  return ret;
 }
 
 bool FnDecl::TypeEqual(FnDecl *fn)
@@ -357,4 +435,5 @@ VFunction::VFunction(FnDecl *p, NamedType *type)
 {
   prototype = p;
   intfType = type;
+  implemented = false;
 }

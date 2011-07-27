@@ -51,7 +51,9 @@ class NamedType : public Type
     void PrintChildren(int indentLevel);
     void PrintToStream(ostream& out) { out << id; }
     char *GetName() { return id->getName(); }
+    Identifier *GetIdent() { return id; }
     bool Check(SymTable *env);
+    bool IsEquivalentTo(Type *other);
 };
 
 class ArrayType : public Type 
@@ -66,6 +68,8 @@ class ArrayType : public Type
     void PrintChildren(int indentLevel);
     void PrintToStream(ostream& out) { out << elemType << "[]"; }
     bool Check(SymTable *env);
+    Type *getElemType() { return elemType; }
+    bool IsEquivalentTo(Type *other);
 };
 
  

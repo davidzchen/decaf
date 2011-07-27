@@ -69,6 +69,8 @@ class SymTable
     Symbol *findSuper(char *key, int type);
     Symbol *findLocal(char *key);
     Symbol *findLocal(char *key, int type);
+    Symbol *findInClass(char *key);
+    Symbol *findInClass(char *key, int type);
     Symbol *find(char *key);
     Symbol *find(char *key, int type);
     Symbol *findUp(char *key);

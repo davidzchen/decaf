@@ -41,8 +41,7 @@ void Program::Check()
   // Pass 1: Build symbol table
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      if (!decls->Nth(i)->CheckDecls(env))
-	return;
+      decls->Nth(i)->CheckDecls(env);
     }
 
   // Pass 2: Set up class inheritance hierarchy
@@ -54,8 +53,7 @@ void Program::Check()
           if (d == 0)
             continue;
 
-          if (!d->Inherit(env))
-            return;
+          d->Inherit(env);
         }
       catch (exception& e)
         {
@@ -66,8 +64,7 @@ void Program::Check()
   // Pass 2: Scope check and type check
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      if (!decls->Nth(i)->Check(env))
-        return;
+      decls->Nth(i)->Check(env);
     }
 }
 
@@ -97,14 +94,12 @@ bool StmtBlock::CheckDecls(SymTable *env)
 
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      if (!decls->Nth(i)->CheckDecls(blockEnv))
-	return false;
+      decls->Nth(i)->CheckDecls(blockEnv);
     }
 
   for (int i = 0; i < stmts->NumElements(); i++)
     {
-      if (!stmts->Nth(i)->CheckDecls(blockEnv))
-	return false;
+      stmts->Nth(i)->CheckDecls(blockEnv);
     }
 
   return true;

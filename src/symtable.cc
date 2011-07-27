@@ -86,7 +86,10 @@ SymTable *SymTable::addWithScope(char *key, Node *node, int type)
 Symbol *SymTable::findSuper(char *key)
 {
   Symbol *sym = NULL;
-  SymTable *current = this;
+  SymTable *current = super;
+
+  if (!super)
+    return NULL;
 
   for ( ; current != NULL; current = current->getSuper())
     {
@@ -110,6 +113,32 @@ Symbol *SymTable::findSuper(char *key, int type)
     }
 
   return NULL;
+}
+
+Symbol *SymTable::findInClass(char *key)
+{
+  Symbol *sym = NULL;
+
+  if ((sym = findLocal(key)) != NULL)
+    return sym;
+
+  if ((sym = findSuper(key)) != NULL)
+    return sym;
+
+  return NULL;
+}
+
+Symbol *SymTable::findInClass(char *key, int type)
+{
+  Symbol *s = findInClass(key);
+
+  if (s)
+    {
+      if (s->getType() == type)
+        return s;
+      else
+        return NULL;
+    }
 }
 
 Symbol *SymTable::findLocal(char *key)

@@ -5,7 +5,6 @@ AC_PREREQ([2.67])
 AC_INIT([dcc], [0.3], [dzchen@stanford.edu])
 AC_CONFIG_SRCDIR([src/utility.cc])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([-Wall -Werror])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])

@@ -66,6 +66,17 @@ bool NamedType::Check(SymTable *env)
   return true;
 }
 
+bool NamedType::IsEquivalentTo(Type *other)
+{
+  NamedType *nOther = NULL;
+
+  nOther = dynamic_cast<NamedType*>(other);
+  if (nOther == 0)
+    return false;
+
+  return (strcmp(id->getName(), nOther->GetName()) == 0);
+}
+
 /* Class: ArrayType
  * ----------------
  * Implementation of ArrayType class
@@ -85,4 +96,16 @@ void ArrayType::PrintChildren(int indentLevel)
 bool ArrayType::Check(SymTable *env)
 {
   return elemType->Check(env);
+}
+
+
+bool ArrayType::IsEquivalentTo(Type *other)
+{
+  ArrayType *nOther = NULL;
+
+  nOther = dynamic_cast<ArrayType*>(other);
+  if (nOther == 0)
+    return false;
+
+  return elemType->IsEquivalentTo(nOther->getElemType());
 }

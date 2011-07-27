@@ -1,6 +1,5 @@
 
 AM_CXXFLAGS = -G -Wno-unused -Wno-sign-compare
-ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = src
 
@@ -20,3 +19,9 @@ check-scanner:
 
 check-parse:
 	cd tests && $(MAKE) check-parse
+
+check-scope:
+	cd tests && $(MAKE) check-scope
+
+check-semantic:
+	cd tests && $(MAKE) check-semantic

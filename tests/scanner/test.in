@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TEST_NAME="@TESTNAME@"
-DCC="../../src/decaf/dcc -f"
+DCC="../../src/dcc -f"
 CMP="diff -w"
 WC="wc -c"
 INFILE=${TEST_NAME}.@TESTEXT@
