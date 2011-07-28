@@ -7,6 +7,8 @@
 #include "ast_decl.h"
 #include "ast_expr.h"
 
+SymTable *globalEnv = NULL;
+
 /* Class: Program
  * --------------
  * Implementation of Program class
@@ -53,6 +55,11 @@ void Program::Check()
 
       d->Inherit(env);
     }
+
+  //env->print(0);
+  //printf("\n");
+
+  globalEnv = env;
 
   // Pass 2: Scope check and type check
   for (int i = 0; i < decls->NumElements(); i++)
@@ -103,17 +110,16 @@ bool StmtBlock::Check(SymTable *env)
   /*
    * Note: don't use env passed as argument. Use blockEnv
    */
+  bool ret = true;
 
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      if (!decls->Nth(i)->Check(blockEnv))
-        return false;
+      ret &= decls->Nth(i)->Check(blockEnv);
     }
 
   for (int i = 0; i < stmts->NumElements(); i++)
     {
-      if (!stmts->Nth(i)->Check(blockEnv))
-        return false;
+      ret &= stmts->Nth(i)->Check(blockEnv);
     }
 
   return true;
@@ -139,14 +145,14 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b)
 CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList)
 {
   Assert(intConst != NULL && stmtList != NULL);
-  (i = intConst)->SetParent(this);
+  (ic = intConst)->SetParent(this);
   (stmts = stmtList)->SetParentAll(this);
   caseEnv = NULL;
 }
 
 void CaseStmt::PrintChildren(int indentLevel)
 {
-  i->Print(indentLevel+1);
+  ic->Print(indentLevel+1);
   stmts->PrintAll(indentLevel+1);
 }
 
@@ -169,7 +175,7 @@ bool CaseStmt::Check(SymTable *env)
 {
   bool ret = true;
 
-  ret &= i->Check(env);
+  ret &= ic->Check(env);
 
   for (int i = 0; i < stmts->NumElements(); i++)
     {
@@ -250,17 +256,33 @@ bool SwitchStmt::CheckDecls(SymTable *env)
 
   for (int i = 0; i < cases->NumElements(); i++)
     {
-      ret &= cases->Nth(i)->Check(env);
+      ret &= cases->Nth(i)->CheckDecls(env);
     }
 
-  ret &= defaultCase->Check(env);
+  ret &= defaultCase->CheckDecls(env);
 
   return ret;
 }
 
 bool SwitchStmt::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  ret &= test->Check(env);
+  if (!test->GetRetType()->IsEquivalentTo(Type::intType))
+    {
+      ReportError::SwitchTestNotInt(test);
+      ret = false;
+    }
+
+  for (int i = 0; i < cases->NumElements(); i++)
+    {
+      ret &= cases->Nth(i)->Check(env);
+    }
+
+  ret &= defaultCase->Check(env);
+
+  return ret;
 }
 
 /* Class: ForStmt
@@ -290,7 +312,20 @@ bool ForStmt::CheckDecls(SymTable *env)
 
 bool ForStmt::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  ret &= test->Check(env);
+  if (!test->GetRetType()->IsEquivalentTo(Type::boolType))
+    {
+      ReportError::TestNotBoolean(test);
+      ret = false;
+    }
+
+  ret &= init->Check(env);
+  ret &= step->Check(env);
+  ret &= body->Check(env);
+
+  return ret;
 }
 
 /* Class: WhileStmt
@@ -311,7 +346,18 @@ bool WhileStmt::CheckDecls(SymTable *env)
 
 bool WhileStmt::Check(SymTable *env)
 {
-  return body->Check(env);
+  bool ret = true;
+
+  ret &= test->Check(env);
+  if (!test->GetRetType()->IsEquivalentTo(Type::boolType))
+    {
+      ReportError::TestNotBoolean(test);
+      ret = false;
+    }
+
+  ret &= body->Check(env);
+
+  return ret;
 }
 
 /* Class: IfStmt
@@ -352,7 +398,21 @@ bool IfStmt::CheckDecls(SymTable *env)
 
 bool IfStmt::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  ret &= test->Check(env);
+  if (!test->GetRetType()->IsConvertableTo(Type::boolType))
+    {
+      ReportError::TestNotBoolean(test);
+      ret = false;
+    }
+
+  ret &= body->Check(env);
+
+  if (elseBody)
+    ret &= elseBody->Check(env);
+
+  return ret;
 }
 
 /* Class: ReturnStmt
@@ -392,7 +452,28 @@ void PrintStmt::PrintChildren(int indentLevel)
   args->PrintAll(indentLevel+1, "(args) ");
 }
 
+bool PrintStmt::PrintableType(Type *type)
+{
+  return (type->IsConvertableTo(Type::intType)
+       || type->IsConvertableTo(Type::boolType)
+       || type->IsConvertableTo(Type::stringType));
+}
+
 bool PrintStmt::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+  Type *argType;
+
+  for (int i = 0; i < args->NumElements(); i++)
+    {
+      ret &= args->Nth(i)->Check(env);
+      argType = args->Nth(i)->GetRetType();
+      if (!PrintableType(argType))
+        {
+          ReportError::PrintArgMismatch(args->Nth(i), i+1, argType);
+          ret = false;
+        }
+    }
+
+  return ret;
 }

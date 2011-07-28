@@ -40,6 +40,7 @@ class Decl : public Node
     void PrintToStream(ostream& out) { out << id; }
     virtual bool CheckDecls(SymTable *env) { return true; }
     virtual bool Check(SymTable *env) { return true; }
+    virtual Type *GetType() { return NULL; }
     char *GetName() { return id->getName(); }
 };
 
@@ -76,6 +77,7 @@ class ClassDecl : public Decl
     {
       return "ClassDecl";
     }
+    Identifier *GetIdent() { return id; }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Inherit(SymTable *env);
@@ -122,6 +124,7 @@ class FnDecl : public Decl
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
     Type *GetReturnType() { return returnType; }
+    Type *GetType() { return returnType; }
     List<VarDecl*> *GetFormals() { return formals; }
     bool TypeEqual(FnDecl *fn);
 };

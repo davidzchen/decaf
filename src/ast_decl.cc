@@ -107,6 +107,8 @@ bool ClassDecl::CheckDecls(SymTable *env)
   if ((classEnv = env->addWithScope(id->getName(), this, S_CLASS)) == NULL)
     return false;
 
+  classEnv->setThis(classEnv);
+
   for (int i = 0; i < members->NumElements(); i++)
     {
       members->Nth(i)->CheckDecls(classEnv);
@@ -252,7 +254,7 @@ bool ClassDecl::Check(SymTable *env)
       FnDecl *method = dynamic_cast<FnDecl*>(sym->getNode());
       Assert(method != 0);
 
-      if (method->TypeEqual(vf->getPrototype()))
+      /*if (method->TypeEqual(vf->getPrototype()))
         {
           vf->setImplemented(true);
         }
@@ -260,6 +262,11 @@ bool ClassDecl::Check(SymTable *env)
         {
           incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
           ret = false;
+        }*/
+
+      if (!method->TypeEqual(vf->getPrototype()))
+        {
+          ReportError::OverrideMismatch(method);
         }
     }
 
@@ -407,6 +414,7 @@ bool FnDecl::Check(SymTable *env)
 
   if (body)
     {
+      // FIXME: Return type checking
       ret &= body->Check(env);
     }
 

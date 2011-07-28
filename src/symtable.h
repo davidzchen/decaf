@@ -48,18 +48,27 @@ class Symbol
 class SymTable
 {
   protected:
-    SymTable *prev;
-    Hashtable<Symbol*> *table;
-    List<SymTable*> *blocks;
-    SymTable *super;
+    SymTable *_prev;
+    Hashtable<Symbol*> *_table;
+    List<SymTable*> *_blocks;
+    SymTable *_super;
+    SymTable *_this;
+    Symbol *_refsym;
 
   public:
     SymTable();
 
-    void setParent(SymTable *p) { prev = p; }
-    SymTable *getParent() { return prev; }
-    void setSuper(SymTable *s) { super = s; }
-    SymTable *getSuper() { return super; }
+    void setParent(SymTable *p) { _prev = p; }
+    SymTable *getParent() { return _prev; }
+    void setSuper(SymTable *s) { _super = s; }
+    SymTable *getSuper() { return _super; }
+    void setThis(SymTable *t) { _this = t; }
+    SymTable *getThis() { return _this; }
+    void setRefSym(Symbol *s) { _refsym = s; }
+    Symbol *getRefSym() { return _refsym; }
+
+    Symbol *getThisClass();
+    bool subclassOf(char *key);
 
     bool add(char *key, Node *node);
     SymTable *addScope();
@@ -75,6 +84,8 @@ class SymTable
     Symbol *find(char *key, int type);
     Symbol *findUp(char *key);
     Symbol *findUp(char *key, int type);
+    Symbol *findClassField(char *className, char *fieldName);
+    Symbol *findClassField(char *className, char *fieldName, int type);
 
     void print(int indentLevel);
     int getSize();

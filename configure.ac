@@ -38,8 +38,9 @@ AC_CHECK_FUNCS([strdup])
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  tests/Makefile
-                 tests/scanner/Makefile
-                 tests/parse/Makefile
+                 all-tests/Makefile
+                 all-tests/scanner/Makefile
+                 all-tests/parse/Makefile
                  tests/scope/Makefile
                  tests/semantic/Makefile])
 AC_OUTPUT

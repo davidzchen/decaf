@@ -39,6 +39,7 @@ void Type::PrintChildren(int indentLevel)
   printf("%s", typeName);
 }
 
+
 /* Class: NamedType
  * ----------------
  * Implementation of NamedType class
@@ -62,6 +63,29 @@ bool NamedType::Check(SymTable *env)
       ReportError::IdentifierNotDeclared(id, LookingForType);
       return false;
     }
+
+  return true;
+}
+
+bool NamedType::IsConvertableTo(Type *other)
+{
+  if (strcmp(other->GetPrintNameForNode(), "NamedType") != 0)
+    return false;
+
+  if (IsEquivalentTo(other))
+    return true;
+
+  Assert(globalEnv != NULL);
+
+  Symbol *thisSym, *otherSym;
+
+  thisSym = globalEnv->find(id->getName(), S_CLASS);
+
+  if (thisSym == NULL)
+    return false;
+
+  if (!thisSym->getEnv()->subclassOf(other->GetName()))
+    return false;
 
   return true;
 }
@@ -96,6 +120,20 @@ void ArrayType::PrintChildren(int indentLevel)
 bool ArrayType::Check(SymTable *env)
 {
   return elemType->Check(env);
+}
+
+bool ArrayType::IsConvertableTo(Type *other)
+{
+  ArrayType *nOther = NULL;
+
+  if (other->IsEquivalentTo(Type::errorType))
+    return true;
+
+  nOther = dynamic_cast<ArrayType*>(other);
+  if (nOther == 0)
+    return false;
+
+  return elemType->IsEquivalentTo(nOther->getElemType());
 }
 
 

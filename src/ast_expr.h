@@ -17,6 +17,8 @@
 #include "symtable.h"
 #include "ast.h"
 #include "ast_stmt.h"
+#include "ast_type.h"
+#include "ast_decl.h"
 
 class NamedType; // for new
 class Type; // for NewArray
@@ -24,9 +26,14 @@ class Type; // for NewArray
 
 class Expr : public Stmt 
 {
+  protected:
+    Type *retType;
+
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
+    void SetRetType(Type *t) { retType = t; }
+    Type *GetRetType() { return retType; }
     virtual bool Check(SymTable *env) { return true; }
 };
 
@@ -37,6 +44,7 @@ class Expr : public Stmt
 class EmptyExpr : public Expr 
 {
   public:
+    EmptyExpr() { retType = Type::voidType; }
     const char *GetPrintNameForNode() { return "Empty"; }
     bool Check(SymTable *env) { return true; }
 };
@@ -92,7 +100,7 @@ class StringConstant : public Expr
 class NullConstant: public Expr 
 {
   public: 
-    NullConstant(yyltype loc) : Expr(loc) {}
+    NullConstant(yyltype loc) : Expr(loc) { retType = Type::nullType; }
     const char *GetPrintNameForNode() { return "NullConstant"; }
     bool Check(SymTable *env) { return true; }
 };
@@ -124,7 +132,7 @@ class CompoundExpr : public Expr
     CompoundExpr(Operator *op, Expr *rhs);            // for unary
     CompoundExpr(Expr *lhs, Operator *op);            // for postfix
     void PrintChildren(int indentLevel);
-    bool Check(SymTable *env);
+    virtual bool Check(SymTable *env) { return true; }
 };
 
 class ArithmeticExpr : public CompoundExpr 
@@ -226,6 +234,7 @@ class FieldAccess : public LValue
     const char *GetPrintNameForNode() { return "FieldAccess"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    Expr *GetBase() { return base; }
 };
 
 /* Like field access, call is used both for qualified base.field()
@@ -245,6 +254,7 @@ class Call : public Expr
     const char *GetPrintNameForNode() { return "Call"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    bool CheckCall(FnDecl *prototype, SymTable *env);
 };
 
 class NewExpr : public Expr 
@@ -277,7 +287,7 @@ class ReadIntegerExpr : public Expr
   public:
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
     const char *GetPrintNameForNode() { return "ReadIntegerExpr"; }
-    bool Check(SymTable *env) { return true; }
+    bool Check(SymTable *env);
 };
 
 class ReadLineExpr : public Expr 
@@ -285,7 +295,7 @@ class ReadLineExpr : public Expr
   public:
     ReadLineExpr(yyltype loc) : Expr (loc) {}
     const char *GetPrintNameForNode() { return "ReadLineExpr"; }
-    bool Check(SymTable *env) { return true; }
+    bool Check(SymTable *env);
 };
 
     

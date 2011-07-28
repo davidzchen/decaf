@@ -50,12 +50,12 @@ am__v_at_0 = @
 SOURCES =
 DIST_SOURCES =
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /Users/dzc/git/dcc/missing --run aclocal-1.11
-AMTAR = ${SHELL} /Users/dzc/git/dcc/missing --run tar
+ACLOCAL = ${SHELL} /Users/dzc/Hax/dcc/missing --run aclocal-1.11
+AMTAR = ${SHELL} /Users/dzc/Hax/dcc/missing --run tar
 AM_DEFAULT_VERBOSITY = 0
-AUTOCONF = ${SHELL} /Users/dzc/git/dcc/missing --run autoconf
-AUTOHEADER = ${SHELL} /Users/dzc/git/dcc/missing --run autoheader
-AUTOMAKE = ${SHELL} /Users/dzc/git/dcc/missing --run automake-1.11
+AUTOCONF = ${SHELL} /Users/dzc/Hax/dcc/missing --run autoconf
+AUTOHEADER = ${SHELL} /Users/dzc/Hax/dcc/missing --run autoheader
+AUTOMAKE = ${SHELL} /Users/dzc/Hax/dcc/missing --run automake-1.11
 AWK = awk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -86,7 +86,7 @@ LEX_OUTPUT_ROOT = lex.yy
 LIBOBJS = 
 LIBS = -lm 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /Users/dzc/git/dcc/missing --run makeinfo
+MAKEINFO = ${SHELL} /Users/dzc/Hax/dcc/missing --run makeinfo
 MKDIR_P = .././install-sh -c -d
 OBJEXT = o
 PACKAGE = dcc
@@ -103,10 +103,10 @@ STRIP =
 VERSION = 0.3
 YACC = bison -y
 YFLAGS = 
-abs_builddir = /Users/dzc/git/dcc/tests
-abs_srcdir = /Users/dzc/git/dcc/tests
-abs_top_builddir = /Users/dzc/git/dcc
-abs_top_srcdir = /Users/dzc/git/dcc
+abs_builddir = /Users/dzc/Hax/dcc/tests
+abs_srcdir = /Users/dzc/Hax/dcc/tests
+abs_top_builddir = /Users/dzc/Hax/dcc
+abs_top_srcdir = /Users/dzc/Hax/dcc
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 am__include = include
@@ -126,7 +126,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /Users/dzc/git/dcc/install-sh
+install_sh = ${SHELL} /Users/dzc/Hax/dcc/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -328,24 +328,14 @@ uninstall-am:
 
 
 clean-local:
-	cd scanner && $(MAKE) clean
-	cd parse && $(MAKE) clean
 	cd scope && $(MAKE) clean
 	cd semantic && $(MAKE) clean
 
 all-local:
-	cd scanner && $(MAKE) $(AM_MAKEFLAGS)
-	cd parse && $(MAKE) $(AM_MAKEFLAGS)
 	cd scope && $(MAKE) $(AM_MAKEFLAGS)
 	cd semantic && $(MAKE) $(AM_MAKEFLAGS)
 
-check-local: check-scanner check-parse check-scope check-semantic
-
-check-scanner:
-	cd scanner && $(MAKE) $(AM_MAKEFLAGS) check
-
-check-parse:
-	cd parse && $(MAKE) $(AM_MAKEFLAGS) check
+check-local: check-scope check-semantic
 
 check-scope:
 	cd scope && $(MAKE) $(AM_MAKEFLAGS) check
@@ -353,7 +343,7 @@ check-scope:
 check-semantic:
 	cd semantic && $(MAKE) $(AM_MAKEFLAGS) check
 
-.PHONY: clean-local all-local check-scanner check-parse check-scope check-semantic
+.PHONY: clean-local all-local check-scope check-semantic
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

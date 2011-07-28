@@ -99,6 +99,7 @@ class ReportError
     static void TestNotBoolean(Expr *testExpr);
     static void ReturnMismatch(ReturnStmt *rStmt, Type *given, Type *expected);
     static void BreakOutsideLoop(BreakStmt *bStmt);
+    static void SwitchTestNotInt(Expr *testExpr);
   
     // Generic method to report a printf-style error message
     static void Formatted(yyltype *loc, const char *format, ...);

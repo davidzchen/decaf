@@ -227,7 +227,7 @@ Type
 	| T_Double		{ $$ = Type::doubleType; }
 	| T_String		{ $$ = Type::stringType; }
 	| NamedType		{ $$ = $1; } 
-	| Type T_Dims		{ $$ = new ArrayType(@1, $1); }
+	| Type T_Dims          { $$ = new ArrayType(Join(@1, @2), $1); }
 	;
 
 NamedType

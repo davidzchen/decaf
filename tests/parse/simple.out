@@ -1,8 +1,0 @@
-
-   Program: 
-  1   FnDecl: 
-         (return type) Type: void
-  1      Identifier: main
-         (body) StmtBlock: 
-            PrintStmt: 
-  2            (args) StringConstant: "hello world"

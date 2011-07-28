@@ -16,6 +16,7 @@
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) 
 {
   value = val;
+  retType = Type::intType;
 }
 
 void IntConstant::PrintChildren(int indentLevel) 
@@ -31,6 +32,7 @@ void IntConstant::PrintChildren(int indentLevel)
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) 
 {
   value = val;
+  retType = Type::doubleType;
 }
 
 void DoubleConstant::PrintChildren(int indentLevel) 
@@ -46,6 +48,7 @@ void DoubleConstant::PrintChildren(int indentLevel)
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) 
 {
   value = val;
+  retType = Type::boolType;
 }
 
 void BoolConstant::PrintChildren(int indentLevel) 
@@ -62,6 +65,7 @@ StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc)
 {
   Assert(val != NULL);
   value = strdup(val);
+  retType = Type::stringType;
 }
 
 void StringConstant::PrintChildren(int indentLevel) 
@@ -130,15 +134,6 @@ void CompoundExpr::PrintChildren(int indentLevel)
     }
 }
 
-bool CompoundExpr::Check(SymTable *env)
-{
-  if (left && !left->Check(env))
-    return false;
-
-  if (right && !right->Check(env))
-    return false;
-}
-
 /* Class: ArithmeticExpr
  * ------------------
  * Implementation for ArithmeticExpr class
@@ -146,11 +141,55 @@ bool CompoundExpr::Check(SymTable *env)
 
 bool ArithmeticExpr::Check(SymTable *env)
 {
-  if (left && !left->Check(env))
-    return false;
+  bool ret = true;
+  Type *leftType = NULL;
+  Type *rightType = NULL;
 
-  if (!right->Check(env))
-    return false;
+  if (left)
+    {
+      ret &= left->Check(env);
+      leftType = left->GetRetType();
+    }
+
+  ret &= right->Check(env);
+  rightType = right->GetRetType();
+
+  if (left)
+    {
+
+      if (leftType->IsConvertableTo(Type::intType)
+          && rightType->IsConvertableTo(Type::intType))
+        {
+          SetRetType(Type::intType);
+        }
+      else if (leftType->IsConvertableTo(Type::doubleType)
+          && rightType->IsConvertableTo(Type::doubleType))
+        {
+          SetRetType(Type::doubleType);
+        }
+      else
+        {
+          ReportError::IncompatibleOperands(op, leftType, rightType);
+          SetRetType(Type::errorType);
+          ret = false;
+        }
+    }
+  else
+    {
+      // XXX: Are we allowing negative doubles?
+      if (!rightType->IsConvertableTo(Type::intType)
+          && !rightType->IsConvertableTo(Type::doubleType))
+        {
+          ReportError::IncompatibleOperand(op, rightType);
+          SetRetType(Type::errorType);
+        }
+      else
+        {
+          SetRetType(rightType);
+        }
+    }
+
+  return ret;
 }
 
 /* Class: RelationalExpr
@@ -160,11 +199,34 @@ bool ArithmeticExpr::Check(SymTable *env)
 
 bool RelationalExpr::Check(SymTable *env)
 {
-  if (!left->Check(env))
-    return false;
+  bool ret = true;
+  Type *leftType = NULL;
+  Type *rightType = NULL;
 
-  if (!right->Check(env))
-    return false;
+  ret &= left->Check(env);
+  leftType = left->GetRetType();
+
+  ret &= right->Check(env);
+  rightType = right->GetRetType();
+
+  if (leftType->IsConvertableTo(Type::intType)
+      && rightType->IsConvertableTo(Type::intType))
+    {
+      SetRetType(Type::boolType);
+    }
+  else if (leftType->IsConvertableTo(Type::doubleType)
+      && rightType->IsConvertableTo(Type::doubleType))
+    {
+      SetRetType(Type::boolType);
+    }
+  else
+    {
+      ReportError::IncompatibleOperands(op, leftType, rightType);
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+
+  return ret;
 }
 
 /* Class: EqualityExpr
@@ -174,11 +236,29 @@ bool RelationalExpr::Check(SymTable *env)
 
 bool EqualityExpr::Check(SymTable *env)
 {
-  if (!left->Check(env))
-    return false;
+  bool ret = true;
+  Type *leftType = NULL;
+  Type *rightType = NULL;
 
-  if (!right->Check(env))
-    return false;
+  ret &= left->Check(env);
+  leftType = left->GetRetType();
+
+  ret &= right->Check(env);
+  rightType = right->GetRetType();
+
+  if (!(leftType->IsConvertableTo(rightType)
+      || rightType->IsConvertableTo(leftType)))
+    {
+      ReportError::IncompatibleOperands(op, leftType, rightType);
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+  else
+    {
+      SetRetType(Type::boolType);
+    }
+
+  return ret;
 }
 
 /* Class: LogicalExpr
@@ -188,11 +268,42 @@ bool EqualityExpr::Check(SymTable *env)
 
 bool LogicalExpr::Check(SymTable *env)
 {
-  if (left && !left->Check(env))
-    return false;
+  bool ret = true;
+  Type *leftType = NULL;
+  Type *rightType = NULL;
 
-  if (!right->Check(env))
-    return false;
+  if (left)
+    {
+      ret &= left->Check(env);
+      leftType = left->GetRetType();
+    }
+
+  ret &= right->Check(env);
+  rightType = right->GetRetType();
+
+  SetRetType(Type::boolType);
+
+  if (left)
+    {
+      if (!leftType->IsConvertableTo(Type::boolType)
+          || !rightType->IsConvertableTo(Type::boolType))
+        {
+          ReportError::IncompatibleOperands(op, leftType, rightType);
+          SetRetType(Type::errorType);
+          ret = false;
+        }
+    }
+  else
+    {
+      if (!rightType->IsConvertableTo(Type::boolType))
+        {
+          ReportError::IncompatibleOperand(op, rightType);
+          SetRetType(Type::errorType);
+          ret = false;
+        }
+    }
+
+  return ret;
 }
 
 /* Class: PostfixExpr
@@ -202,8 +313,22 @@ bool LogicalExpr::Check(SymTable *env)
 
 bool PostfixExpr::Check(SymTable *env)
 {
-  if (!left->Check(env))
-    return false;
+  bool ret = true;
+
+  ret &= left->Check(env);
+
+  if (!left->GetRetType()->IsConvertableTo(Type::intType))
+    {
+      ReportError::IncompatibleOperand(op, left->GetRetType());
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+  else
+    {
+      SetRetType(Type::intType);
+    }
+
+  return ret;
 }
 
 /* Class: AssignExpr
@@ -213,11 +338,28 @@ bool PostfixExpr::Check(SymTable *env)
 
 bool AssignExpr::Check(SymTable *env)
 {
-  if (!left->Check(env))
-    return false;
+  bool ret = true;
+  Type *leftType = NULL;
+  Type *rightType = NULL;
 
-  if (!right->Check(env))
-      return false;
+  ret &= left->Check(env);
+  leftType = left->GetRetType();
+
+  ret &= right->Check(env);
+  rightType = right->GetRetType();
+
+  if (!rightType->IsConvertableTo(leftType) && !leftType->IsEquivalentTo(Type::errorType))
+    {
+      ReportError::IncompatibleOperands(op, leftType, rightType);
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+  else
+    {
+      SetRetType(leftType);
+    }
+
+  return ret;
 }
 
 /* Class: This
@@ -227,6 +369,22 @@ bool AssignExpr::Check(SymTable *env)
 
 bool This::Check(SymTable *env)
 {
+  if (!env->getThis())
+    {
+      ReportError::ThisOutsideClassScope(this);
+      SetRetType(Type::errorType);
+      return false;
+    }
+
+  Symbol *sym = env->getThisClass();
+  Assert(sym != NULL);
+
+  ClassDecl *thisClass = dynamic_cast<ClassDecl*>(sym->getNode());
+  //printf("%s\n", sym->getNode()->GetPrintNameForNode());
+  Assert(thisClass != 0);
+
+  SetRetType(new NamedType(thisClass->GetIdent()));
+
   return true;
 }
 
@@ -249,7 +407,31 @@ void ArrayAccess::PrintChildren(int indentLevel)
 
 bool ArrayAccess::Check(SymTable *env)
 {
-  return true;
+  bool ret = false;
+
+  ret &= base->Check(env);
+  ArrayType *at = dynamic_cast<ArrayType*>(base->GetRetType());
+  if (at == 0)
+    {
+      ReportError::BracketsOnNonArray(base);
+      ret = false;
+      SetRetType(Type::errorType);
+    }
+  else
+    {
+      SetRetType(at->getElemType());
+    }
+
+  ret &= subscript->Check(env);
+
+  if (!subscript->GetRetType()->IsConvertableTo(Type::intType))
+    {
+      ReportError::SubscriptNotInteger(subscript);
+      ret = false;
+      SetRetType(Type::errorType);
+    }
+
+  return ret;
 }
 
 /* Class: FieldAccess
@@ -281,7 +463,61 @@ void FieldAccess::PrintChildren(int indentLevel)
 
 bool FieldAccess::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  if (!base)
+    {
+      Symbol *sym = env->find(field->getName(), S_VARIABLE);
+      if (sym == NULL)
+        {
+          ReportError::IdentifierNotDeclared(field, LookingForVariable);
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+        VarDecl *decl = dynamic_cast<VarDecl*>(sym->getNode());
+        SetRetType(decl->GetType());
+    }
+  else
+    {
+      ret &= base->Check(env);
+
+      // Error if base is not of a class's type
+      NamedType *baseType = dynamic_cast<NamedType*>(base->GetRetType());
+      if (baseType == 0)
+        {
+          ReportError::FieldNotFoundInBase(field, base->GetRetType());
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      // Check whether field is indeed a field of base
+      Symbol *sym = NULL;
+      if ((sym = env->findClassField(baseType->GetName(), field->getName(), S_VARIABLE)) == NULL)
+        {
+          ReportError::FieldNotFoundInBase(field, baseType);
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      if (strcmp(base->GetPrintNameForNode(), "This") != 0)
+        {
+          FieldAccess *baseFieldAccess = dynamic_cast<FieldAccess*>(base);
+          Assert(baseFieldAccess != 0);
+          if (baseFieldAccess->GetBase() != NULL);
+            {
+              ReportError::InaccessibleField(field, base->GetRetType());
+              SetRetType(Type::errorType);
+              return false;
+            }
+        }
+
+      Decl *fieldDecl = dynamic_cast<Decl*>(sym->getNode());
+      Assert(fieldDecl != 0);
+      SetRetType(fieldDecl->GetType());
+    }
+
+  return ret;
 }
 
 /* Class: Call
@@ -311,9 +547,95 @@ void Call::PrintChildren(int indentLevel)
   actuals->PrintAll(indentLevel+1, "(actuals) ");
 }
 
+bool Call::CheckCall(FnDecl *prototype, SymTable *env)
+{
+  List<VarDecl*> *formals = prototype->GetFormals();
+  bool ret = true;
+
+  if (formals->NumElements() != actuals->NumElements())
+    {
+      ReportError::NumArgsMismatch(field, formals->NumElements(), actuals->NumElements());
+      return false;
+    }
+
+  Type *formalType, *actualType;
+  for (int i = 0; i < formals->NumElements(); i++)
+    {
+      ret &= actuals->Nth(i)->Check(env);
+      formalType = formals->Nth(i)->GetType();
+      actualType = actuals->Nth(i)->GetRetType();
+
+      if (!actualType->IsConvertableTo(formalType))
+        {
+          ReportError::ArgMismatch(actuals->Nth(i), i+1, actualType, formalType);
+          ret = false;
+        }
+    }
+
+  return ret;
+}
+
+
 bool Call::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  if (!base)
+    {
+      Symbol *sym = env->find(field->getName(), S_FUNCTION);
+      if (sym == NULL)
+        {
+          ReportError::IdentifierNotDeclared(field, LookingForVariable);
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      FnDecl *decl = dynamic_cast<FnDecl*>(sym->getNode());
+      Assert(decl != 0);
+      ret &= CheckCall(decl, env);
+
+      SetRetType(decl->GetReturnType());
+      return true;
+    }
+  else
+    {
+      ret &= base->Check(env);
+
+      //printf("%s %s\n", base->GetRetType()->GetName(), field->getName());
+      if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
+          strcmp(field->getName(), "length") == 0)
+        {
+          SetRetType(Type::intType);
+          return ret;
+        }
+
+      // Error if base is not of a class's type
+      NamedType *baseType = dynamic_cast<NamedType*>(base->GetRetType());
+      if (baseType == 0)
+        {
+          ReportError::FieldNotFoundInBase(field, base->GetRetType());
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      // Check whether field is indeed a field of base
+      Symbol *sym = NULL;
+      if ((sym = env->findClassField(baseType->GetName(), field->getName(), S_FUNCTION)) == NULL)
+        {
+          ReportError::FieldNotFoundInBase(field, baseType);
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      FnDecl *prototype = dynamic_cast<FnDecl*>(sym->getNode());
+      Assert(prototype != 0);
+
+      ret &= CheckCall(prototype, env);
+
+      SetRetType(prototype->GetReturnType());
+    }
+
+  return ret;
 }
 
 /* Class: NewExpr
@@ -334,7 +656,19 @@ void NewExpr::PrintChildren(int indentLevel)
 
 bool NewExpr::Check(SymTable *env)
 {
-  return true;
+  bool ret = true;
+
+  ret &= cType->Check(env);
+  if (!ret)
+    {
+      SetRetType(Type::errorType);
+    }
+  else
+    {
+      SetRetType(cType);
+    }
+
+  return ret;
 }
 
 /* Class: NewArrayExpr
@@ -357,5 +691,48 @@ void NewArrayExpr::PrintChildren(int indentLevel)
 
 bool NewArrayExpr::Check(SymTable *env)
 {
+  bool ret = true;
+
+  ret &= size->Check(env);
+  if (!size->GetRetType()->IsConvertableTo(Type::intType))
+    {
+      ReportError::NewArraySizeNotInteger(size);
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+
+  ret &= elemType->Check(env);
+  if (!ret)
+    {
+      SetRetType(Type::errorType);
+    }
+  else
+    {
+      SetRetType(new ArrayType(*location, elemType));
+    }
+
+  return ret;
+}
+
+/* Class: ReadIntegerExpr
+ * ----------------------
+ * Implementation for ReadIntegerExpr
+ */
+
+bool ReadIntegerExpr::Check(SymTable *env)
+{
+  SetRetType(Type::intType);
+  return true;
+}
+
+/* Class: ReadLineExpr
+ * -------------------
+ * Implementation for ReadLineExpr
+ *
+ */
+
+bool ReadLineExpr::Check(SymTable *env)
+{
+  SetRetType(Type::stringType);
   return true;
 }

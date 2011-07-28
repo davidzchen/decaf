@@ -13,8 +13,10 @@
 #define _H_ast_type
 
 #include "ast.h"
+#include "ast_stmt.h"
 #include "list.h"
 
+extern SymTable *globalEnv;
 
 class Type : public Node 
 {
@@ -35,8 +37,17 @@ class Type : public Node
     }
     void PrintChildren(int indentLevel);
     virtual bool IsEquivalentTo(Type *other) { return this == other; }
+    virtual bool IsConvertableTo(Type *other)
+    {
+      if (this == other || this == errorType)
+        return true;
+      if (strcmp(other->GetPrintNameForNode(), "NamedType") == 0 && this == nullType)
+        return true;
+      return false;
+    }
     virtual void PrintToStream(ostream& out) { out << typeName; }
     virtual bool Check(SymTable *env) { return true; }
+    virtual char *GetName() { return typeName; }
 };
 
 class NamedType : public Type 
@@ -52,8 +63,11 @@ class NamedType : public Type
     void PrintToStream(ostream& out) { out << id; }
     char *GetName() { return id->getName(); }
     Identifier *GetIdent() { return id; }
+
     bool Check(SymTable *env);
+
     bool IsEquivalentTo(Type *other);
+    bool IsConvertableTo(Type *other);
 };
 
 class ArrayType : public Type 
@@ -70,6 +84,7 @@ class ArrayType : public Type
     bool Check(SymTable *env);
     Type *getElemType() { return elemType; }
     bool IsEquivalentTo(Type *other);
+    bool IsConvertableTo(Type *other);
 };
 
  

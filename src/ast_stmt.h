@@ -31,6 +31,7 @@ class Program : public Node
     SymTable *env;
      
   public:
+
     Program(List<Decl*> *declList);
     const char *GetPrintNameForNode() { return "Program"; }
     void PrintChildren(int indentLevel);
@@ -76,7 +77,7 @@ class ConditionalStmt : public Stmt
 class CaseStmt : public Stmt
 {
   protected:
-    Expr *i;
+    Expr *ic;
     List<Stmt*> *stmts;
     SymTable *caseEnv;
     
@@ -187,6 +188,9 @@ class PrintStmt : public Stmt
 {
   protected:
     List<Expr*> *args;
+
+  private:
+    bool PrintableType(Type *t);
     
   public:
     PrintStmt(List<Expr*> *arguments);

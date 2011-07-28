@@ -1,9 +1,0 @@
-# dcc
- - Test on myth
- - Other test cases
-
-
-# lcc
-
- - Support for escape sequences and character literals
- - Other test cases
