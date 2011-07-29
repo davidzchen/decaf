@@ -11,6 +11,7 @@
  * or C++ variable declarations/prototypes that are needed by your code here.
  */
 
+#include <config.h>
 #include <cstring>
 #include <string>
 #include "scanner.h"

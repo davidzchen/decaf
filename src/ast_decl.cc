@@ -3,6 +3,7 @@
  * Implementation of Decl node classes.
  */
 
+#include <config.h>
 #include "errors.h"
 #include "ast_decl.h"
 #include "ast_type.h"

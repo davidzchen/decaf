@@ -9,8 +9,8 @@
 #define _H_SYMTABLE
 
 #include <cstdlib>
-#include "hashtable.h"
 #include "ast.h"
+#include "hashtable.h"
 #include "list.h"
 
 enum

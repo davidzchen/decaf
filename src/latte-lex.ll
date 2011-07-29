@@ -5,6 +5,7 @@
 
 %{
 
+#include <config.h>
 #include <string.h>
 #include <vector>
 #include "scanner.h"

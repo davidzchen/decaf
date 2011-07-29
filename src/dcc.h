@@ -4,8 +4,8 @@
  * are used and/or exported by the yacc-generated parser.
  */
 
-#ifndef _H_parser
-#define _H_parser
+#ifndef _H_DCC
+#define _H_DCC
 
   // here we need to include things needed for the yylval union
   // (types, classes, constants, etc.)

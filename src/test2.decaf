@@ -1,0 +1,10 @@
+int a(int foo)
+{
+	return 1;
+}
+
+int a(int foo)
+{
+	return 1;
+}
+

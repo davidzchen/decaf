@@ -2,6 +2,8 @@
  * -----------------
  * Implementation of statement node classes.
  */
+
+#include <config.h>
 #include "ast_stmt.h"
 #include "ast_type.h"
 #include "ast_decl.h"

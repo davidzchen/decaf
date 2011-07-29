@@ -1,0 +1,8 @@
+class A {
+	int a;
+	int foo()
+	{
+		this.a = 1;
+	}
+}
+

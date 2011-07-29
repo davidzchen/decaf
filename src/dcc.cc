@@ -4,12 +4,15 @@
  * You should not need to modify this file.
  */
  
+#include <config.h>
 #include <string.h>
 #include <stdio.h>
 #include "utility.h"
 #include "errors.h"
 #include "dcc.h"
 
+
+int testFlag = 0;
 
 /* Function: main()
  * ----------------

@@ -15,6 +15,8 @@ AC_PROG_YACC
 #AC_PROG_CC([clang gcc cc])
 AC_PROG_CXX
 AC_PROG_CC
+gl_EARLY
+gl_INIT
 AC_PROG_LEX
 
 # Checks for libraries.
@@ -37,9 +39,9 @@ AC_CHECK_FUNCS([strdup])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+		 lib/Makefile
                  tests/Makefile
                  all-tests/Makefile
-                 all-tests/scanner/Makefile
                  all-tests/parse/Makefile
                  tests/scope/Makefile
                  tests/semantic/Makefile])

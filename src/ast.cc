@@ -2,6 +2,7 @@
  * ------------
  */
 
+#include <config.h>
 #include <string.h> // strdup
 #include <stdio.h>  // printf
 #include "ast.h"

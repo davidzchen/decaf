@@ -6,12 +6,13 @@
 
 #define __STDC_LIMIT_MACROS
 
-#include "utility.h"
+#include <config.h>
 #include <stdarg.h>
 #include <string.h>
 #include <vector>
 #include <stdint.h>
 #include <ctype.h>
+#include "utility.h"
 
 using std::vector;
 
@@ -68,23 +69,45 @@ void PrintDebug(const char *key, const char *format, ...)
   printf("+++ (%s): %s%s", key, buf, buf[strlen(buf)-1] != '\n'? "\n" : "");
 }
 
-void ParseCommandLine(int argc, char *argv[]) 
+void ParseCommandLine(int argc, char *argv[])
 {
-  if (argc == 1)
-    return;
-  
-  if (strcmp(argv[1], "-d") != 0) 
-    { // first arg is not -d
-      printf("Incorrect Use:   ");
-      for (int i = 1; i < argc; i++) 
-	printf("%s ", argv[i]);
-      printf("\n");
-      printf("Correct Usage:   -d <debug-key-1> <debug-key-2> ... \n");
-      exit(2);
-    }
+  int c;
+  char *dvalue = NULL;
+  char *tvalue = NULL;
 
-  for (int i = 2; i < argc; i++)
-    SetDebugForKey(argv[i], true);
+  while ((c = getopt(argc, argv, "d:t:")) != -1 || optind < argc)
+    {
+      switch (c)
+        {
+        case -1:
+          //printf("Non-option argument %s\n", argv[optind]);
+          optind++;
+          break;
+        case 'd':
+          SetDebugForKey(optarg, true);
+          break;
+        case 't':
+          tvalue = optarg;
+          if (strcmp(optarg, "scanner") == 0)
+            testFlag = TEST_SCANNER;
+          else if (strcmp(optarg, "parser") == 0)
+            testFlag = TEST_PARSER;
+          else
+            {
+              fprintf(stderr, "Unknown test option %s\n", optarg);
+            }
+          break;
+        case '?':
+          if (optopt == 'c')
+            fprintf(stderr, "Option -%c requires an argument\n", optopt);
+          else if (optopt == 't')
+            fprintf(stderr, "Option -%c requires an argument\n", optopt);
+          else if (isprint(optopt))
+            fprintf(stderr, "Unknown option -%c\n", optopt);
+          else
+            fprintf(stderr, "Unkonwn option character \\x%x \n", optopt);
+        }
+    }
 }
 
 #if __USE_CUST_XTOI < 1

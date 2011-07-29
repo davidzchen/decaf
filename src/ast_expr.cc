@@ -3,6 +3,7 @@
  * Implementation of expression node classes.
  */
 
+#include <config.h>
 #include <string.h>
 #include "ast_expr.h"
 #include "ast_type.h"

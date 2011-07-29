@@ -16,6 +16,8 @@
  * file inclusions or C++ variable declarations/prototypes that are needed
  * by your code here.
  */
+ 
+#include <config.h>
 #include "errors.h"
 #include "scanner.h" // for yylex
 #include "ltc.h"

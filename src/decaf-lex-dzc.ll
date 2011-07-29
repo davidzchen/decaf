@@ -11,13 +11,15 @@
  * or C++ variable declarations/prototypes that are needed by your code here.
  */
 
+#include <config.h>
 #include <cstring>
 #include <string>
-#include "scanner.h"
 #include <utility.h> // for PrintDebug()
 #include <errors.h>
-#include "parse.h"
 #include <vector>
+#include "scanner.h"
+#include "parse.h"
+
 using namespace std;
 
 #define TAB_SIZE 8

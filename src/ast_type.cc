@@ -3,6 +3,7 @@
  * Implementation of type node classes.
  */
 
+#include <config.h>
 #include <string.h>
 #include "ast_type.h"
 #include "ast_decl.h"

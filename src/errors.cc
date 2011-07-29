@@ -4,12 +4,15 @@
  * Implementation for error-reporting class.
  */
 
+#include <config.h>
 #include "errors.h"
 #include <iostream>
 #include <sstream>
 #include <stdarg.h>
 #include <stdio.h>
+
 using namespace std;
+
 #include "scanner.h" // for GetLineNumbered
 #include "ast_type.h"
 #include "ast_expr.h"

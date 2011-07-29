@@ -1,0 +1,24 @@
+#!/bin/bash
+
+TEST_NAME="matrix"
+DCC="../../src/dcc -tparser"
+CMP="diff -w"
+WC="wc -c"
+INFILE=${TEST_NAME}.decaf
+REFFILE=${TEST_NAME}.out
+OUTFILE=${TEST_NAME}.put
+
+RETVAL=0
+
+echo
+echo "------ BEGIN test $TEST_NAME ------"
+
+$DCC < $INFILE > $OUTFILE 2>&1
+if ${CMP} $OUTFILE $REFFILE; then
+	:
+else
+	echo "Output differs from reference file"
+	RETVAL=1
+fi
+
+exit $RETVAL

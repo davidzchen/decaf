@@ -10,6 +10,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+enum
+{
+  TEST_SCANNER = 1,
+  TEST_PARSER = 2
+};
+
+extern int testFlag;
+
 /**
  * Function: Failure()
  * Usage: Failure("Out of memory!");
