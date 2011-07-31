@@ -44,6 +44,7 @@ class Stmt : public Node
     Stmt() : Node() {}
     Stmt(yyltype loc) : Node(loc) {}
     virtual bool CheckDecls(SymTable *env) { return true; }
+    virtual bool CheckDecls(SymTable *env, bool inheritEnv) { return true; }
     virtual bool Check(SymTable *env) { return true; }
 };
 
@@ -59,6 +60,7 @@ class StmtBlock : public Stmt
     const char *GetPrintNameForNode() { return "StmtBlock"; }
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
+    bool CheckDecls(SymTable *env, bool inheritEnv);
     bool Check(SymTable *env);
 };
 
@@ -132,6 +134,7 @@ class ForStmt : public LoopStmt
 {
   protected:
     Expr *init, *step;
+    SymTable *blockEnv;
   
   public:
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
@@ -143,6 +146,9 @@ class ForStmt : public LoopStmt
 
 class WhileStmt : public LoopStmt 
 {
+  protected:
+    SymTable *blockEnv;
+
   public:
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
     const char *GetPrintNameForNode() { return "WhileStmt"; }
@@ -169,7 +175,7 @@ class BreakStmt : public Stmt
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
     const char *GetPrintNameForNode() { return "BreakStmt"; }
-    bool Check(SymTable *env) { return true; }
+    bool Check(SymTable *env);
 };
 
 class ReturnStmt : public Stmt  

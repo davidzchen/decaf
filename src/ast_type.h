@@ -36,18 +36,20 @@ class Type : public Node
       t->PrintToStream(out); return out;
     }
     void PrintChildren(int indentLevel);
+    virtual bool IsBuiltin() { return true; }
     virtual bool IsEquivalentTo(Type *other) { return this == other; }
     virtual bool IsConvertableTo(Type *other)
     {
       if (this == other || this == errorType)
         return true;
-      if (strcmp(other->GetPrintNameForNode(), "NamedType") == 0 && this == nullType)
+      if (!other->IsBuiltin() && this == nullType)
         return true;
       return false;
     }
     virtual void PrintToStream(ostream& out) { out << typeName; }
     virtual bool Check(SymTable *env) { return true; }
     virtual char *GetName() { return typeName; }
+    virtual Identifier *GetIdent() { return NULL; }
 };
 
 class NamedType : public Type 
@@ -66,6 +68,7 @@ class NamedType : public Type
 
     bool Check(SymTable *env);
 
+    bool IsBuiltin() { return false; }
     bool IsEquivalentTo(Type *other);
     bool IsConvertableTo(Type *other);
 };
@@ -83,6 +86,9 @@ class ArrayType : public Type
     void PrintToStream(ostream& out) { out << elemType << "[]"; }
     bool Check(SymTable *env);
     Type *getElemType() { return elemType; }
+
+    Identifier *GetIdent() { return elemType->GetIdent(); }
+    bool IsBuiltin() { return false; }
     bool IsEquivalentTo(Type *other);
     bool IsConvertableTo(Type *other);
 };

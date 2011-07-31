@@ -78,13 +78,12 @@
      T_IntConstant = 294,
      T_DoubleConstant = 295,
      T_BoolConstant = 296,
-     NOELSE = 297,
-     NOMETHOD = 298,
+     NEG = 297,
+     NOELSE = 298,
      EMPTYCASE = 299,
      EMPTYDEFAULT = 300,
      NONEMPTYCASE = 301,
-     NONEMPTYDEFAULT = 302,
-     NEG = 303
+     NONEMPTYDEFAULT = 302
    };
 #endif
 /* Tokens.  */
@@ -127,13 +126,12 @@
 #define T_IntConstant 294
 #define T_DoubleConstant 295
 #define T_BoolConstant 296
-#define NOELSE 297
-#define NOMETHOD 298
+#define NEG 297
+#define NOELSE 298
 #define EMPTYCASE 299
 #define EMPTYDEFAULT 300
 #define NONEMPTYCASE 301
 #define NONEMPTYDEFAULT 302
-#define NEG 303
 
 
 
@@ -161,27 +159,16 @@ typedef union YYSTYPE
     StmtBlock        *stmtBlock;
     List<Stmt*>      *stmtList;
     Stmt             *stmt;
-    WhileStmt        *whileStmt;
-    ReturnStmt       *returnStmt;
-    PrintStmt        *printStmt;
-    BreakStmt        *breakStmt;
-    ForStmt          *forStmt;
     IfStmt           *ifStmt;
     Expr             *expr;
     List<Expr*>      *exprList;
-    AssignExpr       *assignExpr;
     FieldAccess      *fieldAccess;
-    NewExpr          *newExpr;
-    ReadIntegerExpr  *readIntegerExpr;
-    ReadLineExpr     *readLineExpr;
-    NewArrayExpr     *newArrayExpr;
-    SwitchStmt       *switchStmt;
     CaseStmt         *caseStmt;
     List<CaseStmt*>  *caseStmtList;
     DefaultStmt      *defaultStmt;
 }
 /* Line 1529 of yacc.c.  */
-#line 185 "latte-parse.h"
+#line 172 "latte-parse.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -58,7 +58,17 @@ bool VarDecl::CheckDecls(SymTable *env)
 
 bool VarDecl::Check(SymTable *env)
 {
-  return type->Check(env);
+  bool ret = type->Check(env);
+  Symbol *sym;
+
+  // If type is invalid, set type as error
+  if (!ret)
+    {
+      ReportError::IdentifierNotDeclared(type->GetIdent(), LookingForType);
+      type = Type::errorType;
+    }
+
+  return ret;
 }
 
 
@@ -116,6 +126,17 @@ bool ClassDecl::CheckDecls(SymTable *env)
     }
  
   return true;
+}
+
+bool ClassDecl::ImplementsInterface(char *name)
+{
+  for (int i = 0; i < implements->NumElements(); i++)
+    {
+      if (strcmp(name, implements->Nth(i)->GetName()) == 0)
+        return true;
+    }
+
+  return false;
 }
 
 /* Checks if the class extends another class. If it does, then set the class's
@@ -177,6 +198,107 @@ bool ClassDecl::Inherit(SymTable *env)
   return ret;
 }
 
+bool ClassDecl::CheckAgainstParents(SymTable *env)
+{
+  bool ret = true;
+  Symbol *sym = NULL;
+
+  // Check that parent exists
+  if (extends)
+    {
+      if ((sym = env->find(extends->GetName())) == NULL)
+        {
+          ReportError::IdentifierNotDeclared(extends->GetIdent(), LookingForClass);
+          ret = false;
+        }
+    }
+
+  // Check each method and variable against parent fields for override
+  // errors
+  for (int i = 0; i < members->NumElements(); i++)
+    {
+      FnDecl *method = dynamic_cast<FnDecl*>(members->Nth(i));
+      VarDecl *field = NULL;
+
+      if (method != 0)
+        {
+          if ((sym = classEnv->findSuper(method->GetName(), S_FUNCTION)) != NULL)
+            {
+              FnDecl *otherMethod = dynamic_cast<FnDecl*>(sym->getNode());
+              Assert(otherMethod != 0);
+              if (!method->TypeEqual(otherMethod))
+                {
+                  ReportError::OverrideMismatch(method);
+                  ret = false;
+                }
+            }
+        }
+      else
+        {
+          field = dynamic_cast<VarDecl*>(members->Nth(i));
+          Assert(field != 0);
+          if ((sym = classEnv->findSuper(field->GetName(), S_VARIABLE)) != NULL)
+            {
+              ReportError::DeclConflict(field, dynamic_cast<Decl*>(sym->getNode()));
+              ret = false;
+            }
+        }
+    }
+
+  return ret;
+}
+
+bool ClassDecl::CheckAgainstInterfaces(SymTable *env)
+{
+  bool ret = true;
+  VFunction *vf = NULL;
+  Iterator<VFunction*> iter = vFunctions->GetIterator();
+  Hashtable<NamedType*> *incompleteIntfs = new Hashtable<NamedType*>;
+  Symbol *sym = NULL;
+
+  // Check that all interfaces implemented exists
+  for (int i = 0; i < implements->NumElements(); i++)
+    {
+      NamedType *intf = implements->Nth(i);
+      if ((sym = env->find(intf->GetName())) == NULL)
+        {
+          ReportError::IdentifierNotDeclared(intf->GetIdent(), LookingForInterface);
+          ret = false;
+        }
+    }
+
+  // Check each interface's methods have been implemented with correct type
+  // signature. Otherwise, give OverrideMismatch error
+  while ((vf = iter.GetNextValue()) != NULL)
+    {
+      sym = classEnv->findInClass(vf->getPrototype()->GetName(), S_FUNCTION);
+      if (sym == NULL)
+        {
+          incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
+          ret = false;
+          continue;
+        }
+      FnDecl *method = dynamic_cast<FnDecl*>(sym->getNode());
+      Assert(method != 0);
+
+      if (!method->TypeEqual(vf->getPrototype()))
+        {
+          ReportError::OverrideMismatch(method);
+          ret = false;
+        }
+    }
+
+  // Report interfaces that have not been implemented
+  Iterator<NamedType*> iter2 = incompleteIntfs->GetIterator();
+  NamedType *intfType = NULL;
+  while ((intfType = iter2.GetNextValue()) != NULL)
+    ReportError::InterfaceNotImplemented(this, intfType);
+
+  delete incompleteIntfs;
+
+  return ret;
+}
+
 /* Preconditions:
  *   1. Class hierarchy is set up.
  *   2. There are no conflicts among interfaces being implemented
@@ -188,100 +310,20 @@ bool ClassDecl::Inherit(SymTable *env)
 bool ClassDecl::Check(SymTable *env)
 {
   bool ret = true;
-  Symbol *sym = NULL;
-  VFunction *vf = NULL;
 
   Assert(env != NULL && classEnv != NULL);
 
-  if (extends)
-    {
-      if ((sym = env->find(extends->GetName())) == NULL)
-        {
-          ReportError::IdentifierNotDeclared(extends->GetIdent(), LookingForClass);
-          ret = false;
-        }
-    }
-  for (int i = 0; i < implements->NumElements(); i++)
-    {
-      NamedType *intf = implements->Nth(i);
-      if ((sym = env->find(intf->GetName())) == NULL)
-        {
-          ReportError::IdentifierNotDeclared(intf->GetIdent(), LookingForInterface);
-          ret = false;
-        }
-    }
+  ret &= CheckAgainstParents(env);
+  ret &= CheckAgainstInterfaces(env);
 
+  // Check all members
   for (int i = 0; i < members->NumElements(); i++)
-    {
-      FnDecl *method = dynamic_cast<FnDecl*>(members->Nth(i));
-      VarDecl *field = NULL;
-      if (method != 0)
-        {
-          if ((sym = classEnv->findSuper(method->GetName(), S_FUNCTION)) != NULL)
-            {
-              FnDecl *otherMethod = dynamic_cast<FnDecl*>(sym->getNode());
-              if (!method->TypeEqual(otherMethod))
-                {
-                  ReportError::OverrideMismatch(method);
-                  ret = false;
-                }
-            }
-
-          ret &= method->Check(classEnv);
-        }
-      else
-        {
-          field = dynamic_cast<VarDecl*>(members->Nth(i));
-          Assert(field != 0);
-          if ((sym = classEnv->findSuper(field->GetName(), S_VARIABLE)) != NULL)
-            {
-              ReportError::DeclConflict(field, dynamic_cast<Decl*>(sym->getNode()));
-              ret = false;
-            }
-          ret &= field->Check(classEnv);
-        }
-    }
-
-  Iterator<VFunction*> iter = vFunctions->GetIterator();
-  Hashtable<NamedType*> *incompleteIntfs = new Hashtable<NamedType*>;
-  while ((vf = iter.GetNextValue()) != NULL)
-    {
-      sym = classEnv->findInClass(vf->getPrototype()->GetName(), S_FUNCTION);
-      if (sym == NULL)
-        {
-          incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
-          continue;
-        }
-      FnDecl *method = dynamic_cast<FnDecl*>(sym->getNode());
-      Assert(method != 0);
-
-      /*if (method->TypeEqual(vf->getPrototype()))
-        {
-          vf->setImplemented(true);
-        }
-      else
-        {
-          incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
-          ret = false;
-        }*/
-
-      if (!method->TypeEqual(vf->getPrototype()))
-        {
-          ReportError::OverrideMismatch(method);
-        }
-    }
-
-  Iterator<NamedType*> iter2 = incompleteIntfs->GetIterator();
-  NamedType *intfType = NULL;
-  while ((intfType = iter2.GetNextValue()) != NULL)
-    {
-      ReportError::InterfaceNotImplemented(this, intfType);
-    }
-
-  delete incompleteIntfs;
+    ret &= members->Nth(i)->Check(env);
 
   return ret;
 }
+
+
 
 /* Class: InterfaceDecl
  * --------------------

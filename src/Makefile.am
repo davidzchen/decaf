@@ -5,10 +5,7 @@ AM_LFLAGS = -d
 
 EXTRA_DIST = hashtable.cc
 
-bin_PROGRAMS = dcc ltc testopt
-
-testopt_SOURCES = testopt.cc
-testopt_LDADD = ../lib/libgnu.a
+bin_PROGRAMS = dcc ltc
 
 dcc_SOURCES = \
 	utility.cc utility.h \

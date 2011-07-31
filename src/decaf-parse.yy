@@ -130,7 +130,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <fnDecl>          FnDecl Prototype FnDef
 %type <namedType>       ClassExtends NamedType
 %type <implementsTypeList> ImplementsTypeList ClassImplements
-%type <varDeclList>     FormalsList VarDeclList
+%type <varDeclList>     FormalsList VarDeclList Formals
 %type <stmtBlock>       StmtBlock
 %type <stmtList>        StmtList
 %type <stmt>            Stmt
@@ -285,6 +285,11 @@ FieldList:
 | FnDecl                   { ($$ = new List<Decl*>)->Append($1); }
 ;
 
+Formals:
+  FormalsList              { $$ = $1; }
+| /* empty */              { $$ = new List<VarDecl*>; }
+;
+
 FormalsList:
   Variable                 { ($$ = new List<VarDecl*>)->Append($1); }
 | FormalsList ',' Variable 
@@ -298,15 +303,10 @@ Prototype:
 ;
 
 FnDef:
-  Type T_Identifier '(' FormalsList ')' 
+  Type T_Identifier '(' Formals ')' 
     {
       Identifier *i = new Identifier(@2, $2);
       $$ = new FnDecl(i, $1, $4);
-    }
-| Type T_Identifier '(' ')' 
-    {
-      Identifier *i = new Identifier(@2, $2);
-      $$ = new FnDecl(i, $1, new List<VarDecl*>);
     }
 ;
 
@@ -349,7 +349,7 @@ Stmt:
       $$ = new WhileStmt($3, $5);
     }
 | T_Return ';'		       { $$ = new ReturnStmt(@1, new EmptyExpr); }
-| T_Return Expr ';'        { $$ = new ReturnStmt(@1, $2); }
+| T_Return Expr ';'        { $$ = new ReturnStmt(@2, $2); }
 | T_Break ';'              { $$ = new BreakStmt(@1); }
 | T_Print '(' ExprList ')' ';' 
     {

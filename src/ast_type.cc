@@ -61,7 +61,6 @@ bool NamedType::Check(SymTable *env)
 {
   if (!env->find(id->getName()))
     {
-      ReportError::IdentifierNotDeclared(id, LookingForType);
       return false;
     }
 
@@ -70,25 +69,29 @@ bool NamedType::Check(SymTable *env)
 
 bool NamedType::IsConvertableTo(Type *other)
 {
-  if (strcmp(other->GetPrintNameForNode(), "NamedType") != 0)
+  Symbol *thisSym = NULL;
+  ClassDecl *classDecl = NULL;
+  char *otherName = other->GetName();
+
+  if (other->IsBuiltin())
     return false;
 
   if (IsEquivalentTo(other))
     return true;
 
-  Assert(globalEnv != NULL);
-
-  Symbol *thisSym, *otherSym;
-
-  thisSym = globalEnv->find(id->getName(), S_CLASS);
-
-  if (thisSym == NULL)
+  if ((thisSym = globalEnv->find(id->getName(), S_CLASS)) == NULL)
     return false;
 
-  if (!thisSym->getEnv()->subclassOf(other->GetName()))
-    return false;
+  classDecl = dynamic_cast<ClassDecl*>(thisSym->getNode());
+  Assert(classDecl != 0);
 
-  return true;
+  if (classDecl->ImplementsInterface(otherName))
+    return true;
+
+  if (thisSym->getEnv()->subclassOf(otherName))
+    return true;
+
+   return false;
 }
 
 bool NamedType::IsEquivalentTo(Type *other)

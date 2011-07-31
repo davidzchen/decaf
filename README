@@ -42,10 +42,21 @@ then make, e.g.:
    ./configure
    make
 
-To install them (by default in /usr/local/bin, /usr/local/lib, etc),
+To install the executables (by default in /usr/local/bin, /usr/local/lib, etc),
 then run:
 
      make install
+     
+Note that if you want to change the directory where dcc is installed to,
+run configure setting the prefix option:
+
+    ./configure --prefix=/path/to/installdir
+    
+If you have issue running gdb on what appears to be the executables before
+running make install, it may be because Libtool built a wrapper script
+around the actual executables (which would be located in .deps). To use the
+actual executables, run make install. As of pp3, this should no longer be
+applicable since I am no longer using Libtool.
 
 If you have more than one compiler on your system, you may explicitly
 set the CC and CXX variables in the environment before running configure
@@ -104,8 +115,113 @@ To clean all Autotools-generated files, run:
 
     clean
 
+
 PARSER ERROR RECOVERY
 =========================
 
 
+SEMANTIC ANALYZER 
+====================
 
+I chose to use a spaghetti stack to implement the symbol table for the semantic
+analyzer. The spaghetti stack is first populated with declaration information
+during the first pass. During the second pass, the pointers on the SymTable
+nodes used for class hierarchy are used to set up the class hierarchy. During
+this pass, a "vtable" of sorts for each ClassDecl is also populated with all the
+functions from the interfaces the class implements. During these first two 
+passes, most of the checking for declaration conflicts are caught. During the 
+third pass, the rest of semantic analysis is performed.
+
+During the recursive unwind on AST, "return types" are set by child nodes and
+then used by parent nodes for type checking. Error recovery is performed using
+the error type, which is set if errors are found while checking the current
+node. However, propagation of errors is suppressed by making the error type
+compatible with all other types. This is because I am assuming that as long as
+the code fragment containing the source of the error is fixed, the higher up
+nodes should be error-free as well. If not, the new error will be caught when
+the compiler is run again.  
+
+
+EXTENSIONS
+====================
+
+In order to keep the extensions isolated from the vanilla Latte codebase, I 
+am naming Latte the extended dialect of Decaf. The most significant feature
+introduced in Latte is the closure, heavily inspired by Objective-C blocks. 
+
+The syntax of a closure type declaration is similar to that of a C function
+pointer except the caret '^' is used instead of the asterisk '*':
+
+
+ClosureExpr:
+  '^' '(' Type T_Identifier ')' StmtBlock
+
+ClosureDecl:
+  Type '(' '^' T_Identifier ')' '(' Formals ')' ';'
+  
+ClosureType:
+  Type '^' '(' TypeList ')'
+
+Some examples:
+
+/* A function returning a closure that takes two integer arguments and returns
+ * an integer
+ */
+
+int ^(int, int) foo()
+{
+  return ^(int a, int b)
+    {
+      return a + b;
+    }
+}
+
+int (^adder)(int a, int b) = foo();
+Print(adder(1, 2));						/* will print 3 */
+
+
+/* A function prototype that takes a closure of type int ^(Element, Element) as 
+ * its second argument
+ */
+ 
+void qsort(ArrayOfElements a, int (^cmp)(Element a, Element b));
+
+
+/* Invoking the above qsort function by defining the closure directly */
+
+ArrayOfElements filter(ArrayOfElements a)
+{
+  qsort(a, ^(Element a, Element b) {
+    if (a.greaterThan(b))
+      return 1;
+    else if (b.greaterThan(a))
+      return -1;
+    else
+      return 0;
+  });
+}
+
+
+/* A prototype/declaration of a closure that returns an int and takes two
+ * Elements as arguments
+ */
+int (^betterCmp)(Element a, Element b);
+
+/* Defining the betterCmp closure by assignment.
+ */
+ 
+betterCmp = ^(Element a, Element b) {
+  /* implementation */
+};
+
+  
+OTHER SOURCE MODIFICATIONS
+=============================
+
+I included the getopt-gnu module (and its dependencies) from gnulib and modified
+ParseCommandLine() to use getopt to facilitate testing of different components
+of the compiler through the -t flag. For example, running dcc or ltc with the
+-tparser option will only run the the compiler up to the parser and dumpp the
+parse tree a la pp2. This is used to facilitate running the test suites
+incrementally while I go back and improve code from earlier assignments and
+work on the extensions.

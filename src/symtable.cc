@@ -58,20 +58,18 @@ SymTable::SymTable()
   _this = NULL;
   _table = new Hashtable<Symbol*>;
   _blocks = new List<SymTable*>;
-  _refsym = NULL;
+  _refnode = NULL;
+  _breaknode = NULL;
 }
 
-Symbol *SymTable::getThisClass()
+Node *SymTable::getThisClass()
 {
   if (!_this)
     return NULL;
 
-
-
   SymTable *classEnv = _this;
-  //printf("this: %p class_this: %p classrefsym: %p\n",
-  //       this, _this, classEnv->getRefSym());
-  return classEnv->getRefSym();
+
+  return classEnv->getRefNode();
 
 }
 
@@ -93,8 +91,10 @@ SymTable *SymTable::addScope()
 
   _blocks->Append(child);
 
-  if (_refsym)
-    child->setRefSym(_refsym);
+  if (_refnode)
+    child->setRefNode(_refnode);
+  if (_breaknode)
+    child->setBreakNode(_breaknode);
 
   return child;
 }
@@ -102,18 +102,18 @@ SymTable *SymTable::addScope()
 SymTable *SymTable::addWithScope(char *key, Node *node, int type)
 {
   SymTable *newEnv = new SymTable;
-  Symbol *refSym = NULL;
+  Symbol *refNode = NULL;
 
   newEnv->setParent(this);
 
   if (_this)
     newEnv->setThis(_this);
 
-  refSym = new Symbol(type, node, newEnv);
-  _table->Enter(key, refSym, false);
-  newEnv->setRefSym(refSym);
+  refNode = new Symbol(type, node, newEnv);
+  _table->Enter(key, refNode, false);
+  newEnv->setRefNode(node);
 
-  //printf("addWithScope: %s symref %p\n", key, refSym);
+  _breaknode = NULL;
 
   return newEnv;
 }
@@ -121,20 +121,19 @@ SymTable *SymTable::addWithScope(char *key, Node *node, int type)
 bool SymTable::subclassOf(char *key)
 {
   SymTable *current = _super;
-  Symbol *refSym = NULL;
+  ClassDecl *classDecl = NULL;
 
   if (!_super)
     return false;
 
   for ( ; current != NULL; current = current->getSuper())
     {
-      refSym = current->getRefSym();
-      if (refSym->getType() != S_CLASS)
+      classDecl = dynamic_cast<ClassDecl*>(current->getRefNode());
+      if (classDecl == 0)
         continue;
 
-      ClassDecl *classDecl = dynamic_cast<ClassDecl*>(refSym->getNode());
-
-      if (strcmp(key, classDecl->GetName()) == 0)
+      if (strcmp(key, classDecl->GetName()) == 0
+          || classDecl->ImplementsInterface(key))
         return true;
     }
 
@@ -158,21 +157,6 @@ Symbol *SymTable::findSuper(char *key)
   return NULL;
 }
 
-Symbol *SymTable::findSuper(char *key, int type)
-{
-  Symbol *s = findSuper(key);
-
-  if (s)
-    {
-      if (s->getType() == type)
-        return s;
-      else
-        return NULL;
-    }
-
-  return NULL;
-}
-
 Symbol *SymTable::findInClass(char *key)
 {
   Symbol *sym = NULL;
@@ -184,19 +168,6 @@ Symbol *SymTable::findInClass(char *key)
     return sym;
 
   return NULL;
-}
-
-Symbol *SymTable::findInClass(char *key, int type)
-{
-  Symbol *s = findInClass(key);
-
-  if (s)
-    {
-      if (s->getType() == type)
-        return s;
-      else
-        return NULL;
-    }
 }
 
 Symbol *SymTable::findLocal(char *key)
@@ -215,20 +186,6 @@ Symbol *SymTable::findLocal(char *key)
   return NULL;
 }
 
-Symbol *SymTable::findLocal(char *key, int type)
-{
-  Symbol *s = findLocal(key);
-
-  if (s)
-    {
-      if (s->getType() == type)
-        return s;
-      else
-        return NULL;
-    }
-
-  return NULL;
-}
 
 Symbol *SymTable::find(char *key)
 {
@@ -250,21 +207,6 @@ Symbol *SymTable::find(char *key)
   return NULL;
 }
 
-Symbol *SymTable::find(char *key, int type)
-{
-  Symbol *s = find(key);
-
-  if (s)
-    {
-      if (s->getType() == type)
-        return s;
-      else
-        return NULL;
-    }
-
-  return NULL;
-}
-
 Symbol *SymTable::findUp(char *key)
 {
   SymTable *current = _prev;
@@ -274,21 +216,6 @@ Symbol *SymTable::findUp(char *key)
     {
       if ((sym = current->findLocal(key)) != NULL)
 	return sym;
-    }
-
-  return NULL;
-}
-
-Symbol *SymTable::findUp(char *key, int type)
-{
-  Symbol *s = findUp(key);
-
-  if (s)
-    {
-      if (s->getType() == type)
-        return s;
-      else
-        return NULL;
     }
 
   return NULL;
@@ -304,27 +231,12 @@ Symbol *SymTable::findClassField(char *className, char *fieldName)
   return classSym->getEnv()->find(fieldName);
 }
 
-Symbol *SymTable::findClassField(char *className, char *fieldName, int type)
-{
-  Symbol *s = findClassField(className, fieldName);
-
-  if (s)
-    {
-      if (s->getType() == type)
-        return s;
-      else
-        return NULL;
-    }
-
-  return NULL;
-}
-
 void SymTable::print(int indentLevel)
 {
   const char numSpaces = 3;
   printf("\n");
   printf("%*s%s %d ref %p this %p",
-      numSpaces * indentLevel, "", "Scope Table", _table->NumEntries(), _refsym, _this);
+      numSpaces * indentLevel, "", "Scope Table", _table->NumEntries(), _refnode, _this);
 
   Iterator<Symbol*> iter = _table->GetIterator();
   Symbol *sym;

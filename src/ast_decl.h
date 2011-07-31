@@ -70,6 +70,10 @@ class ClassDecl : public Decl
     SymTable *classEnv;
     Hashtable<VFunction*> *vFunctions;
 
+  private:
+    bool CheckAgainstParents(SymTable *env);
+    bool CheckAgainstInterfaces(SymTable *env);
+
   public:
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
@@ -81,6 +85,7 @@ class ClassDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Inherit(SymTable *env);
+    bool ImplementsInterface(char *name);
     bool Check(SymTable *env);
 };
 

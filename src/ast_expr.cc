@@ -157,7 +157,6 @@ bool ArithmeticExpr::Check(SymTable *env)
 
   if (left)
     {
-
       if (leftType->IsConvertableTo(Type::intType)
           && rightType->IsConvertableTo(Type::intType))
         {
@@ -210,13 +209,10 @@ bool RelationalExpr::Check(SymTable *env)
   ret &= right->Check(env);
   rightType = right->GetRetType();
 
-  if (leftType->IsConvertableTo(Type::intType)
-      && rightType->IsConvertableTo(Type::intType))
-    {
-      SetRetType(Type::boolType);
-    }
-  else if (leftType->IsConvertableTo(Type::doubleType)
-      && rightType->IsConvertableTo(Type::doubleType))
+  if ((leftType->IsConvertableTo(Type::intType)
+        && rightType->IsConvertableTo(Type::intType))
+      || (leftType->IsConvertableTo(Type::doubleType)
+        && rightType->IsConvertableTo(Type::doubleType)))
     {
       SetRetType(Type::boolType);
     }
@@ -377,10 +373,10 @@ bool This::Check(SymTable *env)
       return false;
     }
 
-  Symbol *sym = env->getThisClass();
-  Assert(sym != NULL);
+  Node *node = env->getThisClass();
+  Assert(node != NULL);
 
-  ClassDecl *thisClass = dynamic_cast<ClassDecl*>(sym->getNode());
+  ClassDecl *thisClass = dynamic_cast<ClassDecl*>(node);
   //printf("%s\n", sym->getNode()->GetPrintNameForNode());
   Assert(thisClass != 0);
 
@@ -501,16 +497,33 @@ bool FieldAccess::Check(SymTable *env)
           return false;
         }
 
+      if (env->getThisClass() == NULL)
+        {
+          ReportError::InaccessibleField(field, base->GetRetType());
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      ClassDecl *classDecl = dynamic_cast<ClassDecl*>(env->getThisClass());
+      Assert(classDecl != 0);
+
       if (strcmp(base->GetPrintNameForNode(), "This") != 0)
         {
           FieldAccess *baseFieldAccess = dynamic_cast<FieldAccess*>(base);
           Assert(baseFieldAccess != 0);
-          if (baseFieldAccess->GetBase() != NULL);
+
+          if (strcmp(classDecl->GetIdent()->getName(), base->GetRetType()->GetName()) != 0)
             {
               ReportError::InaccessibleField(field, base->GetRetType());
               SetRetType(Type::errorType);
               return false;
             }
+          /*if (baseFieldAccess->GetBase() != NULL);
+            {
+              ReportError::InaccessibleField(field, base->GetRetType());
+              SetRetType(Type::errorType);
+              return false;
+            }*/
         }
 
       Decl *fieldDecl = dynamic_cast<Decl*>(sym->getNode());
@@ -562,7 +575,6 @@ bool Call::CheckCall(FnDecl *prototype, SymTable *env)
   Type *formalType, *actualType;
   for (int i = 0; i < formals->NumElements(); i++)
     {
-      ret &= actuals->Nth(i)->Check(env);
       formalType = formals->Nth(i)->GetType();
       actualType = actuals->Nth(i)->GetRetType();
 
@@ -576,33 +588,43 @@ bool Call::CheckCall(FnDecl *prototype, SymTable *env)
   return ret;
 }
 
+bool Call::CheckActuals(SymTable *env)
+{
+  bool ret = true;
+
+  for (int i = 0; i < actuals->NumElements(); i++)
+    {
+      ret &= actuals->Nth(i)->Check(env);
+    }
+
+  return ret;
+}
 
 bool Call::Check(SymTable *env)
 {
   bool ret = true;
+  FnDecl *prototype = NULL;
+
+  ret &= CheckActuals(env);
 
   if (!base)
     {
       Symbol *sym = env->find(field->getName(), S_FUNCTION);
       if (sym == NULL)
         {
-          ReportError::IdentifierNotDeclared(field, LookingForVariable);
+          ReportError::IdentifierNotDeclared(field, LookingForFunction);
           SetRetType(Type::errorType);
           return false;
         }
 
-      FnDecl *decl = dynamic_cast<FnDecl*>(sym->getNode());
-      Assert(decl != 0);
-      ret &= CheckCall(decl, env);
-
-      SetRetType(decl->GetReturnType());
-      return true;
+      prototype = dynamic_cast<FnDecl*>(sym->getNode());
+      Assert(prototype != 0);
+      ret &= CheckCall(prototype, env);
     }
   else
     {
       ret &= base->Check(env);
 
-      //printf("%s %s\n", base->GetRetType()->GetName(), field->getName());
       if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
           strcmp(field->getName(), "length") == 0)
         {
@@ -611,8 +633,14 @@ bool Call::Check(SymTable *env)
         }
 
       // Error if base is not of a class's type
-      NamedType *baseType = dynamic_cast<NamedType*>(base->GetRetType());
-      if (baseType == 0)
+      Type *baseType = base->GetRetType();
+      if (baseType == Type::errorType)
+        {
+          SetRetType(Type::errorType);
+          return false;
+        }
+
+      if (baseType->IsBuiltin())
         {
           ReportError::FieldNotFoundInBase(field, base->GetRetType());
           SetRetType(Type::errorType);
@@ -628,13 +656,13 @@ bool Call::Check(SymTable *env)
           return false;
         }
 
-      FnDecl *prototype = dynamic_cast<FnDecl*>(sym->getNode());
+      prototype = dynamic_cast<FnDecl*>(sym->getNode());
       Assert(prototype != 0);
 
       ret &= CheckCall(prototype, env);
-
-      SetRetType(prototype->GetReturnType());
     }
+
+  SetRetType(prototype->GetReturnType());
 
   return ret;
 }
@@ -662,6 +690,7 @@ bool NewExpr::Check(SymTable *env)
   ret &= cType->Check(env);
   if (!ret)
     {
+      ReportError::IdentifierNotDeclared(cType->GetIdent(), LookingForClass);
       SetRetType(Type::errorType);
     }
   else
@@ -705,6 +734,8 @@ bool NewArrayExpr::Check(SymTable *env)
   ret &= elemType->Check(env);
   if (!ret)
     {
+      if (elemType->GetIdent() != NULL)
+        ReportError::IdentifierNotDeclared(elemType->GetIdent(), LookingForType);
       SetRetType(Type::errorType);
     }
   else

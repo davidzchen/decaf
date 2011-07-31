@@ -249,12 +249,16 @@ class Call : public Expr
     Identifier *field;
     List<Expr*> *actuals;
     
+  private:
+    bool CheckCall(FnDecl *prototype, SymTable *env);
+    bool CheckActuals(SymTable *env);
+
   public:
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
     const char *GetPrintNameForNode() { return "Call"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
-    bool CheckCall(FnDecl *prototype, SymTable *env);
+
 };
 
 class NewExpr : public Expr 

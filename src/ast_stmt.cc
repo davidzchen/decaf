@@ -58,9 +58,6 @@ void Program::Check()
       d->Inherit(env);
     }
 
-  //env->print(0);
-  //printf("\n");
-
   globalEnv = env;
 
   // Pass 2: Scope check and type check
@@ -93,6 +90,25 @@ bool StmtBlock::CheckDecls(SymTable *env)
 {
   if ((blockEnv = env->addScope()) == false)
     return false;
+
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      decls->Nth(i)->CheckDecls(blockEnv);
+    }
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      stmts->Nth(i)->CheckDecls(blockEnv);
+    }
+
+  return true;
+}
+
+bool StmtBlock::CheckDecls(SymTable *env, bool inheritEnv)
+{
+  if (!inheritEnv)
+    if ((blockEnv = env->addScope()) == false)
+      return false;
 
   for (int i = 0; i < decls->NumElements(); i++)
     {
@@ -165,6 +181,8 @@ bool CaseStmt::CheckDecls(SymTable *env)
   if ((caseEnv = env->addScope()) == false)
     return false;
 
+  caseEnv->setBreakNode(this);
+
   for (int i = 0; i < stmts->NumElements(); i++)
     {
       ret &= stmts->Nth(i)->CheckDecls(env);
@@ -209,6 +227,8 @@ bool DefaultStmt::CheckDecls(SymTable *env)
 
   if ((caseEnv = env->addScope()) == false)
     return false;
+
+  caseEnv->setBreakNode(this);
 
   for (int i = 0; i < stmts->NumElements(); i++)
     {
@@ -309,7 +329,12 @@ void ForStmt::PrintChildren(int indentLevel)
 
 bool ForStmt::CheckDecls(SymTable *env)
 {
-  return body->CheckDecls(env);
+  if ((blockEnv = env->addScope()) == false)
+    return false;
+
+  blockEnv->setBreakNode(this);
+
+  return body->CheckDecls(blockEnv);
 }
 
 bool ForStmt::Check(SymTable *env)
@@ -325,7 +350,7 @@ bool ForStmt::Check(SymTable *env)
 
   ret &= init->Check(env);
   ret &= step->Check(env);
-  ret &= body->Check(env);
+  ret &= body->Check(blockEnv);
 
   return ret;
 }
@@ -343,7 +368,12 @@ void WhileStmt::PrintChildren(int indentLevel)
 
 bool WhileStmt::CheckDecls(SymTable *env)
 {
-  return body->CheckDecls(env);
+  if ((blockEnv = env->addScope()) == false)
+    return false;
+
+  blockEnv->setBreakNode(this);
+
+  return body->CheckDecls(blockEnv);
 }
 
 bool WhileStmt::Check(SymTable *env)
@@ -351,13 +381,14 @@ bool WhileStmt::Check(SymTable *env)
   bool ret = true;
 
   ret &= test->Check(env);
+
   if (!test->GetRetType()->IsEquivalentTo(Type::boolType))
     {
       ReportError::TestNotBoolean(test);
       ret = false;
     }
 
-  ret &= body->Check(env);
+  ret &= body->Check(blockEnv);
 
   return ret;
 }
@@ -417,6 +448,21 @@ bool IfStmt::Check(SymTable *env)
   return ret;
 }
 
+/* Class: BreakStmt
+ * ----------------
+ * Implementation of BreakStmt class
+ */
+
+bool BreakStmt::Check(SymTable *env)
+{
+  if (env->getBreakNode() == NULL)
+    {
+      ReportError::BreakOutsideLoop(this);
+      return false;
+    }
+  return true;
+}
+
 /* Class: ReturnStmt
  * ---------------
  * Implementation of ReturnStmt class
@@ -435,7 +481,21 @@ void ReturnStmt::PrintChildren(int indentLevel)
 
 bool ReturnStmt::Check(SymTable *env)
 {
-  return true;
+  FnDecl *fn = NULL;
+  bool ret = true;
+
+  fn = dynamic_cast<FnDecl*>(env->getRefNode());
+  Assert(fn != 0);
+
+  ret &= expr->Check(env);
+
+  if (!expr->GetRetType()->IsConvertableTo(fn->GetReturnType()))
+    {
+      ReportError::ReturnMismatch(this, expr->GetRetType(), fn->GetReturnType());
+      ret = false;
+    }
+
+  return ret;
 }
 
 /* Class: PrintStmt
