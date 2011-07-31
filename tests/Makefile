@@ -481,22 +481,17 @@ uninstall-am:
 
 
 clean-local:
-	cd scope && $(MAKE) clean
-	cd semantic && $(MAKE) clean
+	cd codegen && $(MAKE) clean
 
 all-local:
-	cd scope && $(MAKE) $(AM_MAKEFLAGS)
-	cd semantic && $(MAKE) $(AM_MAKEFLAGS)
+	cd codegen && $(MAKE) $(AM_MAKEFLAGS)
 
-check-local: check-scope check-semantic
+check-local: check-codegen
 
-check-scope:
-	cd scope && $(MAKE) $(AM_MAKEFLAGS) check
+check-codegen:
+	cd codegen && $(MAKE) $(AM_MAKEFLAGS) check
 
-check-semantic:
-	cd semantic && $(MAKE) $(AM_MAKEFLAGS) check
-
-.PHONY: clean-local all-local check-scope check-semantic
+.PHONY: clean-local all-local check-local
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

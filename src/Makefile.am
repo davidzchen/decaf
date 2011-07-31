@@ -12,6 +12,9 @@ dcc_SOURCES = \
 	list.h hashtable.h location.h \
 	symtable.cc symtable.h \
 	errors.cc errors.h \
+	tac.cc tac.h \
+	mips.cc mips.h \
+	codegen.cc codegen.h \
 	ast.cc ast.h \
 	ast_decl.cc ast_decl.h \
 	ast_expr.cc ast_expr.h \

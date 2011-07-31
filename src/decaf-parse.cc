@@ -593,17 +593,17 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   152,   152,   179,   180,   184,   185,   186,   187,   191,
-     195,   203,   204,   205,   206,   207,   208,   209,   213,   221,
-     226,   234,   239,   243,   247,   251,   257,   266,   274,   282,
-     283,   284,   285,   289,   290,   294,   295,   302,   306,   314,
-     318,   322,   326,   327,   328,   336,   337,   341,   342,   346,
-     347,   351,   352,   353,   354,   358,   362,   363,   367,   371,
-     372,   377,   378,   382,   387,   395,   399,   406,   410,   417,
-     418,   422,   423,   424,   425,   430,   435,   440,   445,   450,
-     455,   460,   465,   470,   475,   480,   485,   490,   495,   500,
-     505,   510,   511,   512,   513,   514,   515,   519,   527,   531,
-     538,   539,   543,   544,   545,   550,   551,   552,   553,   554
+       0,   152,   152,   184,   185,   189,   190,   191,   192,   196,
+     200,   208,   209,   210,   211,   212,   213,   214,   218,   226,
+     231,   239,   244,   248,   252,   256,   262,   271,   279,   287,
+     288,   289,   290,   294,   295,   299,   300,   307,   311,   319,
+     323,   327,   331,   332,   333,   341,   342,   346,   347,   351,
+     352,   356,   357,   358,   359,   363,   367,   368,   372,   376,
+     377,   382,   383,   387,   392,   400,   404,   411,   415,   422,
+     423,   427,   428,   429,   430,   435,   440,   445,   450,   455,
+     460,   465,   470,   475,   480,   485,   490,   495,   500,   505,
+     510,   515,   516,   517,   518,   519,   520,   524,   532,   536,
+     543,   544,   548,   549,   550,   555,   556,   557,   558,   559
 };
 #endif
 
@@ -1838,46 +1838,51 @@ yyreduce:
               program->Check();
             }
         }
+        
+      if (testFlag != TEST_SEMANT && ReportError::NumErrors() == 0)
+        {
+          program->Emit();
+        }
     }
     break;
 
   case 3:
-#line 179 "decaf-parse.yy"
+#line 184 "decaf-parse.yy"
     { ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].decl)); }
     break;
 
   case 4:
-#line 180 "decaf-parse.yy"
+#line 185 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].decl)); }
     break;
 
   case 5:
-#line 184 "decaf-parse.yy"
+#line 189 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].varDecl); }
     break;
 
   case 6:
-#line 185 "decaf-parse.yy"
+#line 190 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].classDecl); }
     break;
 
   case 7:
-#line 186 "decaf-parse.yy"
+#line 191 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].interfaceDecl); }
     break;
 
   case 8:
-#line 187 "decaf-parse.yy"
+#line 192 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].fnDecl); }
     break;
 
   case 9:
-#line 191 "decaf-parse.yy"
+#line 196 "decaf-parse.yy"
     { (yyval.varDecl) = (yyvsp[(1) - (2)].varDecl); }
     break;
 
   case 10:
-#line 196 "decaf-parse.yy"
+#line 201 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (2)]), (yyvsp[(2) - (2)].identifier)) ;
       (yyval.varDecl) = new VarDecl(i, (yyvsp[(1) - (2)].type)); 
@@ -1885,42 +1890,42 @@ yyreduce:
     break;
 
   case 11:
-#line 203 "decaf-parse.yy"
+#line 208 "decaf-parse.yy"
     { (yyval.type) = Type::voidType; }
     break;
 
   case 12:
-#line 204 "decaf-parse.yy"
+#line 209 "decaf-parse.yy"
     { (yyval.type) = Type::boolType; }
     break;
 
   case 13:
-#line 205 "decaf-parse.yy"
+#line 210 "decaf-parse.yy"
     { (yyval.type) = Type::intType; }
     break;
 
   case 14:
-#line 206 "decaf-parse.yy"
+#line 211 "decaf-parse.yy"
     { (yyval.type) = Type::doubleType; }
     break;
 
   case 15:
-#line 207 "decaf-parse.yy"
+#line 212 "decaf-parse.yy"
     { (yyval.type) = Type::stringType; }
     break;
 
   case 16:
-#line 208 "decaf-parse.yy"
+#line 213 "decaf-parse.yy"
     { (yyval.type) = (yyvsp[(1) - (1)].namedType); }
     break;
 
   case 17:
-#line 209 "decaf-parse.yy"
+#line 214 "decaf-parse.yy"
     { (yyval.type) = new ArrayType(Join((yylsp[(1) - (2)]), (yylsp[(2) - (2)])), (yyvsp[(1) - (2)].type)); }
     break;
 
   case 18:
-#line 214 "decaf-parse.yy"
+#line 219 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].identifier));
       (yyval.namedType) = new NamedType(i); 
@@ -1928,7 +1933,7 @@ yyreduce:
     break;
 
   case 19:
-#line 222 "decaf-parse.yy"
+#line 227 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (7)]), (yyvsp[(2) - (7)].identifier));
       (yyval.classDecl) = new ClassDecl(i, (yyvsp[(3) - (7)].namedType), (yyvsp[(4) - (7)].implementsTypeList), (yyvsp[(6) - (7)].declList));
@@ -1936,7 +1941,7 @@ yyreduce:
     break;
 
   case 20:
-#line 227 "decaf-parse.yy"
+#line 232 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (6)]), (yyvsp[(2) - (6)].identifier));
       (yyval.classDecl) = new ClassDecl(i, (yyvsp[(3) - (6)].namedType), (yyvsp[(4) - (6)].implementsTypeList), new List<Decl*>);
@@ -1944,7 +1949,7 @@ yyreduce:
     break;
 
   case 21:
-#line 235 "decaf-parse.yy"
+#line 240 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(2) - (2)]), (yyvsp[(2) - (2)].identifier));
       (yyval.namedType) = new NamedType(i); 
@@ -1952,24 +1957,24 @@ yyreduce:
     break;
 
   case 22:
-#line 239 "decaf-parse.yy"
+#line 244 "decaf-parse.yy"
     { (yyval.namedType) = NULL; }
     break;
 
   case 23:
-#line 244 "decaf-parse.yy"
+#line 249 "decaf-parse.yy"
     { 
       (yyval.implementsTypeList) = (yyvsp[(2) - (2)].implementsTypeList); 
     }
     break;
 
   case 24:
-#line 247 "decaf-parse.yy"
+#line 252 "decaf-parse.yy"
     { (yyval.implementsTypeList) = new List<NamedType*>; }
     break;
 
   case 25:
-#line 252 "decaf-parse.yy"
+#line 257 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(3) - (3)]), (yyvsp[(3) - (3)].identifier));
       NamedType *t = new NamedType(i);
@@ -1978,7 +1983,7 @@ yyreduce:
     break;
 
   case 26:
-#line 258 "decaf-parse.yy"
+#line 263 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].identifier));
       NamedType *t = new NamedType(i);
@@ -1987,7 +1992,7 @@ yyreduce:
     break;
 
   case 27:
-#line 267 "decaf-parse.yy"
+#line 272 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (5)]), (yyvsp[(2) - (5)].identifier));
       (yyval.interfaceDecl) = new InterfaceDecl(i, (yyvsp[(4) - (5)].declList));
@@ -1995,7 +2000,7 @@ yyreduce:
     break;
 
   case 28:
-#line 275 "decaf-parse.yy"
+#line 280 "decaf-parse.yy"
     { 
       FnDecl *f = (yyvsp[(1) - (2)].fnDecl);
       f->SetFunctionBody((yyvsp[(2) - (2)].stmtBlock));
@@ -2003,54 +2008,54 @@ yyreduce:
     break;
 
   case 29:
-#line 282 "decaf-parse.yy"
+#line 287 "decaf-parse.yy"
     { ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].varDecl)); }
     break;
 
   case 30:
-#line 283 "decaf-parse.yy"
+#line 288 "decaf-parse.yy"
     { ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].fnDecl)); }
     break;
 
   case 31:
-#line 284 "decaf-parse.yy"
+#line 289 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].varDecl)); }
     break;
 
   case 32:
-#line 285 "decaf-parse.yy"
+#line 290 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].fnDecl)); }
     break;
 
   case 33:
-#line 289 "decaf-parse.yy"
+#line 294 "decaf-parse.yy"
     { (yyval.varDeclList) = (yyvsp[(1) - (1)].varDeclList); }
     break;
 
   case 34:
-#line 290 "decaf-parse.yy"
+#line 295 "decaf-parse.yy"
     { (yyval.varDeclList) = new List<VarDecl*>; }
     break;
 
   case 35:
-#line 294 "decaf-parse.yy"
+#line 299 "decaf-parse.yy"
     { ((yyval.varDeclList) = new List<VarDecl*>)->Append((yyvsp[(1) - (1)].varDecl)); }
     break;
 
   case 36:
-#line 296 "decaf-parse.yy"
+#line 301 "decaf-parse.yy"
     {
       ((yyval.varDeclList) = (yyvsp[(1) - (3)].varDeclList))->Append((yyvsp[(3) - (3)].varDecl));
     }
     break;
 
   case 37:
-#line 302 "decaf-parse.yy"
+#line 307 "decaf-parse.yy"
     { (yyval.fnDecl) = (yyvsp[(1) - (2)].fnDecl); }
     break;
 
   case 38:
-#line 307 "decaf-parse.yy"
+#line 312 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (5)]), (yyvsp[(2) - (5)].identifier));
       (yyval.fnDecl) = new FnDecl(i, (yyvsp[(1) - (5)].type), (yyvsp[(4) - (5)].varDeclList));
@@ -2058,36 +2063,36 @@ yyreduce:
     break;
 
   case 39:
-#line 315 "decaf-parse.yy"
+#line 320 "decaf-parse.yy"
     {
       ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].fnDecl));
     }
     break;
 
   case 40:
-#line 318 "decaf-parse.yy"
+#line 323 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].fnDecl)); }
     break;
 
   case 41:
-#line 323 "decaf-parse.yy"
+#line 328 "decaf-parse.yy"
     {
       (yyval.stmtBlock) = new StmtBlock((yyvsp[(2) - (4)].varDeclList), (yyvsp[(3) - (4)].stmtList));
     }
     break;
 
   case 42:
-#line 326 "decaf-parse.yy"
+#line 331 "decaf-parse.yy"
     { (yyval.stmtBlock) = new StmtBlock((yyvsp[(2) - (3)].varDeclList), new List<Stmt*>); }
     break;
 
   case 43:
-#line 327 "decaf-parse.yy"
+#line 332 "decaf-parse.yy"
     { (yyval.stmtBlock) = new StmtBlock(new List<VarDecl*>, (yyvsp[(2) - (3)].stmtList)); }
     break;
 
   case 44:
-#line 329 "decaf-parse.yy"
+#line 334 "decaf-parse.yy"
     { 
       (yyval.stmtBlock) = new StmtBlock(new List<VarDecl*>,
       new List<Stmt*>);
@@ -2095,105 +2100,105 @@ yyreduce:
     break;
 
   case 45:
-#line 336 "decaf-parse.yy"
+#line 341 "decaf-parse.yy"
     { ((yyval.stmtList) = (yyvsp[(1) - (2)].stmtList))->Append((yyvsp[(2) - (2)].stmt)); }
     break;
 
   case 46:
-#line 337 "decaf-parse.yy"
+#line 342 "decaf-parse.yy"
     { ((yyval.stmtList) = new List<Stmt*>)->Append((yyvsp[(1) - (1)].stmt)); }
     break;
 
   case 47:
-#line 341 "decaf-parse.yy"
+#line 346 "decaf-parse.yy"
     { ((yyval.varDeclList) = (yyvsp[(1) - (2)].varDeclList))->Append((yyvsp[(2) - (2)].varDecl)); }
     break;
 
   case 48:
-#line 342 "decaf-parse.yy"
+#line 347 "decaf-parse.yy"
     { ((yyval.varDeclList) = new List<VarDecl*>)->Append((yyvsp[(1) - (1)].varDecl)); }
     break;
 
   case 49:
-#line 346 "decaf-parse.yy"
+#line 351 "decaf-parse.yy"
     { (yyval.stmt) = (yyvsp[(1) - (2)].expr); }
     break;
 
   case 50:
-#line 348 "decaf-parse.yy"
+#line 353 "decaf-parse.yy"
     {
       (yyval.stmt) = new WhileStmt((yyvsp[(3) - (5)].expr), (yyvsp[(5) - (5)].stmt));
     }
     break;
 
   case 51:
-#line 351 "decaf-parse.yy"
+#line 356 "decaf-parse.yy"
     { (yyval.stmt) = new ReturnStmt((yylsp[(1) - (2)]), new EmptyExpr); }
     break;
 
   case 52:
-#line 352 "decaf-parse.yy"
+#line 357 "decaf-parse.yy"
     { (yyval.stmt) = new ReturnStmt((yylsp[(2) - (3)]), (yyvsp[(2) - (3)].expr)); }
     break;
 
   case 53:
-#line 353 "decaf-parse.yy"
+#line 358 "decaf-parse.yy"
     { (yyval.stmt) = new BreakStmt((yylsp[(1) - (2)])); }
     break;
 
   case 54:
-#line 355 "decaf-parse.yy"
+#line 360 "decaf-parse.yy"
     {
       (yyval.stmt) = new PrintStmt((yyvsp[(3) - (5)].exprList));
     }
     break;
 
   case 55:
-#line 359 "decaf-parse.yy"
+#line 364 "decaf-parse.yy"
     {
       (yyval.stmt) = new ForStmt((yyvsp[(3) - (9)].expr), (yyvsp[(5) - (9)].expr), (yyvsp[(7) - (9)].expr), (yyvsp[(9) - (9)].stmt));
     }
     break;
 
   case 56:
-#line 362 "decaf-parse.yy"
+#line 367 "decaf-parse.yy"
     { (yyval.stmt) = (yyvsp[(1) - (1)].ifStmt); }
     break;
 
   case 57:
-#line 364 "decaf-parse.yy"
+#line 369 "decaf-parse.yy"
     {
       (yyval.stmt) = new SwitchStmt((yyvsp[(3) - (8)].expr), (yyvsp[(6) - (8)].caseStmtList), (yyvsp[(7) - (8)].defaultStmt));
     }
     break;
 
   case 58:
-#line 367 "decaf-parse.yy"
+#line 372 "decaf-parse.yy"
     { (yyval.stmt) = (yyvsp[(1) - (1)].stmtBlock); }
     break;
 
   case 59:
-#line 371 "decaf-parse.yy"
+#line 376 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 60:
-#line 372 "decaf-parse.yy"
+#line 377 "decaf-parse.yy"
     { (yyval.expr) = new EmptyExpr(); }
     break;
 
   case 61:
-#line 377 "decaf-parse.yy"
+#line 382 "decaf-parse.yy"
     { ((yyval.caseStmtList) = (yyvsp[(1) - (2)].caseStmtList))->Append((yyvsp[(2) - (2)].caseStmt)); }
     break;
 
   case 62:
-#line 378 "decaf-parse.yy"
+#line 383 "decaf-parse.yy"
     { ((yyval.caseStmtList) = new List<CaseStmt*>)->Append((yyvsp[(1) - (1)].caseStmt)); }
     break;
 
   case 63:
-#line 383 "decaf-parse.yy"
+#line 388 "decaf-parse.yy"
     { 
       IntConstant *ic = new IntConstant((yylsp[(2) - (4)]), (yyvsp[(2) - (4)].integerConstant));
       (yyval.caseStmt) = new CaseStmt(ic, (yyvsp[(4) - (4)].stmtList));
@@ -2201,7 +2206,7 @@ yyreduce:
     break;
 
   case 64:
-#line 388 "decaf-parse.yy"
+#line 393 "decaf-parse.yy"
     {
       IntConstant *ic = new IntConstant((yylsp[(2) - (3)]), (yyvsp[(2) - (3)].integerConstant));
       (yyval.caseStmt) = new CaseStmt(ic, new List<Stmt*>);
@@ -2209,60 +2214,60 @@ yyreduce:
     break;
 
   case 65:
-#line 396 "decaf-parse.yy"
+#line 401 "decaf-parse.yy"
     { 
       (yyval.defaultStmt) = new DefaultStmt((yyvsp[(3) - (3)].stmtList));
     }
     break;
 
   case 66:
-#line 400 "decaf-parse.yy"
+#line 405 "decaf-parse.yy"
     { 
       (yyval.defaultStmt) = new DefaultStmt(new List<Stmt*>);
     }
     break;
 
   case 67:
-#line 407 "decaf-parse.yy"
+#line 412 "decaf-parse.yy"
     {
       (yyval.ifStmt) = new IfStmt((yyvsp[(3) - (5)].expr), (yyvsp[(5) - (5)].stmt), NULL);
     }
     break;
 
   case 68:
-#line 411 "decaf-parse.yy"
+#line 416 "decaf-parse.yy"
     {
       (yyval.ifStmt) = new IfStmt((yyvsp[(3) - (7)].expr), (yyvsp[(5) - (7)].stmt), (yyvsp[(7) - (7)].stmt));
     }
     break;
 
   case 69:
-#line 417 "decaf-parse.yy"
+#line 422 "decaf-parse.yy"
     { ((yyval.exprList) = (yyvsp[(1) - (3)].exprList))->Append((yyvsp[(3) - (3)].expr)); }
     break;
 
   case 70:
-#line 418 "decaf-parse.yy"
+#line 423 "decaf-parse.yy"
     { ((yyval.exprList) = new List<Expr*>)->Append((yyvsp[(1) - (1)].expr)); }
     break;
 
   case 71:
-#line 422 "decaf-parse.yy"
+#line 427 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 72:
-#line 423 "decaf-parse.yy"
+#line 428 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 73:
-#line 424 "decaf-parse.yy"
+#line 429 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 74:
-#line 426 "decaf-parse.yy"
+#line 431 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "||");
       (yyval.expr) = new LogicalExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2270,7 +2275,7 @@ yyreduce:
     break;
 
   case 75:
-#line 431 "decaf-parse.yy"
+#line 436 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "&&");
       (yyval.expr) = new LogicalExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2278,7 +2283,7 @@ yyreduce:
     break;
 
   case 76:
-#line 436 "decaf-parse.yy"
+#line 441 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "<");
       (yyval.expr) = new RelationalExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2286,7 +2291,7 @@ yyreduce:
     break;
 
   case 77:
-#line 441 "decaf-parse.yy"
+#line 446 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), ">");
       (yyval.expr) = new RelationalExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2294,7 +2299,7 @@ yyreduce:
     break;
 
   case 78:
-#line 446 "decaf-parse.yy"
+#line 451 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), ">=");
       (yyval.expr) = new RelationalExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2302,7 +2307,7 @@ yyreduce:
     break;
 
   case 79:
-#line 451 "decaf-parse.yy"
+#line 456 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "<=");
       (yyval.expr) = new RelationalExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2310,7 +2315,7 @@ yyreduce:
     break;
 
   case 80:
-#line 456 "decaf-parse.yy"
+#line 461 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "==");
       (yyval.expr) = new EqualityExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2318,7 +2323,7 @@ yyreduce:
     break;
 
   case 81:
-#line 461 "decaf-parse.yy"
+#line 466 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "!=");
       (yyval.expr) = new EqualityExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2326,7 +2331,7 @@ yyreduce:
     break;
 
   case 82:
-#line 466 "decaf-parse.yy"
+#line 471 "decaf-parse.yy"
     {
        Operator *op = new Operator((yylsp[(2) - (3)]), "+");
        (yyval.expr) = new ArithmeticExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2334,7 +2339,7 @@ yyreduce:
     break;
 
   case 83:
-#line 471 "decaf-parse.yy"
+#line 476 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "-");
       (yyval.expr) = new ArithmeticExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2342,7 +2347,7 @@ yyreduce:
     break;
 
   case 84:
-#line 476 "decaf-parse.yy"
+#line 481 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "*");
       (yyval.expr) = new ArithmeticExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2350,7 +2355,7 @@ yyreduce:
     break;
 
   case 85:
-#line 481 "decaf-parse.yy"
+#line 486 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "/");
       (yyval.expr) = new ArithmeticExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2358,7 +2363,7 @@ yyreduce:
     break;
 
   case 86:
-#line 486 "decaf-parse.yy"
+#line 491 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "%");
       (yyval.expr) = new ArithmeticExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2366,7 +2371,7 @@ yyreduce:
     break;
 
   case 87:
-#line 491 "decaf-parse.yy"
+#line 496 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(1) - (2)]), "-");
       (yyval.expr) = new ArithmeticExpr(op, (yyvsp[(2) - (2)].expr));
@@ -2374,7 +2379,7 @@ yyreduce:
     break;
 
   case 88:
-#line 496 "decaf-parse.yy"
+#line 501 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(1) - (2)]), "!");
       (yyval.expr) = new LogicalExpr(op, (yyvsp[(2) - (2)].expr));
@@ -2382,7 +2387,7 @@ yyreduce:
     break;
 
   case 89:
-#line 501 "decaf-parse.yy"
+#line 506 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (2)]), "++");
       (yyval.expr) = new PostfixExpr((yyvsp[(1) - (2)].expr), op);
@@ -2390,7 +2395,7 @@ yyreduce:
     break;
 
   case 90:
-#line 506 "decaf-parse.yy"
+#line 511 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (2)]), "--");
       (yyval.expr) = new PostfixExpr((yyvsp[(1) - (2)].expr), op);
@@ -2398,39 +2403,39 @@ yyreduce:
     break;
 
   case 91:
-#line 510 "decaf-parse.yy"
+#line 515 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(2) - (3)].expr); }
     break;
 
   case 92:
-#line 511 "decaf-parse.yy"
+#line 516 "decaf-parse.yy"
     { (yyval.expr) = new This((yylsp[(1) - (1)])); }
     break;
 
   case 93:
-#line 512 "decaf-parse.yy"
+#line 517 "decaf-parse.yy"
     { (yyval.expr) = new ReadIntegerExpr(Join((yylsp[(1) - (3)]), (yylsp[(3) - (3)]))); }
     break;
 
   case 94:
-#line 513 "decaf-parse.yy"
+#line 518 "decaf-parse.yy"
     { (yyval.expr) = new ReadLineExpr(Join((yylsp[(1) - (3)]), (yylsp[(3) - (3)]))); }
     break;
 
   case 95:
-#line 514 "decaf-parse.yy"
+#line 519 "decaf-parse.yy"
     { (yyval.expr) = new NewExpr(Join((yylsp[(1) - (2)]), (yylsp[(2) - (2)])), (yyvsp[(2) - (2)].namedType)); }
     break;
 
   case 96:
-#line 516 "decaf-parse.yy"
+#line 521 "decaf-parse.yy"
     {
       (yyval.expr) = new NewArrayExpr(Join((yylsp[(1) - (6)]), (yylsp[(6) - (6)])), (yyvsp[(3) - (6)].expr), (yyvsp[(5) - (6)].type));
     }
     break;
 
   case 97:
-#line 520 "decaf-parse.yy"
+#line 525 "decaf-parse.yy"
     {
     Operator *op = new Operator((yylsp[(2) - (3)]), "=");
     (yyval.expr) = new AssignExpr((yyvsp[(1) - (3)].expr), op, (yyvsp[(3) - (3)].expr));
@@ -2438,72 +2443,72 @@ yyreduce:
     break;
 
   case 98:
-#line 528 "decaf-parse.yy"
+#line 533 "decaf-parse.yy"
     { 
       (yyval.expr) = new Call(Join((yylsp[(1) - (4)]),(yylsp[(4) - (4)])), NULL, new Identifier((yylsp[(1) - (4)]),(yyvsp[(1) - (4)].identifier)), (yyvsp[(3) - (4)].exprList)); 
     }
     break;
 
   case 99:
-#line 532 "decaf-parse.yy"
+#line 537 "decaf-parse.yy"
     {
       (yyval.expr) = new Call(Join((yylsp[(1) - (6)]),(yylsp[(6) - (6)])), (yyvsp[(1) - (6)].expr), new Identifier((yylsp[(3) - (6)]),(yyvsp[(3) - (6)].identifier)), (yyvsp[(5) - (6)].exprList)); 
     }
     break;
 
   case 100:
-#line 538 "decaf-parse.yy"
+#line 543 "decaf-parse.yy"
     { (yyval.exprList) = (yyvsp[(1) - (1)].exprList); }
     break;
 
   case 101:
-#line 539 "decaf-parse.yy"
+#line 544 "decaf-parse.yy"
     { (yyval.exprList) = new List<Expr*>; }
     break;
 
   case 102:
-#line 543 "decaf-parse.yy"
+#line 548 "decaf-parse.yy"
     { (yyval.expr) = new FieldAccess(NULL, new Identifier((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].identifier))); }
     break;
 
   case 103:
-#line 544 "decaf-parse.yy"
+#line 549 "decaf-parse.yy"
     { (yyval.expr) = new FieldAccess((yyvsp[(1) - (3)].expr), new Identifier((yylsp[(3) - (3)]), (yyvsp[(3) - (3)].identifier))); }
     break;
 
   case 104:
-#line 545 "decaf-parse.yy"
+#line 550 "decaf-parse.yy"
     { (yyval.expr) = new ArrayAccess(Join((yylsp[(1) - (4)]), (yylsp[(4) - (4)])), (yyvsp[(1) - (4)].expr), (yyvsp[(3) - (4)].expr)); }
     break;
 
   case 105:
-#line 550 "decaf-parse.yy"
+#line 555 "decaf-parse.yy"
     { (yyval.expr) = new IntConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].integerConstant)); }
     break;
 
   case 106:
-#line 551 "decaf-parse.yy"
+#line 556 "decaf-parse.yy"
     { (yyval.expr) = new DoubleConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].doubleConstant)); }
     break;
 
   case 107:
-#line 552 "decaf-parse.yy"
+#line 557 "decaf-parse.yy"
     { (yyval.expr) = new BoolConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].boolConstant)); }
     break;
 
   case 108:
-#line 553 "decaf-parse.yy"
+#line 558 "decaf-parse.yy"
     { (yyval.expr) = new StringConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].stringConstant)); }
     break;
 
   case 109:
-#line 554 "decaf-parse.yy"
+#line 559 "decaf-parse.yy"
     { (yyval.expr) = new NullConstant((yylsp[(1) - (1)])); }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2507 "decaf-parse.cc"
+#line 2512 "decaf-parse.cc"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2723,7 +2728,7 @@ yyreturn:
 }
 
 
-#line 557 "decaf-parse.yy"
+#line 562 "decaf-parse.yy"
 
 
 /* The closing %% above marks the end of the Rules section and the beginning

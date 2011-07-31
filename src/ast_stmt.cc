@@ -67,6 +67,16 @@ void Program::Check()
     }
 }
 
+void Program::Emit() {
+    /* pp4: here is where the code generation is kicked off.
+     *      The general idea is perform a tree traversal of the
+     *      entire program, generating instructions as you go.
+     *      Each node can have its own way of translating itself,
+     *      which makes for a great use of inheritance and
+     *      polymorphism in the node classes.
+     */
+}
+
 /* Class: StmtBlock
  * ----------------
  * Implementation of StmtBlock class

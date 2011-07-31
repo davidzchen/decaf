@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([dcc], [0.3], [dzchen@stanford.edu])
+AC_INIT([dcc], [0.4], [dzchen@stanford.edu])
 AC_CONFIG_SRCDIR([src/utility.cc])
 AC_CONFIG_HEADERS([config.h])
 
@@ -39,10 +39,11 @@ AC_CHECK_FUNCS([strdup])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-		 lib/Makefile
+                 lib/Makefile
                  tests/Makefile
+                 tests/codegen/Makefile
                  all-tests/Makefile
                  all-tests/parse/Makefile
-                 tests/scope/Makefile
-                 tests/semantic/Makefile])
+                 all-tests/scope/Makefile
+                 all-tests/semantic/Makefile])
 AC_OUTPUT

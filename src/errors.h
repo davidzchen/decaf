@@ -100,6 +100,9 @@ class ReportError
     static void ReturnMismatch(ReturnStmt *rStmt, Type *given, Type *expected);
     static void BreakOutsideLoop(BreakStmt *bStmt);
     static void SwitchTestNotInt(Expr *testExpr);
+
+    // Errors used by code-generator/linker
+    static void NoMainFound();
   
     // Generic method to report a printf-style error message
     static void Formatted(yyltype *loc, const char *format, ...);

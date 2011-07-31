@@ -172,6 +172,11 @@ Program:
               program->Check();
             }
         }
+        
+      if (testFlag != TEST_SEMANT && ReportError::NumErrors() == 0)
+        {
+          program->Emit();
+        }
     }
 ;
 

@@ -13,7 +13,8 @@
 enum
 {
   TEST_SCANNER = 1,
-  TEST_PARSER = 2
+  TEST_PARSER,
+  TEST_SEMANT,
 };
 
 extern int testFlag;
