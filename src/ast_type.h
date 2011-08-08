@@ -14,7 +14,6 @@
 
 #include "ast.h"
 #include "ast_stmt.h"
-#include "list.h"
 
 extern SymTable *globalEnv;
 

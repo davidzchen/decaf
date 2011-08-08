@@ -13,8 +13,6 @@
 #ifndef _H_ast_expr
 #define _H_ast_expr
 
-#include "list.h"
-#include "symtable.h"
 #include "ast.h"
 #include "ast_stmt.h"
 #include "ast_type.h"
@@ -28,6 +26,7 @@ class Expr : public Stmt
 {
   protected:
     Type *retType;
+    Location *frameLocation;
 
   public:
     Expr(yyltype loc) : Stmt(loc) {}
@@ -35,6 +34,7 @@ class Expr : public Stmt
     void SetRetType(Type *t) { retType = t; }
     Type *GetRetType() { return retType; }
     virtual bool Check(SymTable *env) { return true; }
+    Location *GetFrameLocation() { return frameLocation; }
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -47,6 +47,7 @@ class EmptyExpr : public Expr
     EmptyExpr() { retType = Type::voidType; }
     const char *GetPrintNameForNode() { return "Empty"; }
     bool Check(SymTable *env) { return true; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
 };
 
 class IntConstant : public Expr  
@@ -59,6 +60,10 @@ class IntConstant : public Expr
     const char *GetPrintNameForNode() { return "IntConstant"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env) { return true; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+    {
+      frameLocation = codegen->GenLoadConstant(falloc, value);
+    }
 };
 
 class DoubleConstant : public Expr  
@@ -71,6 +76,7 @@ class DoubleConstant : public Expr
     const char *GetPrintNameForNode() { return "DoubleConstant"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env) { return true; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
 };
 
 class BoolConstant : public Expr 
@@ -83,6 +89,10 @@ class BoolConstant : public Expr
     const char *GetPrintNameForNode() { return "BoolConstant"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env) { return true; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+    {
+      frameLocation = codegen->GenLoadConstant(falloc, (int) value);
+    }
 };
 
 class StringConstant : public Expr 
@@ -95,6 +105,10 @@ class StringConstant : public Expr
     const char *GetPrintNameForNode() { return "StringConstant"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env) { return true; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+    {
+      frameLocation = codegen->GenLoadConstant(falloc, value);
+    }
 };
 
 class NullConstant: public Expr 
@@ -103,6 +117,10 @@ class NullConstant: public Expr
     NullConstant(yyltype loc) : Expr(loc) { retType = Type::nullType; }
     const char *GetPrintNameForNode() { return "NullConstant"; }
     bool Check(SymTable *env) { return true; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+    {
+      frameLocation = codegen->GenLoadConstant(falloc, 0);
+    }
 };
 
 class Operator : public Node 
@@ -119,6 +137,8 @@ class Operator : public Node
       return out << o->tokenString;
     }
     bool Check(SymTable *env) { return true; }
+    char *GetTokenString() { return tokenString; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
 };
  
 class CompoundExpr : public Expr 
@@ -133,6 +153,7 @@ class CompoundExpr : public Expr
     CompoundExpr(Expr *lhs, Operator *op);            // for postfix
     void PrintChildren(int indentLevel);
     virtual bool Check(SymTable *env) { return true; }
+    virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
 };
 
 class ArithmeticExpr : public CompoundExpr 
@@ -143,6 +164,7 @@ class ArithmeticExpr : public CompoundExpr
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "ArithmeticExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class RelationalExpr : public CompoundExpr 
@@ -152,6 +174,7 @@ class RelationalExpr : public CompoundExpr
       : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "RelationalExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class EqualityExpr : public CompoundExpr 
@@ -161,6 +184,7 @@ class EqualityExpr : public CompoundExpr
       : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class LogicalExpr : public CompoundExpr 
@@ -171,6 +195,7 @@ class LogicalExpr : public CompoundExpr
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class PostfixExpr : public CompoundExpr
@@ -179,6 +204,7 @@ class PostfixExpr : public CompoundExpr
     PostfixExpr(Expr *lhs, Operator *op) : CompoundExpr(lhs, op) {}
     const char *GetPrintNameForNode() { return "PostfixExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class AssignExpr : public CompoundExpr 
@@ -188,6 +214,7 @@ class AssignExpr : public CompoundExpr
       : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class LValue : public Expr 
@@ -195,6 +222,7 @@ class LValue : public Expr
   public:
     LValue(yyltype loc) : Expr(loc) {}
     virtual bool Check(SymTable *env) { return true; }
+    virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
 };
 
 class This : public Expr 
@@ -203,6 +231,7 @@ class This : public Expr
     This(yyltype loc) : Expr(loc) {}
     const char *GetPrintNameForNode() { return "This"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class ArrayAccess : public LValue 
@@ -215,6 +244,7 @@ class ArrayAccess : public LValue
     const char *GetPrintNameForNode() { return "ArrayAccess"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 /* Note that field access is used both for qualified names
@@ -235,6 +265,7 @@ class FieldAccess : public LValue
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
     Expr *GetBase() { return base; }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 /* Like field access, call is used both for qualified base.field()
@@ -258,6 +289,7 @@ class Call : public Expr
     const char *GetPrintNameForNode() { return "Call"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 
 };
 
@@ -271,6 +303,7 @@ class NewExpr : public Expr
     const char *GetPrintNameForNode() { return "NewExpr"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class NewArrayExpr : public Expr 
@@ -284,6 +317,7 @@ class NewArrayExpr : public Expr
     const char *GetPrintNameForNode() { return "NewArrayExpr"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class ReadIntegerExpr : public Expr 
@@ -292,6 +326,7 @@ class ReadIntegerExpr : public Expr
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
     const char *GetPrintNameForNode() { return "ReadIntegerExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class ReadLineExpr : public Expr 
@@ -300,6 +335,7 @@ class ReadLineExpr : public Expr
     ReadLineExpr(yyltype loc) : Expr (loc) {}
     const char *GetPrintNameForNode() { return "ReadLineExpr"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
     

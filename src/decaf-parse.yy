@@ -173,7 +173,7 @@ Program:
             }
         }
         
-      if (testFlag != TEST_SEMANT && ReportError::NumErrors() == 0)
+      if (testFlag > TEST_SEMANT && ReportError::NumErrors() == 0)
         {
           program->Emit();
         }

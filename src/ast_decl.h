@@ -13,8 +13,6 @@
 #ifndef _H_ast_decl
 #define _H_ast_decl
 
-#include "list.h"
-#include "symtable.h"
 #include "ast.h"
 #include "ast_decl.h"
 #include "ast_stmt.h"
@@ -40,6 +38,8 @@ class Decl : public Node
     void PrintToStream(ostream& out) { out << id; }
     virtual bool CheckDecls(SymTable *env) { return true; }
     virtual bool Check(SymTable *env) { return true; }
+    virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                      SymTable *env) { }
     virtual Type *GetType() { return NULL; }
     char *GetName() { return id->getName(); }
 };
@@ -58,6 +58,7 @@ class VarDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
     Type *GetType() { return type; }
 };
 
@@ -86,6 +87,7 @@ class ClassDecl : public Decl
     bool CheckDecls(SymTable *env);
     bool Inherit(SymTable *env);
     bool ImplementsInterface(char *name);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
     bool Check(SymTable *env);
 };
 
@@ -106,6 +108,7 @@ class InterfaceDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
     List<Decl*> *getMembers() { return members; }
 };
 
@@ -116,6 +119,8 @@ class FnDecl : public Decl
     Type *returnType;
     Stmt *body;
     SymTable *fnEnv;
+    FrameAllocator *paramFAlloc;
+    FrameAllocator *bodyFAlloc;
     
   public:
     FnDecl(Identifier *name, Type *returnType,
@@ -128,6 +133,7 @@ class FnDecl : public Decl
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
     Type *GetReturnType() { return returnType; }
     Type *GetType() { return returnType; }
     List<VarDecl*> *GetFormals() { return formals; }

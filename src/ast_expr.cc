@@ -192,6 +192,20 @@ bool ArithmeticExpr::Check(SymTable *env)
   return ret;
 }
 
+void ArithmeticExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+  Location *loc = NULL;
+
+  left->Emit(falloc, codegen, env);
+  right->Emit(falloc, codegen, env);
+
+  loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
+                             left->GetFrameLocation(),
+                             right->GetFrameLocation());
+
+  frameLocation = loc;
+}
+
 /* Class: RelationalExpr
  * ------------------
  * Implementation for RelationalExpr class
@@ -226,6 +240,11 @@ bool RelationalExpr::Check(SymTable *env)
   return ret;
 }
 
+void RelationalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: EqualityExpr
  * ------------------
  * Implementation for EqualityExpr class
@@ -256,6 +275,11 @@ bool EqualityExpr::Check(SymTable *env)
     }
 
   return ret;
+}
+
+void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: LogicalExpr
@@ -303,6 +327,11 @@ bool LogicalExpr::Check(SymTable *env)
   return ret;
 }
 
+void LogicalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: PostfixExpr
  * ------------------
  * Implementation for PostfixExpr class
@@ -326,6 +355,11 @@ bool PostfixExpr::Check(SymTable *env)
     }
 
   return ret;
+}
+
+void PostfixExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: AssignExpr
@@ -359,6 +393,18 @@ bool AssignExpr::Check(SymTable *env)
   return ret;
 }
 
+void AssignExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+  left->Emit(falloc, codegen, env);
+  right->Emit(falloc, codegen, env);
+
+  Assert(left->GetFrameLocation() != NULL);
+  Assert(right->GetFrameLocation() != NULL);
+
+  codegen->GenAssign(left->GetFrameLocation(), right->GetFrameLocation());
+  frameLocation = left->GetFrameLocation();
+}
+
 /* Class: This
  * ----------
  * Implementation of This class
@@ -383,6 +429,11 @@ bool This::Check(SymTable *env)
   SetRetType(new NamedType(thisClass->GetIdent()));
 
   return true;
+}
+
+void This::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: ArrayAccess
@@ -429,6 +480,11 @@ bool ArrayAccess::Check(SymTable *env)
     }
 
   return ret;
+}
+
+void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: FieldAccess
@@ -532,6 +588,22 @@ bool FieldAccess::Check(SymTable *env)
     }
 
   return ret;
+}
+
+void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+  if (!base)
+    {
+      Symbol *sym = env->find(field->getName(), S_VARIABLE);
+      frameLocation = sym->getLocation();
+
+#ifdef __DEBUG_TAC
+      PrintDebug("tac", "Var Access %s @ %d:%d\n", field->getName(),
+                 frameLocation->GetSegment(), frameLocation->GetOffset());
+#endif
+
+      Assert(frameLocation != NULL);
+    }
 }
 
 /* Class: Call
@@ -667,6 +739,11 @@ bool Call::Check(SymTable *env)
   return ret;
 }
 
+void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: NewExpr
  * ------------------
  * Implementation for NewExpr class
@@ -699,6 +776,11 @@ bool NewExpr::Check(SymTable *env)
     }
 
   return ret;
+}
+
+void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: NewArrayExpr
@@ -746,6 +828,11 @@ bool NewArrayExpr::Check(SymTable *env)
   return ret;
 }
 
+void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: ReadIntegerExpr
  * ----------------------
  * Implementation for ReadIntegerExpr
@@ -755,6 +842,11 @@ bool ReadIntegerExpr::Check(SymTable *env)
 {
   SetRetType(Type::intType);
   return true;
+}
+
+void ReadIntegerExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: ReadLineExpr
@@ -767,4 +859,9 @@ bool ReadLineExpr::Check(SymTable *env)
 {
   SetRetType(Type::stringType);
   return true;
+}
+
+void ReadLineExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }

@@ -39,25 +39,30 @@
  * new value).
  */
 Mips::Register Mips::GetRegister(Location *var, Reason reason,
-					   Register avoid1, Register avoid2)
+                                 Register avoid1, Register avoid2)
 {
   Register reg;
 
-  if (!FindRegisterWithContents(var, reg)) {
-    if (!FindRegisterWithContents(NULL, reg)) { 
-	reg = SelectRegisterToSpill(avoid1, avoid2);
-	SpillRegister(reg);
+  if (!FindRegisterWithContents(var, reg))
+    {
+      if (!FindRegisterWithContents(NULL, reg))
+        {
+	  reg = SelectRegisterToSpill(avoid1, avoid2);
+	  SpillRegister(reg);
+        }
+      regs[reg].var = var;
+      if (reason == ForRead) // load current value
+        {
+	  Assert(var->GetOffset() % 4 == 0); // all variables are 4 bytes
+	  const char *offsetFromWhere = var->GetSegment() == fpRelative
+	      ? regs[fp].name
+	      : regs[gp].name;
+	  Emit("lw %s, %d(%s)\t# load %s from %s%+d into %s", regs[reg].name,
+	       var->GetOffset(), offsetFromWhere, var->GetName(),
+	       offsetFromWhere, var->GetOffset(), regs[reg].name);
+	  regs[reg].isDirty = false;
+        }
     }
-    regs[reg].var = var;
-    if (reason == ForRead) {                 // load current value
-	Assert(var->GetOffset() % 4 == 0); // all variables are 4 bytes
-	const char *offsetFromWhere = var->GetSegment() == fpRelative? regs[fp].name : regs[gp].name;
-	Emit("lw %s, %d(%s)\t# load %s from %s%+d into %s", regs[reg].name,
-	     var->GetOffset(), offsetFromWhere, var->GetName(),
-	     offsetFromWhere, var->GetOffset(), regs[reg].name);
-	regs[reg].isDirty = false;
-    }
-  }
   if (reason == ForWrite)
     regs[reg].isDirty = true;
   return reg;
@@ -143,7 +148,9 @@ void Mips::SpillRegister(Register reg)
 {
   Location *var = regs[reg].var;
   if (var && regs[reg].isDirty) {
-    const char *offsetFromWhere = var->GetSegment() == fpRelative? regs[fp].name : regs[gp].name;
+    const char *offsetFromWhere = var->GetSegment() == fpRelative
+        ? regs[fp].name
+        : regs[gp].name;
     Assert(var->GetOffset() % 4 == 0); // all variables are 4 bytes in size
     Emit("sw %s, %d(%s)\t# spill %s from %s to %s%+d", regs[reg].name,
 	   var->GetOffset(), offsetFromWhere, var->GetName(), regs[reg].name,
@@ -541,7 +548,8 @@ const char *Mips::NameForTac(BinaryOp::OpCode code)
  * Constructor sets up the mips names and register descriptors to
  * the initial starting state.
  */
-Mips::Mips() {
+Mips::Mips()
+{
   mipsName[BinaryOp::Add] = "add";
   mipsName[BinaryOp::Sub] = "sub";
   mipsName[BinaryOp::Mul] = "mul";

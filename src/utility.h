@@ -15,9 +15,12 @@ enum
   TEST_SCANNER = 1,
   TEST_PARSER,
   TEST_SEMANT,
+  TEST_ALL,
 };
 
 extern int testFlag;
+
+#define __DEBUG_TAC 1
 
 /**
  * Function: Failure()

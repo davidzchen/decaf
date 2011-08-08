@@ -9,6 +9,7 @@
 #define _H_SYMTABLE
 
 #include <cstdlib>
+#include <tac.h>
 #include "ast.h"
 #include "hashtable.h"
 #include "list.h"
@@ -30,17 +31,20 @@ class Symbol
     int type;
     Node *node;
     SymTable *env;
+    Location *location;
 
   public:
     Symbol(int t, Node *n);
     Symbol(int t, Node *n, SymTable *e);
 
-    int getType()            { return type; }
-    void setType(int t)      { type = t; }
-    Node *getNode()          { return node; }
-    void setNode(Node *n)    { node = n; }
-    SymTable *getEnv()       { return env; }
-    void setEnv(SymTable *e) { env = e; }
+    int getType()                 { return type; }
+    void setType(int t)           { type = t; }
+    Node *getNode()               { return node; }
+    void setNode(Node *n)         { node = n; }
+    SymTable *getEnv()            { return env; }
+    void setEnv(SymTable *e)      { env = e; }
+    Location *getLocation()       { return location; }
+    void setLocation(Location *l) { location = l; }
 
     void print(int indentLevel);
 };

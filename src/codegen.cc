@@ -8,8 +8,15 @@
 #include <config.h>
 #include <string.h>
 #include "codegen.h"
-#include "tac.h"
-#include "mips.h"
+#include <arch.h>
+#include <tac.h>
+
+#ifdef __TARGET_X86
+# include <x86.h>
+#endif
+#ifdef __TARGET_MIPS
+# include <mips.h>
+#endif
   
 CodeGenerator::CodeGenerator()
 {
@@ -25,38 +32,37 @@ char *CodeGenerator::NewLabel()
 }
 
 
-Location *CodeGenerator::GenTempVar()
+Location *CodeGenerator::GenTempVar(FrameAllocator *falloc)
 {
   static int nextTempNum;
   char temp[10];
   Location *result = NULL;
   sprintf(temp, "_tmp%d", nextTempNum++);
-  /* pp4: need to create variable in proper location
-     in stack frame for use as temporary. Until you
-     do that, the assert below will always fail to remind
-     you this needs to be implemented  */
+
+  result = falloc->Alloc(temp, VarSize);
+
   Assert(result != NULL);
   return result;
 }
 
  
-Location *CodeGenerator::GenLoadConstant(int value)
+Location *CodeGenerator::GenLoadConstant(FrameAllocator *falloc, int value)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(falloc);
   code->Append(new LoadConstant(result, value));
   return result;
 }
 
-Location *CodeGenerator::GenLoadConstant(const char *s)
+Location *CodeGenerator::GenLoadConstant(FrameAllocator *falloc, const char *s)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(falloc);
   code->Append(new LoadStringConstant(result, s));
   return result;
 } 
 
-Location *CodeGenerator::GenLoadLabel(const char *label)
+Location *CodeGenerator::GenLoadLabel(FrameAllocator *falloc, const char *label)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(falloc);
   code->Append(new LoadLabel(result, label));
   return result;
 } 
@@ -68,23 +74,24 @@ void CodeGenerator::GenAssign(Location *dst, Location *src)
 }
 
 
-Location *CodeGenerator::GenLoad(Location *ref, int offset)
+Location *CodeGenerator::GenLoad(FrameAllocator *falloc, Location *ref, int offset)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(falloc);
   code->Append(new Load(result, ref, offset));
   return result;
 }
 
-void CodeGenerator::GenStore(Location *dst,Location *src, int offset)
+void CodeGenerator::GenStore(Location *dst, Location *src, int offset)
 {
   code->Append(new Store(dst, src, offset));
 }
 
 
-Location *CodeGenerator::GenBinaryOp(const char *opName, Location *op1,
-						     Location *op2)
+Location *CodeGenerator::GenBinaryOp(FrameAllocator *falloc,
+                                     const char *opName, Location *op1,
+                                     Location *op2)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(falloc);
   code->Append(new BinaryOp(BinaryOp::OpCodeForName(opName), result, op1, op2));
   return result;
 }
@@ -135,55 +142,69 @@ void CodeGenerator::GenPopParams(int numBytesOfParams)
     code->Append(new PopParams(numBytesOfParams));
 }
 
-Location *CodeGenerator::GenLCall(const char *label, bool fnHasReturnValue)
+Location *CodeGenerator::GenLCall(FrameAllocator *falloc, const char *label,
+                                  bool fnHasReturnValue)
 {
-  Location *result = fnHasReturnValue ? GenTempVar() : NULL;
+  Location *result = fnHasReturnValue ? GenTempVar(falloc) : NULL;
   code->Append(new LCall(label, result));
   return result;
 }
 
-Location *CodeGenerator::GenACall(Location *fnAddr, bool fnHasReturnValue)
+Location *CodeGenerator::GenACall(FrameAllocator *falloc, Location *fnAddr,
+                                  bool fnHasReturnValue)
 {
-  Location *result = fnHasReturnValue ? GenTempVar() : NULL;
+  Location *result = fnHasReturnValue ? GenTempVar(falloc) : NULL;
   code->Append(new ACall(fnAddr, result));
   return result;
 }
  
  
-static struct _builtin {
+static struct _builtin
+{
   const char *label;
   int numArgs;
   bool hasReturn;
-} builtins[] =
- {{"_Alloc", 1, true},
-  {"_ReadLine", 0, true},
-  {"_ReadInteger", 0, true},
-  {"_StringEqual", 2, true},
-  {"_PrintInt", 1, false},
-  {"_PrintString", 1, false},
-  {"_PrintBool", 1, false},
-  {"_Halt", 0, false}};
+} builtins[] = {
+    { "_Alloc",       1, true  },
+    { "_ReadLine",    0, true  },
+    { "_ReadInteger", 0, true  },
+    { "_StringEqual", 2, true  },
+    { "_PrintInt",    1, false },
+    { "_PrintString", 1, false },
+    { "_PrintBool",   1, false },
+    { "_Halt",        0, false }
+};
 
-Location *CodeGenerator::GenBuiltInCall(BuiltIn bn,Location *arg1, Location *arg2)
+Location *CodeGenerator::GenBuiltInCall(FrameAllocator *falloc, BuiltIn bn,
+                                        Location *arg1, Location *arg2)
 {
   Assert(bn >= 0 && bn < NumBuiltIns);
   struct _builtin *b = &builtins[bn];
   Location *result = NULL;
 
-  if (b->hasReturn) result = GenTempVar();
-                // verify appropriate number of non-NULL arguments given
+  // verify appropriate number of non-NULL arguments given
+  if (b->hasReturn)
+    result = GenTempVar(falloc);
+
   Assert((b->numArgs == 0 && !arg1 && !arg2)
 	|| (b->numArgs == 1 && arg1 && !arg2)
 	|| (b->numArgs == 2 && arg1 && arg2));
-  if (arg2) code->Append(new PushParam(arg2));
-  if (arg1) code->Append(new PushParam(arg1));
+
+  if (arg2)
+    code->Append(new PushParam(arg2));
+
+  if (arg1)
+    code->Append(new PushParam(arg1));
+
   code->Append(new LCall(b->label, result));
   GenPopParams(VarSize*b->numArgs);
+
   return result;
 }
 
 
-void CodeGenerator::GenVTable(const char *className, List<const char *> *methodLabels)
+void CodeGenerator::GenVTable(const char *className,
+                              List<const char *> *methodLabels)
 {
   code->Append(new VTable(className, methodLabels));
 }
@@ -191,15 +212,29 @@ void CodeGenerator::GenVTable(const char *className, List<const char *> *methodL
 
 void CodeGenerator::DoFinalCodeGen()
 {
-  if (IsDebugOn("tac")) { // if debug don't translate to mips, just print Tac
-    for (int i = 0; i < code->NumElements(); i++)
+  // if debug don't translate to mips, just print Tac
+  if (IsDebugOn("tac"))
+    {
+      for (int i = 0; i < code->NumElements(); i++)
 	code->Nth(i)->Print();
-   }  else {
-     Mips mips;
-     mips.EmitPreamble();
-     for (int i = 0; i < code->NumElements(); i++)
-	 code->Nth(i)->Emit(&mips);
-  }
+    }
+  else
+    {
+#ifdef __TARGET_X86
+      X86 x86;
+      x86.EmitPreamble();
+      for (int i = 0; i < code->NumElements(); i++)
+        code->Nth(i)->Emit(&x86);
+#endif
+
+#ifdef __TARGET_MIPS
+
+      Mips mips;
+      mips.EmitPreamble();
+      for (int i = 0; i < code->NumElements(); i++)
+        code->Nth(i)->Emit(&mips);
+#endif
+    }
 }
 
 

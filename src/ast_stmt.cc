@@ -29,15 +29,15 @@ void Program::PrintChildren(int indentLevel)
   printf("\n");
 }
 
+/* pp3: here is where the semantic analyzer is kicked off.
+ *      The general idea is perform a tree traversal of the
+ *      entire program, examining all constructs for compliance
+ *      with the semantic rules.  Each node can have its own way of
+ *      checking itself, which makes for a great use of inheritance
+ *      and polymorphism in the node classes.
+ */
 void Program::Check() 
 {
-  /* pp3: here is where the semantic analyzer is kicked off.
-   *      The general idea is perform a tree traversal of the
-   *      entire program, examining all constructs for compliance
-   *      with the semantic rules.  Each node can have its own way of
-   *      checking itself, which makes for a great use of inheritance
-   *      and polymorphism in the node classes.
-   */
   ClassDecl *d;
 
   env = new SymTable;
@@ -67,14 +67,24 @@ void Program::Check()
     }
 }
 
-void Program::Emit() {
-    /* pp4: here is where the code generation is kicked off.
-     *      The general idea is perform a tree traversal of the
-     *      entire program, generating instructions as you go.
-     *      Each node can have its own way of translating itself,
-     *      which makes for a great use of inheritance and
-     *      polymorphism in the node classes.
-     */
+/* pp4: here is where the code generation is kicked off.
+ *      The general idea is perform a tree traversal of the
+ *      entire program, generating instructions as you go.
+ *      Each node can have its own way of translating itself,
+ *      which makes for a great use of inheritance and
+ *      polymorphism in the node classes.
+ */
+void Program::Emit()
+{
+  codegen = new CodeGenerator;
+  falloc  = new FrameAllocator(gpRelative, FRAME_UP);
+
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      decls->Nth(i)->Emit(falloc, codegen, env);
+    }
+
+  codegen->DoFinalCodeGen();
 }
 
 /* Class: StmtBlock
@@ -153,6 +163,20 @@ bool StmtBlock::Check(SymTable *env)
   return true;
 }
 
+void StmtBlock::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                     SymTable *env)
+{
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      decls->Nth(i)->Emit(falloc, codegen, blockEnv);
+    }
+
+  for (int i = 0; i < stmts->NumElements(); i++)
+    {
+      stmts->Nth(i)->Emit(falloc, codegen, blockEnv);
+    }
+}
+
 /* Class: ConditionalStmt
  * ----------------------
  * Implementation of ConditionalStmt class
@@ -215,6 +239,13 @@ bool CaseStmt::Check(SymTable *env)
   return ret;
 }
 
+void CaseStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                         SymTable *env)
+{
+
+}
+
+
 /* Class: DefaultStmt
  * ---------------
  * Implementation of DefaultStmt class
@@ -258,6 +289,13 @@ bool DefaultStmt::Check(SymTable *env)
     }
 
   return ret;
+}
+
+
+void DefaultStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
+{
+
 }
 
 /* Class: SwitchStmt
@@ -317,6 +355,12 @@ bool SwitchStmt::Check(SymTable *env)
   return ret;
 }
 
+
+void SwitchStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: ForStmt
  * ---------------
  * Implementation of ForStmt class
@@ -365,6 +409,12 @@ bool ForStmt::Check(SymTable *env)
   return ret;
 }
 
+
+void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: WhileStmt
  * ---------------
  * Implementation of WhileStmt class
@@ -401,6 +451,12 @@ bool WhileStmt::Check(SymTable *env)
   ret &= body->Check(blockEnv);
 
   return ret;
+}
+
+
+void WhileStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: IfStmt
@@ -458,6 +514,12 @@ bool IfStmt::Check(SymTable *env)
   return ret;
 }
 
+
+void IfStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
+
 /* Class: BreakStmt
  * ----------------
  * Implementation of BreakStmt class
@@ -471,6 +533,12 @@ bool BreakStmt::Check(SymTable *env)
       return false;
     }
   return true;
+}
+
+
+void BreakStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: ReturnStmt
@@ -506,6 +574,12 @@ bool ReturnStmt::Check(SymTable *env)
     }
 
   return ret;
+}
+
+
+void ReturnStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }
 
 /* Class: PrintStmt
@@ -548,4 +622,10 @@ bool PrintStmt::Check(SymTable *env)
     }
 
   return ret;
+}
+
+
+void PrintStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
 }

@@ -71,6 +71,21 @@ bool VarDecl::Check(SymTable *env)
   return ret;
 }
 
+void VarDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+  Location *loc = NULL;
+  Symbol *sym = NULL;
+
+  loc = falloc->Alloc(id->getName(), 4);
+
+  sym = env->find(id->getName(), S_VARIABLE);
+  sym->setLocation(loc);
+
+#ifdef __DEBUG_TAC
+  PrintDebug("tac", "Var Decl %s @ %d:%d\n", id->getName(), loc->GetSegment(), loc->GetOffset());
+#endif
+}
+
 
 /* Class: ClassDecl
  * ----------------
@@ -323,6 +338,10 @@ bool ClassDecl::Check(SymTable *env)
   return ret;
 }
 
+void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
 
 
 /* Class: InterfaceDecl
@@ -379,6 +398,10 @@ bool InterfaceDecl::Check(SymTable *env)
   return ret;
 }
 
+void InterfaceDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+
+}
 
 /* Class: FnDecl
  * -------------
@@ -392,6 +415,8 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n)
   (formals = d)->SetParentAll(this);
   body = NULL;
   fnEnv = NULL;
+  paramFAlloc = NULL;
+  bodyFAlloc = NULL;
 }
 
 void FnDecl::SetFunctionBody(Stmt *b) 
@@ -423,18 +448,14 @@ bool FnDecl::CheckDecls(SymTable *env)
     }
 
   if ((fnEnv = env->addWithScope(id->getName(), this, S_FUNCTION)) == false)
-      return false;
+    return false;
 
   for (int i = 0; i < formals->NumElements(); i++)
-    {
-      ret &= formals->Nth(i)->CheckDecls(fnEnv);
-    }
+    ret &= formals->Nth(i)->CheckDecls(fnEnv);
 
   if (body)
-    {
-      if (!body->CheckDecls(fnEnv))
-        return false;
-    }
+    if (!body->CheckDecls(fnEnv))
+      return false;
 
   return ret;
 }
@@ -451,15 +472,11 @@ bool FnDecl::Check(SymTable *env)
   ret &= returnType->Check(env);
 
   for (int i = 0; i < formals->NumElements(); i++)
-    {
-      ret &= formals->Nth(i)->Check(env);
-    }
+    ret &= formals->Nth(i)->Check(env);
+
 
   if (body)
-    {
-      // FIXME: Return type checking
-      ret &= body->Check(env);
-    }
+    ret &= body->Check(env);
 
   return ret;
 }
@@ -475,12 +492,29 @@ bool FnDecl::TypeEqual(FnDecl *fn)
     return false;
 
   for (int i = 0; i < otherFormals->NumElements(); i++)
-    {
       if (!formals->Nth(i)->GetType()->IsEquivalentTo(otherFormals->Nth(i)->GetType()))
         return false;
-    }
 
   return true;
+}
+
+void FnDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+{
+  BeginFunc *beginFn;
+
+  paramFAlloc = new FrameAllocator(fpRelative, FRAME_UP);
+  bodyFAlloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
+
+  codegen->GenLabel(id->getName());
+  beginFn = codegen->GenBeginFunc();
+
+  for (int i = 0; i < formals->NumElements(); i++)
+    formals->Nth(i)->Emit(paramFAlloc, codegen, fnEnv);
+
+  body->Emit(bodyFAlloc, codegen, fnEnv);
+
+  beginFn->SetFrameSize(bodyFAlloc->GetSize());
+  codegen->GenEndFunc();
 }
 
 /* Class: VFunction

@@ -1,4 +1,4 @@
-/* File: ast_stmt.h
+/* File: ast_stmt.h                          -*- C++ -*-
  * ----------------
  * The Stmt class and its subclasses are used to represent
  * statements in the parse tree.  For each statment in the
@@ -16,8 +16,6 @@
 #ifndef _H_ast_stmt
 #define _H_ast_stmt
 
-#include "list.h"
-#include "symtable.h"
 #include "ast.h"
 
 class Decl;
@@ -29,6 +27,8 @@ class Program : public Node
   protected:
     List<Decl*> *decls;
     SymTable *env;
+    CodeGenerator *codegen;
+    FrameAllocator *falloc;
      
   public:
 
@@ -47,6 +47,8 @@ class Stmt : public Node
     virtual bool CheckDecls(SymTable *env) { return true; }
     virtual bool CheckDecls(SymTable *env, bool inheritEnv) { return true; }
     virtual bool Check(SymTable *env) { return true; }
+    virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                      SymTable *env) {}
 };
 
 class StmtBlock : public Stmt 
@@ -63,6 +65,7 @@ class StmtBlock : public Stmt
     bool CheckDecls(SymTable *env);
     bool CheckDecls(SymTable *env, bool inheritEnv);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
   
@@ -75,6 +78,8 @@ class ConditionalStmt : public Stmt
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
     virtual bool Check(SymTable *env) { return true; }
+    virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                      SymTable *env) { }
 };
 
 class CaseStmt : public Stmt
@@ -90,6 +95,7 @@ class CaseStmt : public Stmt
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class DefaultStmt : public Stmt
@@ -104,6 +110,7 @@ class DefaultStmt : public Stmt
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class SwitchStmt : public Stmt
@@ -120,6 +127,7 @@ class SwitchStmt : public Stmt
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -143,6 +151,7 @@ class ForStmt : public LoopStmt
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class WhileStmt : public LoopStmt 
@@ -156,6 +165,7 @@ class WhileStmt : public LoopStmt
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class IfStmt : public ConditionalStmt 
@@ -169,6 +179,7 @@ class IfStmt : public ConditionalStmt
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class BreakStmt : public Stmt 
@@ -177,6 +188,7 @@ class BreakStmt : public Stmt
     BreakStmt(yyltype loc) : Stmt(loc) {}
     const char *GetPrintNameForNode() { return "BreakStmt"; }
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class ReturnStmt : public Stmt  
@@ -189,6 +201,7 @@ class ReturnStmt : public Stmt
     const char *GetPrintNameForNode() { return "ReturnStmt"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 class PrintStmt : public Stmt
@@ -204,6 +217,7 @@ class PrintStmt : public Stmt
     const char *GetPrintNameForNode() { return "PrintStmt"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 };
 
 

@@ -20,6 +20,7 @@ Symbol::Symbol(int t, Node *n)
   type = t;
   node = n;
   env = NULL;
+  location = NULL;
 }
 
 Symbol::Symbol(int t, Node *n, SymTable *e)
@@ -27,6 +28,7 @@ Symbol::Symbol(int t, Node *n, SymTable *e)
   type = t;
   node = n;
   env = e;
+  location = NULL;
 }
 
 void Symbol::print(int indentLevel)

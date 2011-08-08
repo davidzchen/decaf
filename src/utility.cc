@@ -74,6 +74,7 @@ void ParseCommandLine(int argc, char *argv[])
   int c;
   char *dvalue = NULL;
   char *tvalue = NULL;
+  testFlag = TEST_ALL;
 
   while ((c = getopt(argc, argv, "d:t:")) != -1 || optind < argc)
     {
@@ -92,6 +93,8 @@ void ParseCommandLine(int argc, char *argv[])
             testFlag = TEST_SCANNER;
           else if (strcmp(optarg, "parser") == 0)
             testFlag = TEST_PARSER;
+          else if (strcmp(optarg, "semantic") == 0)
+            testFlag = TEST_SEMANT;
           else
             {
               fprintf(stderr, "Unknown test option %s\n", optarg);
