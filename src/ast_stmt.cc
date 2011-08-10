@@ -242,7 +242,7 @@ bool CaseStmt::Check(SymTable *env)
 void CaseStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                          SymTable *env)
 {
-
+  // FIXME: Implement CaseStmt IR Generation
 }
 
 
@@ -295,7 +295,7 @@ bool DefaultStmt::Check(SymTable *env)
 void DefaultStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                        SymTable *env)
 {
-
+  // FIXME: Implement DefaultStmt IR Generation
 }
 
 /* Class: SwitchStmt
@@ -358,7 +358,7 @@ bool SwitchStmt::Check(SymTable *env)
 
 void SwitchStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 {
-
+  // FIXME: Implement SwitchStmt IR Generation
 }
 
 /* Class: ForStmt
@@ -410,9 +410,20 @@ bool ForStmt::Check(SymTable *env)
 }
 
 
-void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                   SymTable *env)
 {
+  char *loopLabel = codegen->NewLabel();
+  char *afterLabel = codegen->NewLabel();
 
+  init->Emit(falloc, codegen, blockEnv);
+  codegen->GenLabel(loopLabel);
+  test->Emit(falloc, codegen, blockEnv);
+  codegen->GenIfZ(test->GetFrameLocation(), afterLabel);
+  body->Emit(falloc, codegen, blockEnv);
+  step->Emit(falloc, codegen, blockEnv);
+  codegen->GenGoto(loopLabel);
+  codegen->GenLabel(afterLabel);
 }
 
 /* Class: WhileStmt
@@ -456,7 +467,15 @@ bool WhileStmt::Check(SymTable *env)
 
 void WhileStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 {
+  char *loopLabel = codegen->NewLabel();
+  char *afterLabel = codegen->NewLabel();
 
+  codegen->GenLabel(loopLabel);
+  test->Emit(falloc, codegen, blockEnv);
+  codegen->GenIfZ(test->GetFrameLocation(), afterLabel);
+  body->Emit(falloc, codegen, blockEnv);
+  codegen->GenGoto(loopLabel);
+  codegen->GenLabel(afterLabel);
 }
 
 /* Class: IfStmt
@@ -515,9 +534,28 @@ bool IfStmt::Check(SymTable *env)
 }
 
 
-void IfStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void IfStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                  SymTable *env)
 {
+  char *ifLabel = codegen->NewLabel();
+  char *elseLabel = NULL;
 
+  test->Emit(falloc, codegen, env);
+  codegen->GenIfZ(test->GetFrameLocation(), ifLabel);
+  body->Emit(falloc, codegen, env);
+
+  if (elseBody)
+    {
+      elseLabel = codegen->NewLabel();
+      codegen->GenGoto(elseLabel);
+      codegen->GenLabel(ifLabel);
+      elseBody->Emit(falloc, codegen, env);
+      codegen->GenLabel(elseLabel);
+    }
+  else
+    {
+      codegen->GenLabel(ifLabel);
+    }
 }
 
 /* Class: BreakStmt
@@ -536,9 +574,10 @@ bool BreakStmt::Check(SymTable *env)
 }
 
 
-void BreakStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void BreakStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                     SymTable *env)
 {
-
+  // FIXME: Implement BreakStmt IR Generation
 }
 
 /* Class: ReturnStmt
@@ -577,9 +616,11 @@ bool ReturnStmt::Check(SymTable *env)
 }
 
 
-void ReturnStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ReturnStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                      SymTable *env)
 {
-
+  expr->Emit(falloc, codegen, env);
+  codegen->GenReturn(expr->GetFrameLocation());
 }
 
 /* Class: PrintStmt
@@ -625,7 +666,31 @@ bool PrintStmt::Check(SymTable *env)
 }
 
 
-void PrintStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void PrintStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                     SymTable *env)
 {
+  Expr *arg = NULL;
+  Location *argloc = NULL;
+  Type *argtype = NULL;
 
+  for (int i = 0; i < args->NumElements(); i++)
+    {
+      arg = args->Nth(i);
+      arg->Emit(falloc, codegen, env);
+      argloc = arg->GetFrameLocation();
+      argtype = arg->GetRetType();
+
+      if (argtype->IsConvertableTo(Type::intType))
+        {
+          codegen->GenBuiltInCall(falloc, PrintInt, argloc, NULL);
+        }
+      else if (argtype->IsConvertableTo(Type::boolType))
+        {
+          codegen->GenBuiltInCall(falloc, PrintBool, argloc, NULL);
+        }
+      else if (argtype->IsConvertableTo(Type::stringType))
+        {
+          codegen->GenBuiltInCall(falloc, PrintString, argloc, NULL);
+        }
+    }
 }

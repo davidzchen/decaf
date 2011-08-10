@@ -7,6 +7,7 @@
 #define __STDC_LIMIT_MACROS
 
 #include <config.h>
+#include <getopt.h>
 #include <stdarg.h>
 #include <string.h>
 #include <vector>

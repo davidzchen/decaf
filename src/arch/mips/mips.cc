@@ -87,11 +87,11 @@ Mips::Register Mips::GetRegisterForWrite(Location *var, Register avoid1,
 // (same name, segment, and offset)
 static bool LocationsAreSame(Location *var1, Location *var2)
 {
-   return (var1 == var2 ||
-	     (var1 && var2
-		&& !strcmp(var1->GetName(), var2->GetName())
-		&& var1->GetSegment()  == var2->GetSegment()
-		&& var1->GetOffset() == var2->GetOffset()));
+   return (var1 == var2
+       ||  (var1 && var2
+                 && !strcmp(var1->GetName(), var2->GetName())
+                 && var1->GetSegment()  == var2->GetSegment()
+                 && var1->GetOffset() == var2->GetOffset()));
 }
 
 
@@ -322,8 +322,10 @@ void Mips::EmitStore(Location *reference, Location *value, int offset)
 void Mips::EmitBinaryOp(BinaryOp::OpCode code, Location *dst, 
 				 Location *op1, Location *op2)
 {
-  Register rLeft = GetRegister(op1), rRight = GetRegister(op2, rLeft);
+  Register rLeft = GetRegister(op1);
+  Register rRight = GetRegister(op2, rLeft);
   Register rDst = GetRegisterForWrite(dst, rLeft, rRight);
+
   Emit("%s %s, %s, %s\t", NameForTac(code), regs[rDst].name,
 	 regs[rLeft].name, regs[rRight].name);
 

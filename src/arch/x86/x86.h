@@ -12,9 +12,6 @@ class X86
     typedef enum
     {
       eax, ebx, ecx, edx,       // General purpose 32-bit regs
-      ax, bx, cx, dx,           // General purpose regs, 16-bit portions
-      ah, bh, ch, dh,           // General purpose regs, high portions
-      al, bl, cl, dl,           // General purpose regs, low portions
       cs, ds, ss, es, fs, gs,   // Segment registers
       ebp, esp,                 // Stack registers
       esi, edi,                 // Index registers

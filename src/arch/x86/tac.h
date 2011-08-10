@@ -34,7 +34,7 @@ class X86;
     // variable in a function would be assigned a Location object
     // with name "num", segment fpRelative, and offset -8. 
  
-typedef enum {fpRelative, gpRelative} Segment;
+typedef enum {fpRelative, gpRelative, classRelative} Segment;
 
 class Location
 {

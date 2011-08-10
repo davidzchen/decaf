@@ -95,7 +95,8 @@ void VarDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env
 ClassDecl::ClassDecl(Identifier *n, 
 		     NamedType *ex, 
 		     List<NamedType*> *imp, 
-		     List<Decl*> *m) : Decl(n) 
+		     List<Decl*> *m)
+  : Decl(n)
 {
   // extends can be NULL, impl & mem may be empty lists but cannot be NULL
   Assert(n != NULL && imp != NULL && m != NULL);     
@@ -108,6 +109,11 @@ ClassDecl::ClassDecl(Identifier *n,
   (members = m)->SetParentAll(this);
   classEnv = NULL;
   vFunctions = NULL;
+
+  parent = NULL;
+  classFalloc = NULL;
+  vTable = NULL;
+  fields = NULL;
 }
 
 void ClassDecl::PrintChildren(int indentLevel) 
@@ -172,6 +178,8 @@ bool ClassDecl::Inherit(SymTable *env)
       if ((baseClass = env->find(extends->GetName(), S_CLASS)) != NULL)
         {
           classEnv->setSuper(baseClass->getEnv());
+          parent = dynamic_cast<ClassDecl*>(baseClass->getNode());
+          Assert(parent != 0);
         }
     }
 
@@ -338,8 +346,102 @@ bool ClassDecl::Check(SymTable *env)
   return ret;
 }
 
-void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                     SymTable *env)
 {
+  // Because we're doing recursive walks up the class hierarchy tree, this
+  // method for this object may be called by a child. If Emit has already been
+  // called, just return.
+
+  if (classFalloc != NULL)
+    return;
+
+  // Recursively call Emit on the parent class to make sure that the vTable and
+  // fields list we are inheriting are properly set up in case the parent's
+  // ClassDecl comes after this one. If we are inheriting, copy the parent's
+  // vtable, field list, and FrameAllocator. Because any new fields would be
+  // placed after all inherited methods, we can begin at the offset set by
+  // the parent's FrameAllocator
+
+  char *classLabel = codegen->NewClassLabel(id->getName());
+
+  if (extends)
+    {
+      Assert(parent != NULL);
+
+      // Note: parent will ignore falloc and env parameters and use its own
+      parent->Emit(falloc, codegen, env);
+
+      vTable = parent->GetVTable();
+      fields = parent->GetFields();
+      classFalloc = new FrameAllocator(parent->GetFalloc());
+    }
+  else
+    {
+      vTable = new List<FnDecl*>;
+      fields = new List<VarDecl*>;
+      classFalloc = new FrameAllocator(classRelative, FRAME_UP);
+    }
+
+  // Merge class's methods and fields with vTable and fields inherited from
+  // parent or empty vTable and field lists if class is a base class. For each
+  // field or method, call the field or method's Emit method to set up the
+  // field location (relative to base of class) and
+  //
+  // XXX Okay, this will be O(n^2), but right now we just need to get this to
+  //     work. Optimize the algorithm later.
+
+  FnDecl *method = NULL;
+  VarDecl *field = NULL;
+
+  for (int i = 0; i < members->NumElements(); i++)
+    {
+      method = dynamic_cast<FnDecl*>(members->Nth(i));
+      if (method != 0)
+        {
+          int j;
+          for (j = 0; j < vTable->NumElements(); j++)
+            {
+              if (method->TypeEqual(vTable->Nth(i)))
+                {
+                  vTable->RemoveAt(i);
+                  vTable->InsertAt(method, i);
+
+                  method->SetMethodLabel(classLabel);
+                  method->Emit(classFalloc, codegen, classEnv);
+                  break;
+                }
+            }
+
+          if (j >= vTable->NumElements())
+            {
+              // Method does not override any parent methods
+              vTable->Append(method);
+
+              method->SetMethodLabel(classLabel);
+              method->Emit(classFalloc, codegen, classEnv);
+            }
+        }
+      else
+        {
+          field = dynamic_cast<VarDecl*>(members->Nth(i));
+          Assert(field != 0);
+
+          // We might not need the insertion for loop because semantically
+          // correct code will not be overriding parent fields.
+          fields->Append(field);
+
+          field->Emit(classFalloc, codegen, classEnv);                                  // XXX Verify
+        }
+    }
+
+  // Emit vtable. We have already emitted fields and methods
+
+  List<const char*> *methodLabels = new List<const char*>;
+  for (int i = 0; i < vTable->NumElements(); i++)
+    methodLabels->Append(vTable->Nth(i)->GetMethodLabel());
+
+  codegen->GenVTable(classLabel, methodLabels);
 
 }
 
@@ -398,9 +500,10 @@ bool InterfaceDecl::Check(SymTable *env)
   return ret;
 }
 
-void InterfaceDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void InterfaceDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                         SymTable *env)
 {
-
+  // XXX: Interfaces not implemented
 }
 
 /* Class: FnDecl
@@ -415,8 +518,10 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n)
   (formals = d)->SetParentAll(this);
   body = NULL;
   fnEnv = NULL;
-  paramFAlloc = NULL;
-  bodyFAlloc = NULL;
+
+  paramFalloc = NULL;
+  bodyFalloc = NULL;
+  methodLabel = NULL;
 }
 
 void FnDecl::SetFunctionBody(Stmt *b) 
@@ -492,8 +597,8 @@ bool FnDecl::TypeEqual(FnDecl *fn)
     return false;
 
   for (int i = 0; i < otherFormals->NumElements(); i++)
-      if (!formals->Nth(i)->GetType()->IsEquivalentTo(otherFormals->Nth(i)->GetType()))
-        return false;
+    if (!formals->Nth(i)->GetType()->IsEquivalentTo(otherFormals->Nth(i)->GetType()))
+      return false;
 
   return true;
 }
@@ -502,20 +607,37 @@ void FnDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 {
   BeginFunc *beginFn;
 
-  paramFAlloc = new FrameAllocator(fpRelative, FRAME_UP);
-  bodyFAlloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
+  paramFalloc = new FrameAllocator(fpRelative, FRAME_UP);
+  bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
 
-  codegen->GenLabel(id->getName());
+  if (methodLabel != NULL)
+    codegen->GenLabel(methodLabel);
+  else
+    codegen->GenLabel(id->getName());
+
   beginFn = codegen->GenBeginFunc();
 
   for (int i = 0; i < formals->NumElements(); i++)
-    formals->Nth(i)->Emit(paramFAlloc, codegen, fnEnv);
+    formals->Nth(i)->Emit(paramFalloc, codegen, fnEnv);
 
-  body->Emit(bodyFAlloc, codegen, fnEnv);
+  body->Emit(bodyFalloc, codegen, fnEnv);
 
-  beginFn->SetFrameSize(bodyFAlloc->GetSize());
+  beginFn->SetFrameSize(bodyFalloc->GetSize());
   codegen->GenEndFunc();
 }
+
+void FnDecl::SetMethodLabel(char *classLabel)
+{
+  int len = strlen(classLabel) + strlen(id->getName()) + 2;
+
+  methodLabel = (char *) malloc(len);
+  if (methodLabel == NULL)
+    Failure("FnDecl::SetMethodLabel(): Malloc out of memory");
+
+  sprintf(methodLabel, "%s.%s", classLabel, id->getName());
+  methodLabel[len - 1] = '\0';
+}
+
 
 /* Class: VFunction
  * ----------------

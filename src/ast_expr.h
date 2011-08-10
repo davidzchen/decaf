@@ -47,7 +47,10 @@ class EmptyExpr : public Expr
     EmptyExpr() { retType = Type::voidType; }
     const char *GetPrintNameForNode() { return "Empty"; }
     bool Check(SymTable *env) { return true; }
-    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+    {
+      frameLocation = NULL;
+    }
 };
 
 class IntConstant : public Expr  

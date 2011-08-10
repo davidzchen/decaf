@@ -61,6 +61,9 @@ class CodeGenerator
     // generate any Tac instructions (see GenLabel below if needed)
     char *NewLabel();
 
+    // Creates a class label for a class name in the format C_classname
+    char *NewClassLabel(char *className);
+
     
     // Creates and returns a Location for a new uniquely named
     // temp variable. Does not generate any Tac instructions
@@ -107,6 +110,12 @@ class CodeGenerator
     Location *GenBinaryOp(FrameAllocator *falloc, const char *opName,
                           Location *op1, Location *op2);
 
+    // Generates Tac instructions to perform one of the unary ops
+    // identified by string name, such as "!" or "++". Returns a
+    // Location object for the new temporary where the result was
+    // stored
+    Location *GenUnaryOp(FrameAllocator *falloc, const char *opName,
+                         Location *op);
     
     // Generates the Tac instruction for pushing a single
     // parameter. Used to set up for ACall and LCall instructions.

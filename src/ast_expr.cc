@@ -192,16 +192,22 @@ bool ArithmeticExpr::Check(SymTable *env)
   return ret;
 }
 
-void ArithmeticExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ArithmeticExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                          SymTable *env)
 {
   Location *loc = NULL;
 
   left->Emit(falloc, codegen, env);
   right->Emit(falloc, codegen, env);
 
-  loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
-                             left->GetFrameLocation(),
-                             right->GetFrameLocation());
+  // Negation?
+  if (left->GetFrameLocation() == NULL)
+      loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
+                                right->GetFrameLocation());
+  else
+      loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
+                                 left->GetFrameLocation(),
+                                 right->GetFrameLocation());
 
   frameLocation = loc;
 }
@@ -240,9 +246,19 @@ bool RelationalExpr::Check(SymTable *env)
   return ret;
 }
 
-void RelationalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void RelationalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                          SymTable *env)
 {
+  Location *loc = NULL;
 
+  left->Emit(falloc, codegen, env);
+  right->Emit(falloc, codegen, env);
+
+  loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
+                             left->GetFrameLocation(),
+                             right->GetFrameLocation());
+
+  frameLocation = loc;
 }
 
 /* Class: EqualityExpr
@@ -277,7 +293,8 @@ bool EqualityExpr::Check(SymTable *env)
   return ret;
 }
 
-void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                        SymTable *env)
 {
 
 }
@@ -327,9 +344,24 @@ bool LogicalExpr::Check(SymTable *env)
   return ret;
 }
 
-void LogicalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void LogicalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
 {
+  Location *loc = NULL;
 
+  left->Emit(falloc, codegen, env);
+  right->Emit(falloc, codegen, env);
+
+  // Logical Negation?
+  if (left->GetFrameLocation() == NULL)
+      loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
+                                right->GetFrameLocation());
+  else
+      loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
+                                 left->GetFrameLocation(),
+                                 right->GetFrameLocation());
+
+  frameLocation = loc;
 }
 
 /* Class: PostfixExpr
@@ -357,9 +389,17 @@ bool PostfixExpr::Check(SymTable *env)
   return ret;
 }
 
-void PostfixExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void PostfixExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
 {
+  Location *loc = NULL;
 
+  left->Emit(falloc, codegen, env);
+
+  loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
+                            left->GetFrameLocation());
+
+  frameLocation = loc;
 }
 
 /* Class: AssignExpr
@@ -393,7 +433,8 @@ bool AssignExpr::Check(SymTable *env)
   return ret;
 }
 
-void AssignExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void AssignExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                      SymTable *env)
 {
   left->Emit(falloc, codegen, env);
   right->Emit(falloc, codegen, env);
@@ -482,7 +523,8 @@ bool ArrayAccess::Check(SymTable *env)
   return ret;
 }
 
-void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
 {
 
 }
@@ -568,7 +610,8 @@ bool FieldAccess::Check(SymTable *env)
           FieldAccess *baseFieldAccess = dynamic_cast<FieldAccess*>(base);
           Assert(baseFieldAccess != 0);
 
-          if (strcmp(classDecl->GetIdent()->getName(), base->GetRetType()->GetName()) != 0)
+          if (strcmp(classDecl->GetIdent()->getName(),
+                     base->GetRetType()->GetName()) != 0)
             {
               ReportError::InaccessibleField(field, base->GetRetType());
               SetRetType(Type::errorType);
@@ -590,7 +633,8 @@ bool FieldAccess::Check(SymTable *env)
   return ret;
 }
 
-void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
 {
   if (!base)
     {

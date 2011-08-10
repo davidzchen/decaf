@@ -17,12 +17,6 @@ gl_EARLY
 gl_INIT
 AC_PROG_LEX
 
-
-# Check whether complete test suite is present
-AC_DEFINE([WITH_ALL_TESTS], [1], [Check whether the entire testsuite present])
-AC_CHECK_FILE([all-tests/Makefile.am], [], [AC_DEFINE([WITH_ALL_TESTS], [0])])
-AM_CONDITIONAL([USE_ALL_TESTS], [test -n "$WITH_ALL_TESTS"])
-
 # Checks for libraries.
 AC_CHECK_LIB([m], [log])
 
@@ -41,22 +35,15 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strdup])
 
-AM_COND_IF([USE_ALL_TESTS], 
-[
-  AC_CONFIG_FILES(
-  [
-    all-tests/Makefile
-	all-tests/parse/Makefile
-	all-tests/scope/Makefile
-	all-tests/semantic/Makefile
-  ])
-])
-
 AC_CONFIG_FILES(
 [
   Makefile
   src/Makefile
   lib/Makefile
+  all-tests/Makefile
+  all-tests/parse/Makefile
+  all-tests/scope/Makefile
+  all-tests/semantic/Makefile
   tests/Makefile
   tests/codegen/Makefile
 ])

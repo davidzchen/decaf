@@ -1,10 +1,11 @@
 #!/bin/bash
 
 TEST_NAME="@TESTNAME@"
-DCC="../src/dcc"
+RUN="./run"
 CMP="diff -w"
-WC="wc -c"
-INFILE=${TEST_NAME}.@TESTEXT@
+
+SRCFILE=${TEST_NAME}.@TESTEXT@
+INFILE=${TEST_NAME}.in
 REFFILE=${TEST_NAME}.out
 OUTFILE=${TEST_NAME}.put
 
@@ -13,12 +14,18 @@ RETVAL=0
 echo
 echo "------ BEGIN test $TEST_NAME ------"
 
-$DCC < $INFILE > $OUTFILE 2>&1
-if ${CMP} $OUTFILE $REFFILE; then
-	:
+if [ ! -x $INFILE ]; then
+  $RUN $SRCFILE > $OUTFILE 2>&1
 else
-	echo "Output differs from reference file"
-	RETVAL=1
+  $RUN $SRCFILE < $INFILE > $OUTFILE 2>&1
+fi
+
+
+if ${CMP} $OUTFILE $REFFILE; then
+  :
+else
+  echo "Output differs from reference file"
+  RETVAL=1
 fi
 
 exit $RETVAL

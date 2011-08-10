@@ -386,7 +386,32 @@ const char *X86::NameForTac(BinaryOp::OpCode code)
  */
 X86::X86()
 {
-
+  x86Name[BinaryOp::Add]  = "add";
+  x86Name[BinaryOp::Sub]  = "sub";
+  x86Name[BinaryOp::Mul]  = "imul";
+  x86Name[BinaryOp::Div]  = "idiv";
+  x86Name[BinaryOp::Mod]  = "";
+  x86Name[BinaryOp::Eq]   = "";
+  x86Name[BinaryOp::Less] = "";
+  x86Name[BinaryOp::And]  = "";
+  x86Name[BinaryOp::Or]   = "";
+  regs[eax]    = (RegContents) { false, NULL, "%eax",    true };
+  regs[ebx]    = (RegContents) { false, NULL, "%ebx",    true };
+  regs[ecx]    = (RegContents) { false, NULL, "%ecx",    true };
+  regs[edx]    = (RegContents) { false, NULL, "%edx",    true };
+  regs[cs]     = (RegContents) { false, NULL, "%cs",     false };
+  regs[ds]     = (RegContents) { false, NULL, "%ds",     false };
+  regs[ss]     = (RegContents) { false, NULL, "%ss",     false };
+  regs[es]     = (RegContents) { false, NULL, "%es",     false };
+  regs[fs]     = (RegContents) { false, NULL, "%fs",     false };
+  regs[gs]     = (RegContents) { false, NULL, "%gs",     false };
+  regs[ebp]    = (RegContents) { false, NULL, "%ebp",    false };
+  regs[esp]    = (RegContents) { false, NULL, "%esp",    false };
+  regs[esi]    = (RegContents) { false, NULL, "%esi",    false };
+  regs[edi]    = (RegContents) { false, NULL, "%edi",    false };
+  regs[eip]    = (RegContents) { false, NULL, "%eip",    false };
+  regs[eflags] = (RegContents) { false, NULL, "%eflags", false };
+  lastUsed = eax;
 }
 
 const char *X86::x86Name[BinaryOp::NumOps];

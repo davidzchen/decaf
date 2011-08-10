@@ -23,6 +23,7 @@ class NamedType;
 class Identifier;
 class Stmt;
 class VFunction;
+class FnDecl;
 
 class Decl : public Node 
 {
@@ -65,11 +66,22 @@ class VarDecl : public Decl
 class ClassDecl : public Decl 
 {
   protected:
-    List<Decl*> *members;
-    NamedType *extends;
-    List<NamedType*> *implements;
-    SymTable *classEnv;
-    Hashtable<VFunction*> *vFunctions;
+    List<Decl*> *members;                 // Fields and methods
+    NamedType *extends;                   // Parent class, if any
+    List<NamedType*> *implements;         // List of interfaces implemented
+
+    // Set and used for semantic checking
+    SymTable *classEnv;                   // Symbol table for class
+    Hashtable<VFunction*> *vFunctions;    // Hash table of interface methods
+
+    // Pointer to ClassDecl for parent class, NULL if no parent class
+    // Set during semantic checking, used during IR generation
+    ClassDecl *parent;
+
+    // Set and used for IR Generation
+    FrameAllocator *classFalloc;          // Frame allocator for class variables
+    List<FnDecl*> *vTable;                 // List of methods for vtable gen
+    List<VarDecl*> *fields;                // List of fields
 
   private:
     bool CheckAgainstParents(SymTable *env);
@@ -83,6 +95,10 @@ class ClassDecl : public Decl
       return "ClassDecl";
     }
     Identifier *GetIdent() { return id; }
+    List<FnDecl*> *GetVTable() { return vTable; }
+    List<VarDecl*> *GetFields() { return fields; }
+    FrameAllocator *GetFalloc() { return classFalloc; }
+
     void PrintChildren(int indentLevel);
     bool CheckDecls(SymTable *env);
     bool Inherit(SymTable *env);
@@ -119,8 +135,10 @@ class FnDecl : public Decl
     Type *returnType;
     Stmt *body;
     SymTable *fnEnv;
-    FrameAllocator *paramFAlloc;
-    FrameAllocator *bodyFAlloc;
+
+    FrameAllocator *paramFalloc;
+    FrameAllocator *bodyFalloc;
+    char *methodLabel;
     
   public:
     FnDecl(Identifier *name, Type *returnType,
@@ -138,6 +156,8 @@ class FnDecl : public Decl
     Type *GetType() { return returnType; }
     List<VarDecl*> *GetFormals() { return formals; }
     bool TypeEqual(FnDecl *fn);
+    const char *GetMethodLabel() { return methodLabel; }
+    void SetMethodLabel(char *classLabel);
 };
 
 class VFunction

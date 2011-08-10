@@ -2,10 +2,12 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = -G -Wno-unused -Wno-sign-compare
 
 SUBDIRS = lib src
+#SUBDIRS = src
 
 EXTRA_DIST = bootstrap clean synthesize tests m4/gnulib-cache.m4
+#EXTRA_DIST = bootstrap clean synthesize tests
 
-if USE_ALL_TESTS
+
 
 test:
 	cd tests && $(MAKE) $(AM_MAKEFLAGS)
@@ -23,27 +25,26 @@ check-parse:
 	cd all-tests && $(MAKE) $(AM_MAKEFLAGS) check-parse
 
 check-scope:
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) check-scope
+	cd all-tests && $(MAKE) $(AM_MAKEFLAGS) check-scope
 
 check-semantic:
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) check-semantic
+	cd all-tests && $(MAKE) $(AM_MAKEFLAGS) check-semantic
 
 .PHONY: test clean-local check-local check-parse check-scope check-semantic
 
-else
 
-test:
-	cd tests && $(MAKE) $(AM_MAKEFLAGS)
 
-clean-local:
-	cd tests && $(MAKE) clean
+#test:
+#	cd tests && $(MAKE) $(AM_MAKEFLAGS)
 
-check-local:
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) check
+#clean-local:
+#	cd tests && $(MAKE) clean
 
-.PHONY: test clean-local check-codegen
+#check-local:
+#	cd tests && $(MAKE) $(AM_MAKEFLAGS) check
 
-endif
+#.PHONY: test clean-local check-codegen
+
 
 check-codegen:
 	cd tests && $(MAKE) check-codegen

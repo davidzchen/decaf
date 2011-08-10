@@ -34,7 +34,7 @@ class Mips;
 // variable in a function would be assigned a Location object
 // with name "num", segment fpRelative, and offset -8.
  
-typedef enum {fpRelative, gpRelative} Segment;
+typedef enum {fpRelative, gpRelative, classRelative} Segment;
 
 class Location
 {
@@ -242,7 +242,9 @@ class LCall: public Instruction
 
 class ACall: public Instruction
 {
-    Location *dst, *methodAddr;
+    Location *dst;
+    Location *methodAddr;
+
   public:
     ACall(Location *meth, Location *result);
     void EmitSpecific(Mips *mips);
@@ -252,7 +254,8 @@ class VTable: public Instruction
 {
     List<const char *> *methodLabels;
     const char *label;
- public:
+
+  public:
     VTable(const char *labelForTable, List<const char *> *methodLabels);
     void Print();
     void EmitSpecific(Mips *mips);

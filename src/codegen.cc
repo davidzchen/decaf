@@ -31,6 +31,19 @@ char *CodeGenerator::NewLabel()
   return strdup(temp);
 }
 
+char *CodeGenerator::NewClassLabel(char *className)
+{
+  int len = strlen(className) + 3;
+  char *label = (char *) malloc(len);
+
+  if (label == NULL)
+    Failure("CodeGenerator::NewClassLabel(): Malloc out of memory");
+
+  sprintf(label, "C_%s", className);
+
+  return label;
+}
+
 
 Location *CodeGenerator::GenTempVar(FrameAllocator *falloc)
 {
@@ -86,16 +99,101 @@ void CodeGenerator::GenStore(Location *dst, Location *src, int offset)
   code->Append(new Store(dst, src, offset));
 }
 
-
 Location *CodeGenerator::GenBinaryOp(FrameAllocator *falloc,
-                                     const char *opName, Location *op1,
+                                     const char *opName,
+                                     Location *op1,
                                      Location *op2)
 {
-  Location *result = GenTempVar(falloc);
-  code->Append(new BinaryOp(BinaryOp::OpCodeForName(opName), result, op1, op2));
-  return result;
+  Location *result = NULL;
+
+  if (strcmp(opName, "!=") == 0)
+    {
+      // !(op1 == op2)
+
+      Location *eq = GenBinaryOp(falloc, "==", op1, op2);
+      result = GenUnaryOp(falloc, "!", eq);
+    }
+  else if (strcmp(opName, ">") == 0)
+    {
+      // !(op1 < op2) && !(op1 == op2)
+      Location *eq = GenBinaryOp(falloc, "==", op1, op2);
+      Location *lt = GenBinaryOp(falloc, "<", op1, op2);
+      Location *neq = GenUnaryOp(falloc, "!", eq);
+      Location *nlt = GenUnaryOp(falloc, "!", lt);
+      result = GenBinaryOp(falloc, "&&", neq, nlt);
+    }
+  else if (strcmp(opName, "<=") == 0)
+    {
+      // (op1 == op2) || (op1 < op2)
+      Location *eq = GenBinaryOp(falloc, "==", op1, op2);
+      Location *lt = GenBinaryOp(falloc, "<", op1, op2);
+      result = GenBinaryOp(falloc, "||", eq, lt);
+    }
+  else if (strcmp(opName, ">=") == 0)
+    {
+      // !(op1 < op2)
+      Location *lt = GenBinaryOp(falloc, "<", op1, op2);
+      result = GenUnaryOp(falloc, "!", lt);
+    }
+  else
+    {
+      result = GenTempVar(falloc);
+      code->Append(new BinaryOp(BinaryOp::OpCodeForName(opName), result, op1, op2));
+      return result;
+    }
 }
 
+
+Location *CodeGenerator::GenUnaryOp(FrameAllocator *falloc,
+                                    const char *opName,
+                                    Location *op)
+{
+  Location *result = NULL;
+
+  if (strcmp(opName, "!") == 0)
+    {
+      /* Currently, logical negation is implemented as:
+       *   _tmp0 = 1
+       *   _tmp1 = _tmp0 - op
+       * We can do this because bool literals are implemented as integer 0 or 1
+       *
+       * We could instead extend Tac and Mips classes to include the xor
+       * operator, in which case we can instead, do this (assuming op
+       * is in $t1):
+       *   addi $t0, $zero, -1        # -1 is all 1's in two's complement
+       *   xor  $t1, $t1, $t0
+       */
+
+      Location *tmp1 = GenLoadConstant(falloc, 1);
+      result = GenBinaryOp(falloc, "-", tmp1, op);
+    }
+  else if (strcmp(opName, "-") == 0)
+    {
+      // _tmp0 = 0
+      // _tmp1 = _tmp0 - op
+
+      Location *tmp0 = GenLoadConstant(falloc, 0);
+      result = GenBinaryOp(falloc, "-", tmp0, op);
+    }
+  else if (strcmp(opName, "++") == 0)
+    {
+      // _tmp0 = 1
+      // _tmp1 = _tmp0 + op
+
+      Location *tmp1 = GenLoadConstant(falloc, 1);
+      result = GenBinaryOp(falloc, "+", tmp1, op);
+    }
+  else if (strcmp(opName, "--") == 0)
+    {
+      // _tmp0 = 1
+      // _tmp1 = _tmp0 + op
+
+      Location *tmp1 = GenLoadConstant(falloc, 1);
+      result = GenBinaryOp(falloc, "-", tmp1, op);
+    }
+
+  return result;
+}
 
 void CodeGenerator::GenLabel(const char *label)
 {
@@ -187,8 +285,8 @@ Location *CodeGenerator::GenBuiltInCall(FrameAllocator *falloc, BuiltIn bn,
     result = GenTempVar(falloc);
 
   Assert((b->numArgs == 0 && !arg1 && !arg2)
-	|| (b->numArgs == 1 && arg1 && !arg2)
-	|| (b->numArgs == 2 && arg1 && arg2));
+      || (b->numArgs == 1 && arg1 && !arg2)
+      || (b->numArgs == 2 && arg1 && arg2));
 
   if (arg2)
     code->Append(new PushParam(arg2));

@@ -1,10 +1,23 @@
+#include <config.h>
 #include "framealloc.h"
+
 
 FrameAllocator::FrameAllocator(Segment s, FrameDirection d)
 {
-  off = 0;
+  off = initOff = 0;
+  if (s == fpRelative && d == FRAME_DOWN)
+    initOff = off = -4;
+
   growth = d;
   segment = s;
+}
+
+FrameAllocator::FrameAllocator(FrameAllocator *src)
+{
+  off     = src->GetOff();
+  initOff = src->GetInitOff();
+  growth  = src->GetGrowth();
+  segment = src->GetSegment();
 }
 
 Location *FrameAllocator::Alloc(char *name, int size)
@@ -19,5 +32,7 @@ Location *FrameAllocator::Alloc(char *name, int size)
 
 int FrameAllocator::GetSize()
 {
-  return (off < 0) ? (off * -1) : off;
+  int size = off - initOff;
+
+  return (size < 0) ? (size * -1) : size;
 }
