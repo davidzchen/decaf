@@ -84,6 +84,7 @@ class ClassDecl : public Decl
     List<VarDecl*> *fields;                // List of fields
     int numFields;
     char *classLabel;
+    List<FnDecl*> *methodsToEmit;
 
   private:
     bool CheckAgainstParents(SymTable *env);
@@ -105,8 +106,12 @@ class ClassDecl : public Decl
     bool CheckDecls(SymTable *env);
     bool Inherit(SymTable *env);
     bool ImplementsInterface(char *name);
-    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
     bool Check(SymTable *env);
+
+    void EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
+                   SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
+
     int NumFields() { return numFields; }
     char *GetClassLabel() { return classLabel; }
 };

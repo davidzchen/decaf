@@ -347,7 +347,7 @@ bool ClassDecl::Check(SymTable *env)
   return ret;
 }
 
-void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
                      SymTable *env)
 {
   // Because we're doing recursive walks up the class hierarchy tree, this
@@ -356,6 +356,11 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
   if (classFalloc != NULL)
     return;
+
+
+#ifdef __DEBUG_TAC
+  PrintDebug("tac", "ClassDecl %s\n", id->getName());
+#endif
 
   // Recursively call Emit on the parent class to make sure that the vTable and
   // fields list we are inheriting are properly set up in case the parent's
@@ -374,7 +379,7 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
       Assert(parent != NULL);
 
       // Note: parent will ignore falloc and env parameters and use its own
-      parent->Emit(falloc, codegen, env);
+      parent->EmitSetup(falloc, codegen, env);
 
       List<FnDecl*> *parentVTable = parent->GetVTable();
       List<VarDecl*> *parentFields = parent->GetFields();
@@ -407,6 +412,11 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   FnDecl *method = NULL;
   VarDecl *field = NULL;
 
+  // FIXME: When a class is defined after another class that uses objects of
+  // the second class, it is currently impossible to get the correct offsets
+  // for the methods!!!! @see inherit6.decaf
+
+  methodsToEmit = new List<FnDecl*>;
   for (int i = 0; i < members->NumElements(); i++)
     {
       method = dynamic_cast<FnDecl*>(members->Nth(i));
@@ -421,7 +431,9 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                   vTable->InsertAt(method, j);
 
                   method->SetMethodLabel(classLabel);
-                  method->EmitMethod(this, classFalloc, codegen, classEnv);
+                  method->SetMethodOffset(j);
+                  methodsToEmit->Append(method);
+
                   break;
                 }
             }
@@ -432,8 +444,9 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
               vTable->Append(method);
 
               method->SetMethodLabel(classLabel);
-              method->EmitMethod(this, classFalloc, codegen, classEnv);
               method->SetMethodOffset(j);
+              methodsToEmit->Append(method);
+
             }
         }
       else
@@ -445,8 +458,17 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
           // correct code will not be overriding parent fields.
           fields->Append(field);
 
-          field->Emit(classFalloc, codegen, classEnv);                                  // XXX Verify
+          field->Emit(classFalloc, codegen, classEnv);
         }
+    }
+}
+
+void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                     SymTable *env)
+{
+  for (int i = 0; i < methodsToEmit->NumElements(); i++)
+    {
+      methodsToEmit->Nth(i)->EmitMethod(this, classFalloc, codegen, classEnv);
     }
 
   // Emit vtable. We have already emitted fields and methods
@@ -462,7 +484,6 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
     methodLabels->Append(vTable->Nth(i)->GetMethodLabel());
 
   codegen->GenVTable(classLabel, methodLabels);
-
 }
 
 
@@ -524,6 +545,7 @@ void InterfaceDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                          SymTable *env)
 {
   // XXX: Interfaces not implemented
+  Failure("Interfaces not implemented");
 }
 
 /* Class: FnDecl
@@ -644,8 +666,12 @@ void FnDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
   paramFalloc = new FrameAllocator(fpRelative, FRAME_UP);
   bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
 
-  codegen->GenLabel(id->getName());
-  functionLabel = id->getName();
+#ifdef __DEBUG_TAC
+  PrintDebug("tac", "FnDecl %s\n", id->getName());
+#endif
+
+  functionLabel = codegen->NewFunctionLabel(id->getName());
+  codegen->GenLabel(functionLabel);
 
   beginFn = codegen->GenBeginFunc();
 
@@ -661,12 +687,16 @@ void FnDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 }
 
 void FnDecl::EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
-                       CodeGenerator *codegen, SymTable *env)
+                        CodeGenerator *codegen, SymTable *env)
 {
   BeginFunc *beginFn;
 
   paramFalloc = new FrameAllocator(fpRelative, FRAME_UP);
   bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
+
+#ifdef __DEBUG_TAC
+  PrintDebug("tac", "FnDecl Method %s::%s\n", classDecl->GetName(), id->getName());
+#endif
 
   codegen->GenLabel(methodLabel);
 
@@ -675,7 +705,7 @@ void FnDecl::EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
   // Simulate an implicit first "this" parameter
   char *thisName = strdup("this");
   Location *thisParam = paramFalloc->Alloc(thisName, 4);
-  env->add(thisName, NULL, thisParam);
+  fnEnv->add(thisName, NULL, thisParam);
 
   for (int i = 0; i < formals->NumElements(); i++)
     {

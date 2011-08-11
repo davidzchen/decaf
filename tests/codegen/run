@@ -7,6 +7,7 @@
 #
 
 SPIM=/usr/class/cs143/bin/spim
+#SPIM=spim
 COMPILER=../../src/dcc
 
 if [ $# -lt 1 ]; then
@@ -33,9 +34,9 @@ if [ $? -ne 0 -o -s tmp.errors ]; then
 fi
 
 #echo "-- spim -file tmp.asm"
-echo " "
+#echo " "
 $SPIM -file tmp.asm
 
-echo " "
-echo " "
+#echo " "
+#echo " "
 exit 0;

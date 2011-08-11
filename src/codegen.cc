@@ -46,6 +46,24 @@ char *CodeGenerator::NewClassLabel(char *className)
   return label;
 }
 
+char *CodeGenerator::NewFunctionLabel(char *functionName)
+{
+  int len = strlen(functionName) + 3;
+  char *label = NULL;
+
+  if (strcmp(functionName, "main") == 0)
+    return functionName;
+
+  label = (char *) malloc(len);
+
+  if (label == NULL)
+    Failure("CodeGenerator::NewFunctionLabel(): Malloc out of memory");
+
+  sprintf(label, "F_%s", functionName);
+
+  return label;
+}
+
 
 Location *CodeGenerator::GenTempVar(FrameAllocator *falloc)
 {

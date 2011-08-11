@@ -65,6 +65,8 @@ class CodeGenerator
     // Creates a class label for a class name in the format C_classname
     char *NewClassLabel(char *className);
 
+    char *NewFunctionLabel(char *functionName);
+
     
     // Creates and returns a Location for a new uniquely named
     // temp variable. Does not generate any Tac instructions

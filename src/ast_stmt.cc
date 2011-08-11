@@ -81,7 +81,30 @@ void Program::Emit()
 
   for (int i = 0; i < decls->NumElements(); i++)
     {
-      decls->Nth(i)->Emit(falloc, codegen, env);
+      VarDecl *varDecl = dynamic_cast<VarDecl*>(decls->Nth(i));
+      if (varDecl != 0)
+        varDecl->Emit(falloc, codegen, env);
+    }
+
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls->Nth(i));
+      if (classDecl != 0)
+        classDecl->EmitSetup(falloc, codegen, env);
+    }
+
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls->Nth(i));
+      if (classDecl != 0)
+        classDecl->Emit(falloc, codegen, env);
+    }
+
+  for (int i = 0; i < decls->NumElements(); i++)
+    {
+      FnDecl *fnDecl = dynamic_cast<FnDecl*>(decls->Nth(i));
+      if (fnDecl != 0)
+        fnDecl->Emit(falloc, codegen, env);
     }
 
   codegen->DoFinalCodeGen();
@@ -243,6 +266,7 @@ void CaseStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                          SymTable *env)
 {
   // FIXME: Implement CaseStmt IR Generation
+  Failure("Switch not implemented");
 }
 
 
@@ -296,6 +320,7 @@ void DefaultStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                        SymTable *env)
 {
   // FIXME: Implement DefaultStmt IR Generation
+  Failure("Switch not implemented");
 }
 
 /* Class: SwitchStmt
@@ -356,9 +381,11 @@ bool SwitchStmt::Check(SymTable *env)
 }
 
 
-void SwitchStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void SwitchStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                      SymTable *env)
 {
   // FIXME: Implement SwitchStmt IR Generation
+  Failure("Switch not implemented");
 }
 
 /* Class: ForStmt

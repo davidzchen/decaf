@@ -14,7 +14,7 @@ RETVAL=0
 echo
 echo "------ BEGIN test $TEST_NAME ------"
 
-if [ ! -x $INFILE ]; then
+if [ ! -e $INFILE ]; then
   $RUN $SRCFILE > $OUTFILE 2>&1
 else
   $RUN $SRCFILE < $INFILE > $OUTFILE 2>&1

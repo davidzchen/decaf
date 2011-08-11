@@ -7,8 +7,7 @@ FrameAllocator::FrameAllocator(Segment s, FrameDirection d)
   off = initOff = 0;
   if (s == fpRelative && d == FRAME_DOWN)
     initOff = off = -4;
-  if (s == classRelative)
-    initOff = off = 4;
+
 
   growth = d;
   segment = s;

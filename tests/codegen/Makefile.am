@@ -77,7 +77,7 @@ bin_SCRIPTS = \
 
 TESTS = $(bin_SCRIPTS)
 
-TESTS_ENVIRONMENT = top_builddir=$(top_builddir/tests/codegen
+TESTS_ENVIRONMENT = top_builddir=$(top_builddir)/tests/codegen
 
 EXTRA_DIST = $(TESTS) *.out *.decaf *.in gentest.pl
 

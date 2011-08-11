@@ -197,11 +197,12 @@ void ArithmeticExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 {
   Location *loc = NULL;
 
-  left->Emit(falloc, codegen, env);
+  if (left)
+    left->Emit(falloc, codegen, env);
   right->Emit(falloc, codegen, env);
 
   // Negation?
-  if (left->GetFrameLocation() == NULL)
+  if (!left)
       loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
                                 right->GetFrameLocation());
   else
@@ -307,6 +308,10 @@ void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
       loc = codegen->GenBuiltInCall(falloc, StringEqual,
                                     left->GetFrameLocation(),
                                     right->GetFrameLocation());
+      if (strcmp(op->GetTokenString(), "!=") == 0)
+        {
+          loc = codegen->GenUnaryOp(falloc, strdup("!"), loc);
+        }
     }
   else
     {
@@ -368,11 +373,12 @@ void LogicalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 {
   Location *loc = NULL;
 
-  left->Emit(falloc, codegen, env);
+  if (left)
+    left->Emit(falloc, codegen, env);
   right->Emit(falloc, codegen, env);
 
   // Logical Negation?
-  if (left->GetFrameLocation() == NULL)
+  if (!left)
       loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
                                 right->GetFrameLocation());
   else
@@ -462,7 +468,14 @@ void AssignExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   Assert(left->GetFrameLocation() != NULL);
   Assert(right->GetFrameLocation() != NULL);
 
-  codegen->GenAssign(left->GetFrameLocation(), right->GetFrameLocation());
+  if (left->NeedsDereference())
+    {
+      codegen->GenStore(left->GetReference(), right->GetFrameLocation(), 0);
+    }
+  else
+    {
+      codegen->GenAssign(left->GetFrameLocation(), right->GetFrameLocation());
+    }
   frameLocation = left->GetFrameLocation();
 }
 
@@ -557,8 +570,8 @@ void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
   Location *arraySize = codegen->GenLoad(falloc, base->GetFrameLocation(), 0);
   Location *zero      = codegen->GenLoadConstant(falloc, 0);
-  Location *lowerTest = codegen->GenBinaryOp(falloc, strdup("<="), arraySize, zero);
-  Location *upperTest = codegen->GenBinaryOp(falloc, strdup(">="), arraySize, subscript->GetFrameLocation());
+  Location *lowerTest = codegen->GenBinaryOp(falloc, strdup("<"), subscript->GetFrameLocation(), zero);
+  Location *upperTest = codegen->GenBinaryOp(falloc, strdup(">="), subscript->GetFrameLocation(), arraySize);
   Location *boundTest = codegen->GenBinaryOp(falloc, strdup("||"), lowerTest, upperTest);
   codegen->GenIfZ(boundTest, afterLabel);
   codegen->GenPrintError(falloc, err_arr_out_of_bounds);
@@ -574,6 +587,8 @@ void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   loc = codegen->GenLoad(falloc, addr, 0);
 
   frameLocation = loc;
+  reference = addr;
+  needsDereference = true;
 }
 
 /* Class: FieldAccess
@@ -690,10 +705,10 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 #ifdef __DEBUG_TAC
       PrintDebug("tac", "Var Access\t%s @ %d:%d\n", field->getName(),
-                 frameLocation->GetSegment(), frameLocation->GetOffset());
+                 loc->GetSegment(), loc->GetOffset());
 #endif
 
-      Assert(frameLocation != NULL);
+      Assert(loc != NULL);
 
       if (loc->GetSegment() != classRelative)
         {
@@ -706,7 +721,11 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
       Assert(thisSym != NULL);
       Location *thisLoc = thisSym->getLocation();
 
-      frameLocation = codegen->GenLoad(falloc, thisLoc, loc->GetOffset());
+      needsDereference = true;
+      Location *fieldOffset = codegen->GenLoadConstant(falloc, loc->GetOffset());
+      reference = codegen->GenBinaryOp(falloc, strdup("+"), thisLoc, fieldOffset);
+
+      frameLocation = codegen->GenLoad(falloc, reference, 0);
     }
   else
     {
@@ -720,14 +739,28 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
       //   loc = *(base + off)
       //   frameLocation = loc
 
-      base->Emit(falloc, codegen, env);
 
-      Symbol *fieldSym = env->find(field->getName(), S_VARIABLE);
+
+      base->Emit(falloc, codegen, env);
+      Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
+      Assert(classSym != NULL);
+
+      Symbol *fieldSym = classSym->getEnv()->find(field->getName(), S_VARIABLE);
       Location *fieldLoc = fieldSym->getLocation();
       Assert(fieldLoc->GetSegment() == classRelative);
 
-      frameLocation = codegen->GenLoad(falloc, base->GetFrameLocation(),
-                                       fieldLoc->GetOffset());
+#ifdef __DEBUG_TAC
+      PrintDebug("tac", "Var access with base\t%s::%s @ %d:%d\n",
+          base->GetRetType()->GetName(), field->getName(),
+          fieldLoc->GetSegment(), fieldLoc->GetOffset());
+#endif
+
+      needsDereference = true;
+      Location *fieldOffset = codegen->GenLoadConstant(falloc, fieldLoc->GetOffset());
+      reference = codegen->GenBinaryOp(falloc, strdup("+"),
+          base->GetFrameLocation(), fieldOffset);
+
+      frameLocation = codegen->GenLoad(falloc, reference, 0);
     }
 }
 
@@ -875,7 +908,8 @@ int Call::EmitActuals(FrameAllocator *falloc, CodeGenerator *codegen,
       numParams++;
     }
 
-  for (int i = 0; i < actuals->NumElements(); i++)
+  // Push params in reverse order
+  for (int i = actuals->NumElements() - 1; i >= 0; i--)
     codegen->GenPushParam(actuals->Nth(i)->GetFrameLocation());
 
   return numParams;
@@ -896,6 +930,10 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 
   if (!base)
     {
+#ifdef __DEBUG_TAC
+      PrintDebug("tac", "Call %s\n", field->getName());
+#endif
+
       fnSym = env->find(field->getName(), S_FUNCTION);
       Assert(fnSym != NULL);
       fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
@@ -907,7 +945,9 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
       if (!fnDecl->IsMethod())
         {
           numParams += EmitActuals(falloc, codegen, env);
-          frameLocation = codegen->GenLCall(falloc, fnDecl->GetFunctionLabel(),
+          char *functionLabel = codegen->NewFunctionLabel(fnDecl->GetName());
+
+          frameLocation = codegen->GenLCall(falloc, functionLabel,
                                             hasReturnVal);
           codegen->GenPopParams(numParams * 4);
           return;
@@ -920,16 +960,20 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
       Assert(thisSym != NULL);
       objectLocation = thisSym->getLocation();
 
-      numParams = 1;
-      codegen->GenPushParam(objectLocation);
-
       methodOffset = fnDecl->GetMethodOffset();
       methodAddr = codegen->GenLoad(falloc,
-          codegen->GenLoad(falloc, thisSym->getLocation(), 0), methodOffset);
+          codegen->GenLoad(falloc, thisSym->getLocation(), 0), methodOffset * 4);
     }
   else
     {
       base->Emit(falloc, codegen, env);
+
+      if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
+          strcmp(field->getName(), "length") == 0)
+        {
+          frameLocation = codegen->GenLoad(falloc, base->GetFrameLocation(), 0);
+          return;
+        }
 
       Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
       Assert(classSym != NULL);
@@ -943,15 +987,15 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 
       objectLocation = base->GetFrameLocation();
 
-      numParams = 1;
-      codegen->GenPushParam(objectLocation);
-
       methodOffset = fnDecl->GetMethodOffset();
       methodAddr = codegen->GenLoad(falloc,
-          codegen->GenLoad(falloc, base->GetFrameLocation(), 0), methodOffset);
+          codegen->GenLoad(falloc, base->GetFrameLocation(), 0), methodOffset * 4);
     }
 
   numParams += EmitActuals(falloc, codegen, env);
+  numParams++;
+  codegen->GenPushParam(objectLocation);
+
   frameLocation = codegen->GenACall(falloc, methodAddr, hasReturnVal);
   codegen->GenPopParams(numParams * 4);
 }
@@ -1000,7 +1044,9 @@ void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   ClassDecl *classDecl = dynamic_cast<ClassDecl*>(classSym->getNode());
   Assert(classDecl != 0);
 
-  Location *classSize = codegen->GenLoadConstant(falloc, classDecl->NumFields() + 1);
+  Location *four = codegen->GenLoadConstant(falloc, 4);
+  Location *classSize = codegen->GenBinaryOp(falloc, strdup("*"),
+      codegen->GenLoadConstant(falloc, classDecl->NumFields() + 1), four);
   loc = codegen->GenBuiltInCall(falloc, Alloc, classSize, NULL);
   Location *vtableLabel = codegen->GenLoadLabel(falloc, classDecl->GetClassLabel());
   codegen->GenStore(loc, vtableLabel, 0);

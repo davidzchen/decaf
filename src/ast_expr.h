@@ -27,14 +27,21 @@ class Expr : public Stmt
   protected:
     Type *retType;
     Location *frameLocation;
+    Location *reference;
+    bool needsDereference;
 
   public:
-    Expr(yyltype loc) : Stmt(loc) {}
+    Expr(yyltype loc) : Stmt(loc) {
+      needsDereference = false;
+      reference = NULL;
+    }
     Expr() : Stmt() {}
     void SetRetType(Type *t) { retType = t; }
     Type *GetRetType() { return retType; }
     virtual bool Check(SymTable *env) { return true; }
     Location *GetFrameLocation() { return frameLocation; }
+    bool NeedsDereference() { return needsDereference; }
+    Location *GetReference() { return reference; }
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -222,10 +229,12 @@ class AssignExpr : public CompoundExpr
 
 class LValue : public Expr 
 {
+
   public:
-    LValue(yyltype loc) : Expr(loc) {}
+    LValue(yyltype loc) : Expr(loc) { }
     virtual bool Check(SymTable *env) { return true; }
     virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) { }
+
 };
 
 class This : public Expr 

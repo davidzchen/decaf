@@ -40,10 +40,6 @@ AC_CONFIG_FILES(
   Makefile
   src/Makefile
   lib/Makefile
-  all-tests/Makefile
-  all-tests/parse/Makefile
-  all-tests/scope/Makefile
-  all-tests/semantic/Makefile
   tests/Makefile
   tests/codegen/Makefile
 ])
