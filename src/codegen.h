@@ -38,6 +38,7 @@ class CodeGenerator
 {
   private:
     List<Instruction*> *code;
+    bool mainFound;
 
   public:
     // Here are some class constants to remind you of the offsets
@@ -157,6 +158,7 @@ class CodeGenerator
     Location *GenBuiltInCall(FrameAllocator *falloc, BuiltIn b,
                              Location *arg1 = NULL, Location *arg2 = NULL);
 
+    void GenPrintError(FrameAllocator *falloc, const char * const message);
     
     // These methods generate the Tac instructions for various
     // control flow (branches, jumps, returns, labels)

@@ -34,6 +34,13 @@ class Mips;
 // variable in a function would be assigned a Location object
 // with name "num", segment fpRelative, and offset -8.
  
+// DZC: I added the classRelative segment to the Segment enum.
+// Even though this is not really a segment, it is useful for my
+// FrameAllocator to keep track of offsets of class fields. The
+// layout of the class is similar to that of an array except the
+// first element is the pointer to the vTable. Fields begin at
+// classRelative + 4.
+
 typedef enum {fpRelative, gpRelative, classRelative} Segment;
 
 class Location

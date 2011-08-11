@@ -116,5 +116,8 @@ class ReportError
     static int numErrors;
 };
 
+// Wording to use for runtime error messages
+static const char * const err_arr_out_of_bounds = "Decaf runtime error: Array subscript out of bounds\\n";
+static const char * const err_arr_bad_size = "Decaf runtime error: Array size is <= 0\\n";
 
 #endif

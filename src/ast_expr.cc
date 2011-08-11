@@ -296,7 +296,26 @@ bool EqualityExpr::Check(SymTable *env)
 void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                         SymTable *env)
 {
+  Location *loc = NULL;
 
+  left->Emit(falloc, codegen, env);
+  right->Emit(falloc, codegen, env);
+
+  if (left->GetRetType()->IsConvertableTo(Type::stringType) &&
+      right->GetRetType()->IsConvertableTo(Type::stringType))
+    {
+      loc = codegen->GenBuiltInCall(falloc, StringEqual,
+                                    left->GetFrameLocation(),
+                                    right->GetFrameLocation());
+    }
+  else
+    {
+      loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
+                                 left->GetFrameLocation(),
+                                 right->GetFrameLocation());
+    }
+
+  frameLocation = loc;
 }
 
 /* Class: LogicalExpr
@@ -419,7 +438,8 @@ bool AssignExpr::Check(SymTable *env)
   ret &= right->Check(env);
   rightType = right->GetRetType();
 
-  if (!rightType->IsConvertableTo(leftType) && !leftType->IsEquivalentTo(Type::errorType))
+  if (!rightType->IsConvertableTo(leftType) &&
+      !leftType->IsEquivalentTo(Type::errorType))
     {
       ReportError::IncompatibleOperands(op, leftType, rightType);
       SetRetType(Type::errorType);
@@ -474,7 +494,10 @@ bool This::Check(SymTable *env)
 
 void This::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 {
+  Symbol *sym = env->find(strdup("this"));
+  Assert(sym != NULL);
 
+  frameLocation = sym->getLocation();
 }
 
 /* Class: ArrayAccess
@@ -526,7 +549,31 @@ bool ArrayAccess::Check(SymTable *env)
 void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                        SymTable *env)
 {
+  Location *loc = NULL;
+  char *afterLabel = codegen->NewLabel();
 
+  base->Emit(falloc, codegen, env);
+  subscript->Emit(falloc, codegen, env);
+
+  Location *arraySize = codegen->GenLoad(falloc, base->GetFrameLocation(), 0);
+  Location *zero      = codegen->GenLoadConstant(falloc, 0);
+  Location *lowerTest = codegen->GenBinaryOp(falloc, strdup("<="), arraySize, zero);
+  Location *upperTest = codegen->GenBinaryOp(falloc, strdup(">="), arraySize, subscript->GetFrameLocation());
+  Location *boundTest = codegen->GenBinaryOp(falloc, strdup("||"), lowerTest, upperTest);
+  codegen->GenIfZ(boundTest, afterLabel);
+  codegen->GenPrintError(falloc, err_arr_out_of_bounds);
+
+  codegen->GenLabel(afterLabel);
+  Location *one = codegen->GenLoadConstant(falloc, 1);
+  Location *four = codegen->GenLoadConstant(falloc, 4);
+  Location *trueOff = codegen->GenBinaryOp(falloc, strdup("*"),
+      codegen->GenBinaryOp(falloc, strdup("+"), subscript->GetFrameLocation(), one),
+      four);
+
+  Location *addr = codegen->GenBinaryOp(falloc, strdup("+"), base->GetFrameLocation(), trueOff);
+  loc = codegen->GenLoad(falloc, addr, 0);
+
+  frameLocation = loc;
 }
 
 /* Class: FieldAccess
@@ -639,14 +686,48 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   if (!base)
     {
       Symbol *sym = env->find(field->getName(), S_VARIABLE);
-      frameLocation = sym->getLocation();
+      Location *loc = sym->getLocation();
 
 #ifdef __DEBUG_TAC
-      PrintDebug("tac", "Var Access %s @ %d:%d\n", field->getName(),
+      PrintDebug("tac", "Var Access\t%s @ %d:%d\n", field->getName(),
                  frameLocation->GetSegment(), frameLocation->GetOffset());
 #endif
 
       Assert(frameLocation != NULL);
+
+      if (loc->GetSegment() != classRelative)
+        {
+          frameLocation = loc;
+          return;
+        }
+
+      // We have an implicit "this."
+      Symbol *thisSym = env->find(strdup("this"), S_VARIABLE);
+      Assert(thisSym != NULL);
+      Location *thisLoc = thisSym->getLocation();
+
+      frameLocation = codegen->GenLoad(falloc, thisLoc, loc->GetOffset());
+    }
+  else
+    {
+      // Now, the frameLocation of the base contains the location of base, which
+      // is a pointer to an object.
+      //   Given: - field is a field of base
+      //          - base's type is a NamedType
+      //          - We are in class scope and can access field
+      // Approach:
+      //   off = offset of field in class of base
+      //   loc = *(base + off)
+      //   frameLocation = loc
+
+      base->Emit(falloc, codegen, env);
+
+      Symbol *fieldSym = env->find(field->getName(), S_VARIABLE);
+      Location *fieldLoc = fieldSym->getLocation();
+      Assert(fieldLoc->GetSegment() == classRelative);
+
+      frameLocation = codegen->GenLoad(falloc, base->GetFrameLocation(),
+                                       fieldLoc->GetOffset());
     }
 }
 
@@ -783,10 +864,98 @@ bool Call::Check(SymTable *env)
   return ret;
 }
 
+int Call::EmitActuals(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
+{
+  int numParams = 0;
+
+  for (int i = 0; i < actuals->NumElements(); i++)
+    {
+      actuals->Nth(i)->Emit(falloc, codegen, env);
+      numParams++;
+    }
+
+  for (int i = 0; i < actuals->NumElements(); i++)
+    codegen->GenPushParam(actuals->Nth(i)->GetFrameLocation());
+
+  return numParams;
+}
+
+
 void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 {
+  Symbol *fnSym = NULL;
+  FnDecl *fnDecl = NULL;
+  int numParams = 0;
+  bool hasReturnVal = true;
 
+  // Used if we're doing a method call
+  int methodOffset = 0;
+  Location *objectLocation = NULL;
+  Location *methodAddr = NULL;
+
+  if (!base)
+    {
+      fnSym = env->find(field->getName(), S_FUNCTION);
+      Assert(fnSym != NULL);
+      fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
+      Assert(fnDecl != 0);
+
+      if (fnDecl->GetReturnType()->IsEquivalentTo(Type::voidType))
+        hasReturnVal = false;
+
+      if (!fnDecl->IsMethod())
+        {
+          numParams += EmitActuals(falloc, codegen, env);
+          frameLocation = codegen->GenLCall(falloc, fnDecl->GetFunctionLabel(),
+                                            hasReturnVal);
+          codegen->GenPopParams(numParams * 4);
+          return;
+        }
+
+      // Implicit this
+      // Get location of this and
+
+      Symbol *thisSym = env->find(strdup("this"), S_VARIABLE);
+      Assert(thisSym != NULL);
+      objectLocation = thisSym->getLocation();
+
+      numParams = 1;
+      codegen->GenPushParam(objectLocation);
+
+      methodOffset = fnDecl->GetMethodOffset();
+      methodAddr = codegen->GenLoad(falloc,
+          codegen->GenLoad(falloc, thisSym->getLocation(), 0), methodOffset);
+    }
+  else
+    {
+      base->Emit(falloc, codegen, env);
+
+      Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
+      Assert(classSym != NULL);
+      fnSym = classSym->getEnv()->find(field->getName(), S_FUNCTION);
+      Assert(fnSym != NULL);
+      fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
+      Assert(fnDecl != 0);
+
+      if (fnDecl->GetReturnType()->IsEquivalentTo(Type::voidType))
+        hasReturnVal = false;
+
+      objectLocation = base->GetFrameLocation();
+
+      numParams = 1;
+      codegen->GenPushParam(objectLocation);
+
+      methodOffset = fnDecl->GetMethodOffset();
+      methodAddr = codegen->GenLoad(falloc,
+          codegen->GenLoad(falloc, base->GetFrameLocation(), 0), methodOffset);
+    }
+
+  numParams += EmitActuals(falloc, codegen, env);
+  frameLocation = codegen->GenACall(falloc, methodAddr, hasReturnVal);
+  codegen->GenPopParams(numParams * 4);
 }
+
 
 /* Class: NewExpr
  * ------------------
@@ -822,9 +991,21 @@ bool NewExpr::Check(SymTable *env)
   return ret;
 }
 
-void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                   SymTable *env)
 {
+  Location *loc = NULL;
 
+  Symbol *classSym = env->find(cType->GetName(), S_CLASS);
+  ClassDecl *classDecl = dynamic_cast<ClassDecl*>(classSym->getNode());
+  Assert(classDecl != 0);
+
+  Location *classSize = codegen->GenLoadConstant(falloc, classDecl->NumFields() + 1);
+  loc = codegen->GenBuiltInCall(falloc, Alloc, classSize, NULL);
+  Location *vtableLabel = codegen->GenLoadLabel(falloc, classDecl->GetClassLabel());
+  codegen->GenStore(loc, vtableLabel, 0);
+
+  frameLocation = loc;
 }
 
 /* Class: NewArrayExpr
@@ -872,9 +1053,47 @@ bool NewArrayExpr::Check(SymTable *env)
   return ret;
 }
 
-void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                        SymTable *env)
 {
+  Location *loc = NULL;
 
+  size->Emit(falloc, codegen, env);
+
+  char *afterLabel = codegen->NewLabel();
+
+  /* _t0 = 0;
+   * _t1 = size <= 0
+   * IfZ _t1 Goto AfterLabel
+   * _t2 = "Decaf runtime error: Array size is <= 0"
+   * PrintString(_t2)
+   * Halt()
+   */
+  Location *zero = codegen->GenLoadConstant(falloc, 0);
+  Location *sizeTest = codegen->GenBinaryOp(falloc, strdup("<="),
+      size->GetFrameLocation(), zero);
+  codegen->GenIfZ(sizeTest, afterLabel);
+  codegen->GenPrintError(falloc, err_arr_bad_size);
+
+  /* AfterLabel:
+   * _t3 = 1;
+   * _t4 = 4;
+   * _t5 = size + 1
+   * _t6 = _t5 * _t4
+   * _t7 = Alloc(_t6)
+   * *(_t7) = size
+   */
+  codegen->GenLabel(afterLabel);
+  Location *one = codegen->GenLoadConstant(falloc, 1);
+  Location *eltSize = codegen->GenLoadConstant(falloc, 4);
+  Location *arraySize = codegen->GenBinaryOp(falloc, strdup("*"),
+      codegen->GenBinaryOp(falloc, strdup("+"), size->GetFrameLocation(), one),
+      eltSize);
+
+  loc = codegen->GenBuiltInCall(falloc, Alloc, arraySize, NULL);
+  codegen->GenStore(loc, size->GetFrameLocation(), 0);
+
+  frameLocation = loc;
 }
 
 /* Class: ReadIntegerExpr
@@ -888,15 +1107,19 @@ bool ReadIntegerExpr::Check(SymTable *env)
   return true;
 }
 
-void ReadIntegerExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ReadIntegerExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                           SymTable *env)
 {
+  Location *loc = NULL;
 
+  loc = codegen->GenBuiltInCall(falloc, ReadInteger, NULL, NULL);
+
+  frameLocation = loc;
 }
 
 /* Class: ReadLineExpr
  * -------------------
  * Implementation for ReadLineExpr
- *
  */
 
 bool ReadLineExpr::Check(SymTable *env)
@@ -905,7 +1128,12 @@ bool ReadLineExpr::Check(SymTable *env)
   return true;
 }
 
-void ReadLineExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
+void ReadLineExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                        SymTable *env)
 {
+  Location *loc = NULL;
 
+  loc = codegen->GenBuiltInCall(falloc, ReadLine, NULL, NULL);
+
+  frameLocation = loc;
 }

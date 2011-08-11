@@ -414,7 +414,7 @@ void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                    SymTable *env)
 {
   char *loopLabel = codegen->NewLabel();
-  char *afterLabel = codegen->NewLabel();
+  afterLabel = codegen->NewLabel();
 
   init->Emit(falloc, codegen, blockEnv);
   codegen->GenLabel(loopLabel);
@@ -468,7 +468,8 @@ bool WhileStmt::Check(SymTable *env)
 void WhileStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
 {
   char *loopLabel = codegen->NewLabel();
-  char *afterLabel = codegen->NewLabel();
+
+  afterLabel = codegen->NewLabel();
 
   codegen->GenLabel(loopLabel);
   test->Emit(falloc, codegen, blockEnv);
@@ -476,6 +477,7 @@ void WhileStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *e
   body->Emit(falloc, codegen, blockEnv);
   codegen->GenGoto(loopLabel);
   codegen->GenLabel(afterLabel);
+
 }
 
 /* Class: IfStmt
@@ -577,7 +579,10 @@ bool BreakStmt::Check(SymTable *env)
 void BreakStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                      SymTable *env)
 {
-  // FIXME: Implement BreakStmt IR Generation
+  LoopStmt *loopNode = dynamic_cast<LoopStmt*>(env->getBreakNode());
+  Assert(loopNode != 0);
+
+  codegen->GenGoto(loopNode->GetAfterLabel());
 }
 
 /* Class: ReturnStmt

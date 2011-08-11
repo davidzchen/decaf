@@ -54,7 +54,8 @@ template<class Element> class List
     // Raises an assert if index is out of range.
     Element Nth(int index) const
     {
-      Assert(index >= 0 && index < NumElements());
+      Assert(index >= 0);
+      Assert(index < NumElements());
       return elems[index];
     }
   

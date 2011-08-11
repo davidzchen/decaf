@@ -35,6 +35,7 @@ class Symbol
 
   public:
     Symbol(int t, Node *n);
+    Symbol(int t, Node *n, Location *loc);
     Symbol(int t, Node *n, SymTable *e);
 
     int getType()                 { return type; }
@@ -80,6 +81,7 @@ class SymTable
     bool subclassOf(char *key);
 
     bool add(char *key, Node *node);
+    bool add(char *key, Node *node, Location *loc);
     SymTable *addScope();
     SymTable *addWithScope(char *key, Node *node, int type);
 

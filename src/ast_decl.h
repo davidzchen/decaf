@@ -82,6 +82,8 @@ class ClassDecl : public Decl
     FrameAllocator *classFalloc;          // Frame allocator for class variables
     List<FnDecl*> *vTable;                 // List of methods for vtable gen
     List<VarDecl*> *fields;                // List of fields
+    int numFields;
+    char *classLabel;
 
   private:
     bool CheckAgainstParents(SymTable *env);
@@ -105,6 +107,8 @@ class ClassDecl : public Decl
     bool ImplementsInterface(char *name);
     void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
     bool Check(SymTable *env);
+    int NumFields() { return numFields; }
+    char *GetClassLabel() { return classLabel; }
 };
 
 
@@ -139,6 +143,8 @@ class FnDecl : public Decl
     FrameAllocator *paramFalloc;
     FrameAllocator *bodyFalloc;
     char *methodLabel;
+    char *functionLabel;
+    int methodOffset;
     
   public:
     FnDecl(Identifier *name, Type *returnType,
@@ -152,12 +158,20 @@ class FnDecl : public Decl
     bool CheckDecls(SymTable *env);
     bool Check(SymTable *env);
     void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
+    void EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
+                    CodeGenerator *codegen, SymTable *env);
     Type *GetReturnType() { return returnType; }
     Type *GetType() { return returnType; }
     List<VarDecl*> *GetFormals() { return formals; }
+    bool PrototypeEqual(FnDecl *fn);
     bool TypeEqual(FnDecl *fn);
+
     const char *GetMethodLabel() { return methodLabel; }
     void SetMethodLabel(char *classLabel);
+    const char *GetFunctionLabel() { return functionLabel; }
+    bool IsMethod() { return (methodLabel != NULL); }
+    int GetMethodOffset() { return methodOffset; }
+    void SetMethodOffset(int off) { methodOffset = off; }
 };
 
 class VFunction

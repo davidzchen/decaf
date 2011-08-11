@@ -8,6 +8,7 @@
 #include <config.h>
 #include <string.h>
 #include "codegen.h"
+#include "errors.h"
 #include <arch.h>
 #include <tac.h>
 
@@ -21,6 +22,7 @@
 CodeGenerator::CodeGenerator()
 {
   code = new List<Instruction*>();
+  mainFound = false;
 }
 
 char *CodeGenerator::NewLabel()
@@ -197,6 +199,9 @@ Location *CodeGenerator::GenUnaryOp(FrameAllocator *falloc,
 
 void CodeGenerator::GenLabel(const char *label)
 {
+  if (strcmp(label, "main") == 0)
+    mainFound = true;
+
   code->Append(new Label(label));
 }
 
@@ -300,6 +305,13 @@ Location *CodeGenerator::GenBuiltInCall(FrameAllocator *falloc, BuiltIn bn,
   return result;
 }
 
+void CodeGenerator::GenPrintError(FrameAllocator *falloc, const char * const message)
+{
+  Location *errString = GenLoadConstant(falloc, message);
+  GenBuiltInCall(falloc, PrintString, errString, NULL);
+  GenBuiltInCall(falloc, Halt, NULL, NULL);
+}
+
 
 void CodeGenerator::GenVTable(const char *className,
                               List<const char *> *methodLabels)
@@ -310,6 +322,9 @@ void CodeGenerator::GenVTable(const char *className,
 
 void CodeGenerator::DoFinalCodeGen()
 {
+  if (!mainFound)
+    ReportError::NoMainFound();
+
   // if debug don't translate to mips, just print Tac
   if (IsDebugOn("tac"))
     {

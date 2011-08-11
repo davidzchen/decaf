@@ -292,6 +292,8 @@ class Call : public Expr
     const char *GetPrintNameForNode() { return "Call"; }
     void PrintChildren(int indentLevel);
     bool Check(SymTable *env);
+    int EmitActuals(FrameAllocator *falloc, CodeGenerator *codegen,
+                           SymTable *env);
     void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 
 };

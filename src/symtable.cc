@@ -23,6 +23,14 @@ Symbol::Symbol(int t, Node *n)
   location = NULL;
 }
 
+Symbol::Symbol(int t, Node *n, Location *loc)
+{
+  type = t;
+  node = n;
+  env = NULL;
+  location = loc;
+}
+
 Symbol::Symbol(int t, Node *n, SymTable *e)
 {
   type = t;
@@ -78,6 +86,14 @@ Node *SymTable::getThisClass()
 bool SymTable::add(char *key, Node *node)
 {
   Symbol *s = new Symbol(S_VARIABLE, node);
+  _table->Enter(key, s, false);
+
+  return true;
+}
+
+bool SymTable::add(char *key, Node *node, Location *loc)
+{
+  Symbol *s = new Symbol(S_VARIABLE, node, loc);
   _table->Enter(key, s, false);
 
   return true;

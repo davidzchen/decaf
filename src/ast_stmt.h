@@ -132,11 +132,18 @@ class SwitchStmt : public Stmt
 
 class LoopStmt : public ConditionalStmt 
 {
+  protected:
+    char *afterLabel;
+
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
-            : ConditionalStmt(testExpr, body) {}
+            : ConditionalStmt(testExpr, body)
+    {
+      afterLabel = NULL;
+    }
     virtual bool CheckDecls(SymTable *env) { return true; }
     virtual bool Check(SymTable *env) { return true; }
+    char *GetAfterLabel() { return afterLabel; }
 };
 
 class ForStmt : public LoopStmt 
