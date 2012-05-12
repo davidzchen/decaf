@@ -84,6 +84,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %token T_While T_For T_If T_Else T_Return T_Break
 %token T_New T_NewArray T_Print T_ReadInteger T_ReadLine
 %token T_Switch T_Case T_Default T_Incr T_Decr
+%token T_Escaped T_Unsigned T_Const T_Function
 
 %token <identifier> T_Identifier
 %token <stringConstant> T_StringConstant 
@@ -122,8 +123,8 @@ void yyerror(const char *msg); // standard error-handling routine
  */
  
 %type <declList>        DeclList FieldList PrototypeList
-%type <decl>            Decl ClosureDecl
-%type <type>            Type PureType
+%type <decl>            Decl
+%type <type>            Type SimpleType
 %type <varDecl>         VarDecl Variable
 %type <classDecl>       ClassDecl
 %type <interfaceDecl>   InterfaceDecl
@@ -185,10 +186,7 @@ Decl:
 | ClassDecl                { $$ = $1; }
 | InterfaceDecl	           { $$ = $1; }
 | FnDecl                   { $$ = $1; }
-| ClosureDecl              { $$ = $1; }
 ;
-
-
 
 VarDecl:
   Variable ';'             { $$ = $1; }
@@ -202,27 +200,34 @@ Variable:
     }
 ;
 
-Type:
-  PureType                 { $$ = $1; }
-| PureType '^' '(' TypeList  ')'
-    {
-    
-    }
-;
-
 TypeList:
-  TypeList PureType        {}
-| /* empty */              {}
+  TypeList Type            { ($$ = $1)->Append($2); }
+| /* empty */              { $$ = new List<Type*>; }
 ;
 
-PureType:
+Type:
   T_Void                   { $$ = Type::voidType; }
 | T_Bool                   { $$ = Type::boolType; }
 | T_Int	                   { $$ = Type::intType; }
 | T_Double                 { $$ = Type::doubleType; }
 | T_String                 { $$ = Type::stringType; }
-| NamedType                { $$ = $1; } 
-| Type T_Dims              { $$ = new ArrayType(Join(@1, @2), $1); }
+| NamedType                { $$ = $1; }
+| Qualifier Type           { $$ = $1; }
+| FunctionType             { $$ = $1; }
+;
+
+Qualifier:
+  T_Escaped
+| T_Unsigned
+| T_Const
+;
+
+
+FunctionType:
+  Type T_Function '(' TypeList ')' 
+    {
+      $$ = new FunctionType(@1, $1, $4);
+    }
 ;
 
 NamedType:
@@ -294,12 +299,6 @@ FnDecl:
     }
 ;
 
-ClosureDecl:
-  PureType '(' '^' T_Identifier ')' '(' Formals ')' ';'
-    {
-    
-    }
-;
 	
 FieldList:
   FieldList VarDecl        { ($$ = $1)->Append($2); }
@@ -544,15 +543,13 @@ Expr:
     Operator *op = new Operator(@2, "=");
     $$ = new AssignExpr($1, op, $3);
   }
-| ClosureExpr              { $$ = $1; }
+| FunctionExpr             { $$ = $1; }
 ;
 
-
-
-ClosureExpr:
-  '^' '(' Formals ')' StmtBlock
+FunctionExpr:
+  Type T_Function '(' Formals ')' StmtBlock
     {
-    
+      
     }
 ;
 

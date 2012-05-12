@@ -1,3 +1,0 @@
-#!/bin/sh
-
-rsync -avz --exclude=.git ./ dzchen@myth.stanford.edu:~/dcc-0.4a

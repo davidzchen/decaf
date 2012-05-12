@@ -24,13 +24,22 @@ ensuring source portability is especially useful.
 EXECUTABLES
 ===================
 
-There are two executables build:
+There are three executables built:
 
     dcc - the Decaf Compiler
+    dcc_i386 - Decaf Compiler using x86 code generation
     ltc - the Latte Compiler (Decaf with extensions)
 
-Prior to running make install, dcc may be found in src/decaf and ltc may be
-found in src/latte.
+Executables may be found in the src directory
+
+
+PROGRESS
+=================
+
+As of pp4 submission, only the pp4 Decaf compiler dcc is complete. The Latte
+lexer and parser have been completed, adding syntax for closures. The x86
+code generator is also incomplete. These latter two projects will be completed
+in my spare time in the future.
 
 
 SIMPLE BUILDING
@@ -116,10 +125,6 @@ To clean all Autotools-generated files, run:
     clean
 
 
-PARSER ERROR RECOVERY
-=========================
-
-
 SEMANTIC ANALYZER 
 ====================
 
@@ -145,74 +150,119 @@ the compiler is run again.
 EXTENSIONS
 ====================
 
-In order to keep the extensions isolated from the vanilla Latte codebase, I 
-am naming Latte the extended dialect of Decaf. The most significant feature
-introduced in Latte is the closure, heavily inspired by Objective-C blocks. 
+Latte is the extended dialect of Decaf. It supports a number of new features
+intended to make the language more full-featured. These extensions are developed
+as a hobby project.
+ 
 
-The syntax of a closure type declaration is similar to that of a C function
-pointer except the caret '^' is used instead of the asterisk '*':
+Progress
+------------------
+
+Closures		[IN PROGRESS]
+x86 codegen		[IN PROGRESS]
+Linker/loader		[PLANNED    ]
+Character literals	[PLANNED    ]
+Octal/binary ints	[PLANNED    ]
+Bit operators		[PLANNED    ]
+Class protection	[PLANNED    ]
 
 
-ClosureExpr:
-  '^' '(' Type T_Identifier ')' StmtBlock
 
-ClosureDecl:
-  Type '(' '^' T_Identifier ')' '(' Formals ')' ';'
+Closures
+------------------
+
+In the case of local functions are closures of outer scope variables, during 
+IR gen, turn the variables declared escaped into additional arguments 
+passed upon invocation.
+
+During lambda lifting, these functions are redeclared with the escaped 
+variables as additional arguments.
+
+
+int function(int, int) foo(int a, int b)
+{
+  int i;
+  int j;
   
-ClosureType:
-  Type '^' '(' TypeList ')'
+  int bar(int a, int b) {
+    escaped int i;
+    escaped int j;
+  
+    return a + b + i + j;
+  }
+  
+  i = 0;
+  j = 2;
+  
+  return bar;
+}
 
-Some examples:
 
-/* A function returning a closure that takes two integer arguments and returns
- * an integer
- */
+An example of a function returning a function that returns a function. 
+Note that the type signatures of the two returned functions are not the same.
 
-int ^(int, int) foo()
+int function(int, int) function(string) foo(int a, int b)
 {
-  return ^(int a, int b)
-    {
+  int i;
+  
+  i = a + b;
+  
+  return int function(int, int) function(string s) {
+    escaped int i;
+    
+    if (i > 0)
+      Print(s);
+
+    return int function(int a, int b) {
       return a + b;
-    }
+    };
+  };
 }
 
-int (^adder)(int a, int b) = foo();
-Print(adder(1, 2));						/* will print 3 */
-
-
-/* A function prototype that takes a closure of type int ^(Element, Element) as 
- * its second argument
- */
- 
-void qsort(ArrayOfElements a, int (^cmp)(Element a, Element b));
-
-
-/* Invoking the above qsort function by defining the closure directly */
-
-ArrayOfElements filter(ArrayOfElements a)
+int foo(int function(int, int) bar)
 {
-  qsort(a, ^(Element a, Element b) {
-    if (a.greaterThan(b))
-      return 1;
-    else if (b.greaterThan(a))
-      return -1;
-    else
-      return 0;
-  });
+  int i;
+
+  int baz(int c)
+  {
+    escaped int i;
+    int j;
+    
+    for (j = i; i < 10; i++)
+      c = c + i;
+    return c;
+  }
+  
+  i = 2;
+
+  return bar(2, 3) + baz(i);
 }
 
 
-/* A prototype/declaration of a closure that returns an int and takes two
- * Elements as arguments
- */
-int (^betterCmp)(Element a, Element b);
+int bar()
+{
+  int i;
+  
+  // Just a regular FnDecl
+  int clo(int a, int b);
+  
+  // Directly defining a lambda when passing it as a parameter
+  i = foo(int function(int a, int b) {
+    return a + b;
+  });
+  
+  // Assigning a lambda to a function variable
+  clo = int function(int a, int b) {
+    return a + b;
+  }
+  
+  // Passing function variable as a parameter.
+  i = foo(clo);
+  
+  return i;
+}
 
-/* Defining the betterCmp closure by assignment.
- */
- 
-betterCmp = ^(Element a, Element b) {
-  /* implementation */
-};
+
 
   
 OTHER SOURCE MODIFICATIONS
@@ -225,3 +275,27 @@ of the compiler through the -t flag. For example, running dcc or ltc with the
 parse tree a la pp2. This is used to facilitate running the test suites
 incrementally while I go back and improve code from earlier assignments and
 work on the extensions.
+
+
+IR GENERATION
+================
+
+I augmented the semantic checking constructs, in particular the symbol tables,
+to aid with IR generation in pp4. During the recursive Emit calls, Location 
+objects are added to the Symbols for variables for lookup. I added a simple 
+class FrameAllocator that is used to keep track of offsets of variables with 
+respect to the fp on the stack or the gp globally or with respect to the base 
+of a class. IR Generation for classes is done in two passes. First, like in 
+semantic checking, the class hierarchy and inheritance tree is set up using the 
+EmitSetup method. During this pass, the offsets for all methods and inherited 
+methods and class variables are computed. During the second pass, each method 
+is emitted. To take into account parent classes that are declared after a child 
+class, the child would call the parent's EmitSetup method recursively upward if 
+necessary. A simple check is in place to ensure that the main body of EmitSetup 
+is only called once.
+
+Class labels are prefixed using C_, and functions are prefixed using F_. This 
+way, class names and function names will not conflict with builtins and 
+instructions. One area of improvement is to ensure that variable names will not 
+conflict with anything.
+

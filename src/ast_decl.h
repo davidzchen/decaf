@@ -63,6 +63,27 @@ class VarDecl : public Decl
     Type *GetType() { return type; }
 };
 
+class ClosureDecl : public VarDecl
+{
+  protected:
+    List<VarDecl*> *formals;
+    Type *returnType;
+
+  public:
+    ClosureDecl(Identifier *n, Type *t, List<VarDecl*> *d);
+    const char *GetPrintNameForNode()
+    {
+      return "ClosureDecl";
+    }
+    void PrintChildren(int indentLevel);
+    List<VarDecl*> *GetFormals() { return formals; }
+    Type *GetType() { return returnType; }
+
+    bool CheckDecls(SymTable *env);
+    bool Check(SymTable *env);
+    void Emit(FrameAllocator *falloc, CodeGenerator *codege, SymTable *env);
+};
+
 class ClassDecl : public Decl 
 {
   protected:

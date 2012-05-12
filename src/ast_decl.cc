@@ -86,6 +86,41 @@ void VarDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env
 #endif
 }
 
+/* Class: ClosureDecl
+ * ----------------
+ * Implementation of ClosureDecl class
+ */
+
+ClosureDecl::ClosureDecl(Identifier *n, Type *t, List<VarDecl*> *d)
+  : Decl(n)
+{
+  Assert(n != NULL && t != NULL && d != NULL);
+  (type = t)->SetParent(this);
+  (formals = d)->SetParentAll(this);
+}
+
+void ClosureDecl::PrintChildren(int indentLevel)
+{
+  returnType->Print(indentLevel + 1, "(return type) ");
+  id->Print(indentLevel + 1);
+  formals->PrintAll(indentLevel + 1, "(formals) ");
+}
+
+bool ClosureDecl::CheckDecls(SymTable *env)
+{
+  return true;
+}
+
+bool ClosureDecl::Check(SymTable *env)
+{
+  return true;
+}
+
+void ClosureDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                       SymTable *env)
+{
+
+}
 
 /* Class: ClassDecl
  * ----------------
@@ -411,10 +446,6 @@ void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
 
   FnDecl *method = NULL;
   VarDecl *field = NULL;
-
-  // FIXME: When a class is defined after another class that uses objects of
-  // the second class, it is currently impossible to get the correct offsets
-  // for the methods!!!! @see inherit6.decaf
 
   methodsToEmit = new List<FnDecl*>;
   for (int i = 0; i < members->NumElements(); i++)

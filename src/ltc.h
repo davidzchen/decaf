@@ -7,6 +7,8 @@
 #ifndef _H_parser
 #define _H_parser
 
+#define LATTE_COMPILER 1
+
   // here we need to include things needed for the yylval union
   // (types, classes, constants, etc.)
   

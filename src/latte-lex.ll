@@ -47,6 +47,10 @@ static void DoBeforeEachAction();
  */
 DIGIT             ([0-9])
 HEX_DIGIT         ([0-9a-fA-F])
+OCT_DIGIT         ([0-7])
+BIN_DIGIT         ([01])
+BIN_INTEGER       (0[Bb]{BIN_DIGIT}})
+OCT_INTEGER       (0{OCT_DIGIT}+)
 HEX_INTEGER       (0[Xx]{HEX_DIGIT}+)
 INTEGER           ({DIGIT}+)
 EXPONENT          ([Ee][-+]?{INTEGER})
@@ -89,6 +93,10 @@ SINGLE_COMMENT    ("//"[^\n]*)
 "bool"              { return T_Bool;        }
 "string"            { return T_String;      }
 "null"              { return T_Null;        }
+"escaped"           { return T_Escaped;   }
+"unsigned"          { return T_Unsigned;    }
+"const"             { return T_Const;       }
+"function"          { return T_Function;    }
 "class"             { return T_Class;       }
 "extends"           { return T_Extends;     }
 "this"              { return T_This;        }

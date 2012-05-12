@@ -151,3 +151,20 @@ bool ArrayType::IsEquivalentTo(Type *other)
 
   return elemType->IsEquivalentTo(nOther->getElemType());
 }
+
+#ifdef LATTE_COMPILER
+FunctionType::FunctionType(yyltype loc, Type *rt, List<Type*> *ft)
+  : Type(loc)
+{
+  Assert(rt != NULL && ft != NULL);
+
+  (returnType = rt)->SetParent(this);
+  (formalsTypes = ft)->SetParentAll(this);
+}
+
+void FunctionType::FunctionType(int indentLevel)
+{
+  returnType->Print(indentLevel + 1);
+  formalsTypes->PrintAll(indentLevel + 1, "(formals) ");
+}
+#endif

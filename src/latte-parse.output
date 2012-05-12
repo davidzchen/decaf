@@ -17,19 +17,19 @@ Grammar
 
    10 Variable: Type T_Identifier
 
-   11 Type: PureType
-   12     | PureType '^' '(' TypeList ')'
+   11 Type: SimpleType
+   12     | SimpleType '^' '(' TypeList ')'
 
-   13 TypeList: TypeList PureType
+   13 TypeList: TypeList SimpleType
    14         | /* empty */
 
-   15 PureType: T_Void
-   16         | T_Bool
-   17         | T_Int
-   18         | T_Double
-   19         | T_String
-   20         | NamedType
-   21         | Type T_Dims
+   15 SimpleType: T_Void
+   16           | T_Bool
+   17           | T_Int
+   18           | T_Double
+   19           | T_String
+   20           | NamedType
+   21           | SimpleType T_Dims
 
    22 NamedType: T_Identifier
 
@@ -49,7 +49,7 @@ Grammar
 
    32 FnDecl: FnDef StmtBlock
 
-   33 ClosureDecl: PureType '(' '^' T_Identifier ')' '(' Formals ')' ';'
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier ')' '(' Formals ')' ';'
 
    34 FieldList: FieldList VarDecl
    35          | FieldList FnDecl
@@ -243,11 +243,11 @@ VarDecl (72)
 Variable (73)
     on left: 10, on right: 9 38 39
 Type (74)
-    on left: 11 12, on right: 10 21 41 101
+    on left: 11 12, on right: 10 41 101
 TypeList (75)
     on left: 13 14, on right: 12 13
-PureType (76)
-    on left: 15 16 17 18 19 20 21, on right: 11 12 13 33
+SimpleType (76)
+    on left: 15 16 17 18 19 20 21, on right: 11 12 13 21 33
 NamedType (77)
     on left: 22, on right: 20 100
 ClassDecl (78)
@@ -333,7 +333,7 @@ state 0
     VarDecl        go to state 12
     Variable       go to state 13
     Type           go to state 14
-    PureType       go to state 15
+    SimpleType     go to state 15
     NamedType      go to state 16
     ClassDecl      go to state 17
     InterfaceDecl  go to state 18
@@ -344,37 +344,37 @@ state 0
 
 state 1
 
-   15 PureType: T_Void .
+   15 SimpleType: T_Void .
 
-    $default  reduce using rule 15 (PureType)
+    $default  reduce using rule 15 (SimpleType)
 
 
 state 2
 
-   16 PureType: T_Bool .
+   16 SimpleType: T_Bool .
 
-    $default  reduce using rule 16 (PureType)
+    $default  reduce using rule 16 (SimpleType)
 
 
 state 3
 
-   17 PureType: T_Int .
+   17 SimpleType: T_Int .
 
-    $default  reduce using rule 17 (PureType)
+    $default  reduce using rule 17 (SimpleType)
 
 
 state 4
 
-   18 PureType: T_Double .
+   18 SimpleType: T_Double .
 
-    $default  reduce using rule 18 (PureType)
+    $default  reduce using rule 18 (SimpleType)
 
 
 state 5
 
-   19 PureType: T_String .
+   19 SimpleType: T_String .
 
-    $default  reduce using rule 19 (PureType)
+    $default  reduce using rule 19 (SimpleType)
 
 
 state 6
@@ -426,7 +426,7 @@ state 10
     VarDecl        go to state 12
     Variable       go to state 13
     Type           go to state 14
-    PureType       go to state 15
+    SimpleType     go to state 15
     NamedType      go to state 16
     ClassDecl      go to state 17
     InterfaceDecl  go to state 18
@@ -459,30 +459,30 @@ state 13
 state 14
 
    10 Variable: Type . T_Identifier
-   21 PureType: Type . T_Dims
    41 FnDef: Type . T_Identifier '(' Formals ')'
 
-    T_Dims        shift, and go to state 27
-    T_Identifier  shift, and go to state 28
+    T_Identifier  shift, and go to state 27
 
 
 state 15
 
-   11 Type: PureType .
-   12     | PureType . '^' '(' TypeList ')'
-   33 ClosureDecl: PureType . '(' '^' T_Identifier ')' '(' Formals ')' ';'
+   11 Type: SimpleType .
+   12     | SimpleType . '^' '(' TypeList ')'
+   21 SimpleType: SimpleType . T_Dims
+   33 ClosureDecl: SimpleType . '(' '^' T_Identifier ')' '(' Formals ')' ';'
 
-    '^'  shift, and go to state 29
-    '('  shift, and go to state 30
+    T_Dims  shift, and go to state 28
+    '^'     shift, and go to state 29
+    '('     shift, and go to state 30
 
     $default  reduce using rule 11 (Type)
 
 
 state 16
 
-   20 PureType: NamedType .
+   20 SimpleType: NamedType .
 
-    $default  reduce using rule 20 (PureType)
+    $default  reduce using rule 20 (SimpleType)
 
 
 state 17
@@ -564,13 +564,6 @@ state 26
 
 state 27
 
-   21 PureType: Type T_Dims .
-
-    $default  reduce using rule 21 (PureType)
-
-
-state 28
-
    10 Variable: Type T_Identifier .
    41 FnDef: Type T_Identifier . '(' Formals ')'
 
@@ -579,16 +572,23 @@ state 28
     $default  reduce using rule 10 (Variable)
 
 
+state 28
+
+   21 SimpleType: SimpleType T_Dims .
+
+    $default  reduce using rule 21 (SimpleType)
+
+
 state 29
 
-   12 Type: PureType '^' . '(' TypeList ')'
+   12 Type: SimpleType '^' . '(' TypeList ')'
 
     '('  shift, and go to state 37
 
 
 state 30
 
-   33 ClosureDecl: PureType '(' . '^' T_Identifier ')' '(' Formals ')' ';'
+   33 ClosureDecl: SimpleType '(' . '^' T_Identifier ')' '(' Formals ')' ';'
 
     '^'  shift, and go to state 38
 
@@ -635,7 +635,7 @@ state 31
     VarDecl      go to state 62
     Variable     go to state 13
     Type         go to state 63
-    PureType     go to state 64
+    SimpleType   go to state 64
     NamedType    go to state 16
     StmtBlock    go to state 65
     StmtList     go to state 66
@@ -688,7 +688,7 @@ state 35
     T_Identifier  shift, and go to state 8
 
     Type           go to state 79
-    PureType       go to state 64
+    SimpleType     go to state 64
     NamedType      go to state 16
     Prototype      go to state 80
     FnDef          go to state 81
@@ -710,7 +710,7 @@ state 36
 
     Variable     go to state 83
     Type         go to state 63
-    PureType     go to state 64
+    SimpleType   go to state 64
     NamedType    go to state 16
     FormalsList  go to state 84
     Formals      go to state 85
@@ -718,7 +718,7 @@ state 36
 
 state 37
 
-   12 Type: PureType '^' '(' . TypeList ')'
+   12 Type: SimpleType '^' '(' . TypeList ')'
 
     $default  reduce using rule 14 (TypeList)
 
@@ -727,7 +727,7 @@ state 37
 
 state 38
 
-   33 ClosureDecl: PureType '(' '^' . T_Identifier ')' '(' Formals ')' ';'
+   33 ClosureDecl: SimpleType '(' '^' . T_Identifier ')' '(' Formals ')' ';'
 
     T_Identifier  shift, and go to state 87
 
@@ -995,18 +995,18 @@ state 62
 state 63
 
    10 Variable: Type . T_Identifier
-   21 PureType: Type . T_Dims
 
-    T_Dims        shift, and go to state 27
     T_Identifier  shift, and go to state 106
 
 
 state 64
 
-   11 Type: PureType .
-   12     | PureType . '^' '(' TypeList ')'
+   11 Type: SimpleType .
+   12     | SimpleType . '^' '(' TypeList ')'
+   21 SimpleType: SimpleType . T_Dims
 
-    '^'  shift, and go to state 29
+    T_Dims  shift, and go to state 28
+    '^'     shift, and go to state 29
 
     $default  reduce using rule 11 (Type)
 
@@ -1102,7 +1102,7 @@ state 67
     VarDecl      go to state 110
     Variable     go to state 13
     Type         go to state 63
-    PureType     go to state 64
+    SimpleType   go to state 64
     NamedType    go to state 16
     StmtBlock    go to state 65
     StmtList     go to state 111
@@ -1237,10 +1237,8 @@ state 78
 
 state 79
 
-   21 PureType: Type . T_Dims
    41 FnDef: Type . T_Identifier '(' Formals ')'
 
-    T_Dims        shift, and go to state 27
     T_Identifier  shift, and go to state 134
 
 
@@ -1271,11 +1269,11 @@ state 82
     T_Identifier  shift, and go to state 8
     '}'           shift, and go to state 136
 
-    Type       go to state 79
-    PureType   go to state 64
-    NamedType  go to state 16
-    Prototype  go to state 137
-    FnDef      go to state 81
+    Type        go to state 79
+    SimpleType  go to state 64
+    NamedType   go to state 16
+    Prototype   go to state 137
+    FnDef       go to state 81
 
 
 state 83
@@ -1304,8 +1302,8 @@ state 85
 
 state 86
 
-   12 Type: PureType '^' '(' TypeList . ')'
-   13 TypeList: TypeList . PureType
+   12 Type: SimpleType '^' '(' TypeList . ')'
+   13 TypeList: TypeList . SimpleType
 
     T_Void        shift, and go to state 1
     T_Bool        shift, and go to state 2
@@ -1315,16 +1313,15 @@ state 86
     T_Identifier  shift, and go to state 8
     ')'           shift, and go to state 140
 
-    Type       go to state 141
-    PureType   go to state 142
-    NamedType  go to state 16
+    SimpleType  go to state 141
+    NamedType   go to state 16
 
 
 state 87
 
-   33 ClosureDecl: PureType '(' '^' T_Identifier . ')' '(' Formals ')' ';'
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier . ')' '(' Formals ')' ';'
 
-    ')'  shift, and go to state 143
+    ')'  shift, and go to state 142
 
 
 state 88
@@ -1347,7 +1344,7 @@ state 88
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 144
+    Expr         go to state 143
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1376,7 +1373,7 @@ state 89
 
     $default  reduce using rule 65 (OptExpr)
 
-    OptExpr      go to state 145
+    OptExpr      go to state 144
     Expr         go to state 71
     ClosureExpr  go to state 72
     Call         go to state 73
@@ -1405,7 +1402,7 @@ state 90
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 146
+    Expr         go to state 145
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1468,7 +1465,7 @@ state 93
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ';'             shift, and go to state 147
+    ';'             shift, and go to state 146
 
 
 state 94
@@ -1505,7 +1502,7 @@ state 96
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 148
+    Expr         go to state 147
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1532,8 +1529,8 @@ state 97
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    ExprList     go to state 149
-    Expr         go to state 150
+    ExprList     go to state 148
+    Expr         go to state 149
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1544,14 +1541,14 @@ state 98
 
    98 Expr: T_ReadInteger '(' . ')'
 
-    ')'  shift, and go to state 151
+    ')'  shift, and go to state 150
 
 
 state 99
 
    99 Expr: T_ReadLine '(' . ')'
 
-    ')'  shift, and go to state 152
+    ')'  shift, and go to state 151
 
 
 state 100
@@ -1574,7 +1571,7 @@ state 100
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 153
+    Expr         go to state 152
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1603,11 +1600,11 @@ state 101
 
     $default  reduce using rule 108 (Actuals)
 
-    ExprList     go to state 154
-    Expr         go to state 150
+    ExprList     go to state 153
+    Expr         go to state 149
     ClosureExpr  go to state 72
     Call         go to state 73
-    Actuals      go to state 155
+    Actuals      go to state 154
     LValue       go to state 74
     Constant     go to state 75
 
@@ -1683,10 +1680,10 @@ state 104
 
     Variable     go to state 83
     Type         go to state 63
-    PureType     go to state 64
+    SimpleType   go to state 64
     NamedType    go to state 16
     FormalsList  go to state 84
-    Formals      go to state 156
+    Formals      go to state 155
 
 
 state 105
@@ -1728,7 +1725,7 @@ state 105
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ')'             shift, and go to state 157
+    ')'             shift, and go to state 156
 
 
 state 106
@@ -1794,7 +1791,7 @@ state 111
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
     '{'               shift, and go to state 31
-    '}'               shift, and go to state 158
+    '}'               shift, and go to state 157
 
     $default  reduce using rule 65 (OptExpr)
 
@@ -1836,7 +1833,7 @@ state 113
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 159
+    Expr         go to state 158
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1863,7 +1860,7 @@ state 114
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 160
+    Expr         go to state 159
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1890,7 +1887,7 @@ state 115
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 161
+    Expr         go to state 160
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1917,7 +1914,7 @@ state 116
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 162
+    Expr         go to state 161
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1944,7 +1941,7 @@ state 117
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 163
+    Expr         go to state 162
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -1971,7 +1968,7 @@ state 118
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 164
+    Expr         go to state 163
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2012,7 +2009,7 @@ state 121
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 165
+    Expr         go to state 164
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2039,7 +2036,7 @@ state 122
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 166
+    Expr         go to state 165
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2066,7 +2063,7 @@ state 123
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 167
+    Expr         go to state 166
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2093,7 +2090,7 @@ state 124
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 168
+    Expr         go to state 167
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2120,7 +2117,7 @@ state 125
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 169
+    Expr         go to state 168
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2147,7 +2144,7 @@ state 126
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 170
+    Expr         go to state 169
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2174,7 +2171,7 @@ state 127
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 171
+    Expr         go to state 170
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2186,7 +2183,7 @@ state 128
   106 Call: Expr '.' . T_Identifier '(' Actuals ')'
   110 LValue: Expr '.' . T_Identifier
 
-    T_Identifier  shift, and go to state 172
+    T_Identifier  shift, and go to state 171
 
 
 state 129
@@ -2209,7 +2206,7 @@ state 129
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 173
+    Expr         go to state 172
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2236,7 +2233,7 @@ state 130
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 174
+    Expr         go to state 173
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
@@ -2255,7 +2252,7 @@ state 132
    27 ClassImplements: T_Implements ImplementsTypeList .
    29 ImplementsTypeList: ImplementsTypeList . ',' T_Identifier
 
-    ','  shift, and go to state 175
+    ','  shift, and go to state 174
 
     $default  reduce using rule 27 (ClassImplements)
 
@@ -2271,16 +2268,16 @@ state 133
     T_Double      shift, and go to state 4
     T_String      shift, and go to state 5
     T_Identifier  shift, and go to state 8
-    '}'           shift, and go to state 176
+    '}'           shift, and go to state 175
 
-    VarDecl    go to state 177
-    Variable   go to state 13
-    Type       go to state 14
-    PureType   go to state 64
-    NamedType  go to state 16
-    FnDecl     go to state 178
-    FieldList  go to state 179
-    FnDef      go to state 21
+    VarDecl     go to state 176
+    Variable    go to state 13
+    Type        go to state 14
+    SimpleType  go to state 64
+    NamedType   go to state 16
+    FnDecl      go to state 177
+    FieldList   go to state 178
+    FnDef       go to state 21
 
 
 state 134
@@ -2322,10 +2319,10 @@ state 138
     T_String      shift, and go to state 5
     T_Identifier  shift, and go to state 8
 
-    Variable   go to state 180
-    Type       go to state 63
-    PureType   go to state 64
-    NamedType  go to state 16
+    Variable    go to state 179
+    Type        go to state 63
+    SimpleType  go to state 64
+    NamedType   go to state 16
 
 
 state 139
@@ -2337,38 +2334,29 @@ state 139
 
 state 140
 
-   12 Type: PureType '^' '(' TypeList ')' .
+   12 Type: SimpleType '^' '(' TypeList ')' .
 
     $default  reduce using rule 12 (Type)
 
 
 state 141
 
-   21 PureType: Type . T_Dims
+   13 TypeList: TypeList SimpleType .
+   21 SimpleType: SimpleType . T_Dims
 
-    T_Dims  shift, and go to state 27
+    T_Dims  shift, and go to state 28
+
+    $default  reduce using rule 13 (TypeList)
 
 
 state 142
 
-   11 Type: PureType .
-   12     | PureType . '^' '(' TypeList ')'
-   13 TypeList: TypeList PureType .
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier ')' . '(' Formals ')' ';'
 
-    '^'  shift, and go to state 29
-
-    T_Dims    reduce using rule 11 (Type)
-    $default  reduce using rule 13 (TypeList)
+    '('  shift, and go to state 180
 
 
 state 143
-
-   33 ClosureDecl: PureType '(' '^' T_Identifier ')' . '(' Formals ')' ';'
-
-    '('  shift, and go to state 181
-
-
-state 144
 
    55 Stmt: T_While '(' Expr . ')' Stmt
    79 Expr: Expr . T_Or Expr
@@ -2407,17 +2395,17 @@ state 144
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ')'             shift, and go to state 182
+    ')'             shift, and go to state 181
 
 
-state 145
+state 144
 
    60 Stmt: T_For '(' OptExpr . ';' Expr ';' OptExpr ')' Stmt
 
-    ';'  shift, and go to state 183
+    ';'  shift, and go to state 182
 
 
-state 146
+state 145
 
    72 IfStmt: T_If '(' Expr . ')' Stmt
    73       | T_If '(' Expr . ')' Stmt T_Else Stmt
@@ -2457,17 +2445,17 @@ state 146
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ')'             shift, and go to state 184
+    ')'             shift, and go to state 183
 
 
-state 147
+state 146
 
    57 Stmt: T_Return Expr ';' .
 
     $default  reduce using rule 57 (Stmt)
 
 
-state 148
+state 147
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2506,19 +2494,19 @@ state 148
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ','             shift, and go to state 185
+    ','             shift, and go to state 184
 
 
-state 149
+state 148
 
    59 Stmt: T_Print '(' ExprList . ')' ';'
    74 ExprList: ExprList . ',' Expr
 
-    ')'  shift, and go to state 186
-    ','  shift, and go to state 187
+    ')'  shift, and go to state 185
+    ','  shift, and go to state 186
 
 
-state 150
+state 149
 
    75 ExprList: Expr .
    79 Expr: Expr . T_Or Expr
@@ -2561,21 +2549,21 @@ state 150
     $default  reduce using rule 75 (ExprList)
 
 
-state 151
+state 150
 
    98 Expr: T_ReadInteger '(' ')' .
 
     $default  reduce using rule 98 (Expr)
 
 
-state 152
+state 151
 
    99 Expr: T_ReadLine '(' ')' .
 
     $default  reduce using rule 99 (Expr)
 
 
-state 153
+state 152
 
    62 Stmt: T_Switch '(' Expr . ')' '{' CaseStmtList DefaultStmt '}'
    79 Expr: Expr . T_Or Expr
@@ -2614,48 +2602,48 @@ state 153
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ')'             shift, and go to state 188
+    ')'             shift, and go to state 187
 
 
-state 154
+state 153
 
    74 ExprList: ExprList . ',' Expr
   107 Actuals: ExprList .
 
-    ','  shift, and go to state 187
+    ','  shift, and go to state 186
 
     $default  reduce using rule 107 (Actuals)
 
 
-state 155
+state 154
 
   105 Call: T_Identifier '(' Actuals . ')'
+
+    ')'  shift, and go to state 188
+
+
+state 155
+
+  104 ClosureExpr: '^' '(' Formals . ')' StmtBlock
 
     ')'  shift, and go to state 189
 
 
 state 156
 
-  104 ClosureExpr: '^' '(' Formals . ')' StmtBlock
-
-    ')'  shift, and go to state 190
-
-
-state 157
-
    96 Expr: '(' Expr ')' .
 
     $default  reduce using rule 96 (Expr)
 
 
-state 158
+state 157
 
    46 StmtBlock: '{' VarDeclList StmtList '}' .
 
     $default  reduce using rule 46 (StmtBlock)
 
 
-state 159
+state 158
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2695,7 +2683,7 @@ state 159
     $default  reduce using rule 84 (Expr)
 
 
-state 160
+state 159
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2735,7 +2723,7 @@ state 160
     $default  reduce using rule 83 (Expr)
 
 
-state 161
+state 160
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2777,7 +2765,7 @@ state 161
     $default  reduce using rule 85 (Expr)
 
 
-state 162
+state 161
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2819,7 +2807,7 @@ state 162
     $default  reduce using rule 86 (Expr)
 
 
-state 163
+state 162
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2860,7 +2848,7 @@ state 163
     $default  reduce using rule 80 (Expr)
 
 
-state 164
+state 163
 
    79 Expr: Expr . T_Or Expr
    79     | Expr T_Or Expr .
@@ -2902,7 +2890,7 @@ state 164
     $default  reduce using rule 79 (Expr)
 
 
-state 165
+state 164
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2942,7 +2930,7 @@ state 165
     $default  reduce using rule 81 (Expr)
 
 
-state 166
+state 165
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -2982,7 +2970,7 @@ state 166
     $default  reduce using rule 82 (Expr)
 
 
-state 167
+state 166
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3015,7 +3003,7 @@ state 167
     $default  reduce using rule 87 (Expr)
 
 
-state 168
+state 167
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3048,7 +3036,7 @@ state 168
     $default  reduce using rule 88 (Expr)
 
 
-state 169
+state 168
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3078,7 +3066,7 @@ state 169
     $default  reduce using rule 89 (Expr)
 
 
-state 170
+state 169
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3108,7 +3096,7 @@ state 170
     $default  reduce using rule 90 (Expr)
 
 
-state 171
+state 170
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3138,17 +3126,17 @@ state 171
     $default  reduce using rule 91 (Expr)
 
 
-state 172
+state 171
 
   106 Call: Expr '.' T_Identifier . '(' Actuals ')'
   110 LValue: Expr '.' T_Identifier .
 
-    '('  shift, and go to state 191
+    '('  shift, and go to state 190
 
     $default  reduce using rule 110 (LValue)
 
 
-state 173
+state 172
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3187,10 +3175,10 @@ state 173
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ']'             shift, and go to state 192
+    ']'             shift, and go to state 191
 
 
-state 174
+state 173
 
    79 Expr: Expr . T_Or Expr
    80     | Expr . T_And Expr
@@ -3233,35 +3221,35 @@ state 174
     $default  reduce using rule 102 (Expr)
 
 
-state 175
+state 174
 
    29 ImplementsTypeList: ImplementsTypeList ',' . T_Identifier
 
-    T_Identifier  shift, and go to state 193
+    T_Identifier  shift, and go to state 192
 
 
-state 176
+state 175
 
    24 ClassDecl: T_Class T_Identifier ClassExtends ClassImplements '{' '}' .
 
     $default  reduce using rule 24 (ClassDecl)
 
 
-state 177
+state 176
 
    36 FieldList: VarDecl .
 
     $default  reduce using rule 36 (FieldList)
 
 
-state 178
+state 177
 
    37 FieldList: FnDecl .
 
     $default  reduce using rule 37 (FieldList)
 
 
-state 179
+state 178
 
    23 ClassDecl: T_Class T_Identifier ClassExtends ClassImplements '{' FieldList . '}'
    34 FieldList: FieldList . VarDecl
@@ -3273,27 +3261,27 @@ state 179
     T_Double      shift, and go to state 4
     T_String      shift, and go to state 5
     T_Identifier  shift, and go to state 8
-    '}'           shift, and go to state 194
+    '}'           shift, and go to state 193
 
-    VarDecl    go to state 195
-    Variable   go to state 13
-    Type       go to state 14
-    PureType   go to state 64
-    NamedType  go to state 16
-    FnDecl     go to state 196
-    FnDef      go to state 21
+    VarDecl     go to state 194
+    Variable    go to state 13
+    Type        go to state 14
+    SimpleType  go to state 64
+    NamedType   go to state 16
+    FnDecl      go to state 195
+    FnDef       go to state 21
 
 
-state 180
+state 179
 
    39 FormalsList: FormalsList ',' Variable .
 
     $default  reduce using rule 39 (FormalsList)
 
 
-state 181
+state 180
 
-   33 ClosureDecl: PureType '(' '^' T_Identifier ')' '(' . Formals ')' ';'
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier ')' '(' . Formals ')' ';'
 
     T_Void        shift, and go to state 1
     T_Bool        shift, and go to state 2
@@ -3306,13 +3294,13 @@ state 181
 
     Variable     go to state 83
     Type         go to state 63
-    PureType     go to state 64
+    SimpleType   go to state 64
     NamedType    go to state 16
     FormalsList  go to state 84
-    Formals      go to state 197
+    Formals      go to state 196
 
 
-state 182
+state 181
 
    55 Stmt: T_While '(' Expr ')' . Stmt
 
@@ -3343,7 +3331,7 @@ state 182
     $default  reduce using rule 65 (OptExpr)
 
     StmtBlock    go to state 65
-    Stmt         go to state 198
+    Stmt         go to state 197
     OptExpr      go to state 69
     IfStmt       go to state 70
     Expr         go to state 71
@@ -3353,7 +3341,7 @@ state 182
     Constant     go to state 75
 
 
-state 183
+state 182
 
    60 Stmt: T_For '(' OptExpr ';' . Expr ';' OptExpr ')' Stmt
 
@@ -3373,14 +3361,14 @@ state 183
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 199
+    Expr         go to state 198
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
     Constant     go to state 75
 
 
-state 184
+state 183
 
    72 IfStmt: T_If '(' Expr ')' . Stmt
    73       | T_If '(' Expr ')' . Stmt T_Else Stmt
@@ -3412,7 +3400,7 @@ state 184
     $default  reduce using rule 65 (OptExpr)
 
     StmtBlock    go to state 65
-    Stmt         go to state 200
+    Stmt         go to state 199
     OptExpr      go to state 69
     IfStmt       go to state 70
     Expr         go to state 71
@@ -3422,7 +3410,7 @@ state 184
     Constant     go to state 75
 
 
-state 185
+state 184
 
   101 Expr: T_NewArray '(' Expr ',' . Type ')'
 
@@ -3433,19 +3421,19 @@ state 185
     T_String      shift, and go to state 5
     T_Identifier  shift, and go to state 8
 
-    Type       go to state 201
-    PureType   go to state 64
-    NamedType  go to state 16
+    Type        go to state 200
+    SimpleType  go to state 64
+    NamedType   go to state 16
 
 
-state 186
+state 185
 
    59 Stmt: T_Print '(' ExprList ')' . ';'
 
-    ';'  shift, and go to state 202
+    ';'  shift, and go to state 201
 
 
-state 187
+state 186
 
    74 ExprList: ExprList ',' . Expr
 
@@ -3465,37 +3453,37 @@ state 187
     '^'               shift, and go to state 59
     '('               shift, and go to state 60
 
-    Expr         go to state 203
+    Expr         go to state 202
     ClosureExpr  go to state 72
     Call         go to state 73
     LValue       go to state 74
     Constant     go to state 75
 
 
-state 188
+state 187
 
    62 Stmt: T_Switch '(' Expr ')' . '{' CaseStmtList DefaultStmt '}'
 
-    '{'  shift, and go to state 204
+    '{'  shift, and go to state 203
 
 
-state 189
+state 188
 
   105 Call: T_Identifier '(' Actuals ')' .
 
     $default  reduce using rule 105 (Call)
 
 
-state 190
+state 189
 
   104 ClosureExpr: '^' '(' Formals ')' . StmtBlock
 
     '{'  shift, and go to state 31
 
-    StmtBlock  go to state 205
+    StmtBlock  go to state 204
 
 
-state 191
+state 190
 
   106 Call: Expr '.' T_Identifier '(' . Actuals ')'
 
@@ -3517,65 +3505,65 @@ state 191
 
     $default  reduce using rule 108 (Actuals)
 
-    ExprList     go to state 154
-    Expr         go to state 150
+    ExprList     go to state 153
+    Expr         go to state 149
     ClosureExpr  go to state 72
     Call         go to state 73
-    Actuals      go to state 206
+    Actuals      go to state 205
     LValue       go to state 74
     Constant     go to state 75
 
 
-state 192
+state 191
 
   111 LValue: Expr '[' Expr ']' .
 
     $default  reduce using rule 111 (LValue)
 
 
-state 193
+state 192
 
    29 ImplementsTypeList: ImplementsTypeList ',' T_Identifier .
 
     $default  reduce using rule 29 (ImplementsTypeList)
 
 
-state 194
+state 193
 
    23 ClassDecl: T_Class T_Identifier ClassExtends ClassImplements '{' FieldList '}' .
 
     $default  reduce using rule 23 (ClassDecl)
 
 
-state 195
+state 194
 
    34 FieldList: FieldList VarDecl .
 
     $default  reduce using rule 34 (FieldList)
 
 
-state 196
+state 195
 
    35 FieldList: FieldList FnDecl .
 
     $default  reduce using rule 35 (FieldList)
 
 
+state 196
+
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier ')' '(' Formals . ')' ';'
+
+    ')'  shift, and go to state 206
+
+
 state 197
-
-   33 ClosureDecl: PureType '(' '^' T_Identifier ')' '(' Formals . ')' ';'
-
-    ')'  shift, and go to state 207
-
-
-state 198
 
    55 Stmt: T_While '(' Expr ')' Stmt .
 
     $default  reduce using rule 55 (Stmt)
 
 
-state 199
+state 198
 
    60 Stmt: T_For '(' OptExpr ';' Expr . ';' OptExpr ')' Stmt
    79 Expr: Expr . T_Or Expr
@@ -3614,36 +3602,34 @@ state 199
     '%'             shift, and go to state 127
     '.'             shift, and go to state 128
     '['             shift, and go to state 129
-    ';'             shift, and go to state 208
+    ';'             shift, and go to state 207
 
 
-state 200
+state 199
 
    72 IfStmt: T_If '(' Expr ')' Stmt .
    73       | T_If '(' Expr ')' Stmt . T_Else Stmt
 
-    T_Else  shift, and go to state 209
+    T_Else  shift, and go to state 208
 
     $default  reduce using rule 72 (IfStmt)
 
 
-state 201
+state 200
 
-   21 PureType: Type . T_Dims
   101 Expr: T_NewArray '(' Expr ',' Type . ')'
 
-    T_Dims  shift, and go to state 27
-    ')'     shift, and go to state 210
+    ')'  shift, and go to state 209
 
 
-state 202
+state 201
 
    59 Stmt: T_Print '(' ExprList ')' ';' .
 
     $default  reduce using rule 59 (Stmt)
 
 
-state 203
+state 202
 
    74 ExprList: ExprList ',' Expr .
    79 Expr: Expr . T_Or Expr
@@ -3686,38 +3672,38 @@ state 203
     $default  reduce using rule 74 (ExprList)
 
 
-state 204
+state 203
 
    62 Stmt: T_Switch '(' Expr ')' '{' . CaseStmtList DefaultStmt '}'
 
-    T_Case  shift, and go to state 211
+    T_Case  shift, and go to state 210
 
-    CaseStmtList  go to state 212
-    CaseStmt      go to state 213
+    CaseStmtList  go to state 211
+    CaseStmt      go to state 212
 
 
-state 205
+state 204
 
   104 ClosureExpr: '^' '(' Formals ')' StmtBlock .
 
     $default  reduce using rule 104 (ClosureExpr)
 
 
-state 206
+state 205
 
   106 Call: Expr '.' T_Identifier '(' Actuals . ')'
 
-    ')'  shift, and go to state 214
+    ')'  shift, and go to state 213
+
+
+state 206
+
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier ')' '(' Formals ')' . ';'
+
+    ';'  shift, and go to state 214
 
 
 state 207
-
-   33 ClosureDecl: PureType '(' '^' T_Identifier ')' '(' Formals ')' . ';'
-
-    ';'  shift, and go to state 215
-
-
-state 208
 
    60 Stmt: T_For '(' OptExpr ';' Expr ';' . OptExpr ')' Stmt
 
@@ -3739,7 +3725,7 @@ state 208
 
     $default  reduce using rule 65 (OptExpr)
 
-    OptExpr      go to state 216
+    OptExpr      go to state 215
     Expr         go to state 71
     ClosureExpr  go to state 72
     Call         go to state 73
@@ -3747,7 +3733,7 @@ state 208
     Constant     go to state 75
 
 
-state 209
+state 208
 
    73 IfStmt: T_If '(' Expr ')' Stmt T_Else . Stmt
 
@@ -3778,7 +3764,7 @@ state 209
     $default  reduce using rule 65 (OptExpr)
 
     StmtBlock    go to state 65
-    Stmt         go to state 217
+    Stmt         go to state 216
     OptExpr      go to state 69
     IfStmt       go to state 70
     Expr         go to state 71
@@ -3788,99 +3774,99 @@ state 209
     Constant     go to state 75
 
 
-state 210
+state 209
 
   101 Expr: T_NewArray '(' Expr ',' Type ')' .
 
     $default  reduce using rule 101 (Expr)
 
 
-state 211
+state 210
 
    68 CaseStmt: T_Case . T_IntConstant ':' StmtList
    69         | T_Case . T_IntConstant ':'
 
-    T_IntConstant  shift, and go to state 218
+    T_IntConstant  shift, and go to state 217
 
 
-state 212
+state 211
 
    62 Stmt: T_Switch '(' Expr ')' '{' CaseStmtList . DefaultStmt '}'
    66 CaseStmtList: CaseStmtList . CaseStmt
 
-    T_Case     shift, and go to state 211
-    T_Default  shift, and go to state 219
+    T_Case     shift, and go to state 210
+    T_Default  shift, and go to state 218
 
-    CaseStmt     go to state 220
-    DefaultStmt  go to state 221
+    CaseStmt     go to state 219
+    DefaultStmt  go to state 220
 
 
-state 213
+state 212
 
    67 CaseStmtList: CaseStmt .
 
     $default  reduce using rule 67 (CaseStmtList)
 
 
-state 214
+state 213
 
   106 Call: Expr '.' T_Identifier '(' Actuals ')' .
 
     $default  reduce using rule 106 (Call)
 
 
-state 215
+state 214
 
-   33 ClosureDecl: PureType '(' '^' T_Identifier ')' '(' Formals ')' ';' .
+   33 ClosureDecl: SimpleType '(' '^' T_Identifier ')' '(' Formals ')' ';' .
 
     $default  reduce using rule 33 (ClosureDecl)
 
 
-state 216
+state 215
 
    60 Stmt: T_For '(' OptExpr ';' Expr ';' OptExpr . ')' Stmt
 
-    ')'  shift, and go to state 222
+    ')'  shift, and go to state 221
 
 
-state 217
+state 216
 
    73 IfStmt: T_If '(' Expr ')' Stmt T_Else Stmt .
 
     $default  reduce using rule 73 (IfStmt)
 
 
-state 218
+state 217
 
    68 CaseStmt: T_Case T_IntConstant . ':' StmtList
    69         | T_Case T_IntConstant . ':'
+
+    ':'  shift, and go to state 222
+
+
+state 218
+
+   70 DefaultStmt: T_Default . ':' StmtList
+   71            | T_Default . ':'
 
     ':'  shift, and go to state 223
 
 
 state 219
 
-   70 DefaultStmt: T_Default . ':' StmtList
-   71            | T_Default . ':'
-
-    ':'  shift, and go to state 224
-
-
-state 220
-
    66 CaseStmtList: CaseStmtList CaseStmt .
 
     $default  reduce using rule 66 (CaseStmtList)
 
 
-state 221
+state 220
 
    62 Stmt: T_Switch '(' Expr ')' '{' CaseStmtList DefaultStmt . '}'
 
-    '}'  shift, and go to state 225
+    '}'  shift, and go to state 224
 
 
-state 222
+state 221
 
    60 Stmt: T_For '(' OptExpr ';' Expr ';' OptExpr ')' . Stmt
 
@@ -3911,7 +3897,7 @@ state 222
     $default  reduce using rule 65 (OptExpr)
 
     StmtBlock    go to state 65
-    Stmt         go to state 226
+    Stmt         go to state 225
     OptExpr      go to state 69
     IfStmt       go to state 70
     Expr         go to state 71
@@ -3921,7 +3907,7 @@ state 222
     Constant     go to state 75
 
 
-state 223
+state 222
 
    68 CaseStmt: T_Case T_IntConstant ':' . StmtList
    69         | T_Case T_IntConstant ':' .
@@ -3954,7 +3940,7 @@ state 223
     $default  reduce using rule 69 (CaseStmt)
 
     StmtBlock    go to state 65
-    StmtList     go to state 227
+    StmtList     go to state 226
     Stmt         go to state 68
     OptExpr      go to state 69
     IfStmt       go to state 70
@@ -3965,7 +3951,7 @@ state 223
     Constant     go to state 75
 
 
-state 224
+state 223
 
    70 DefaultStmt: T_Default ':' . StmtList
    71            | T_Default ':' .
@@ -3998,7 +3984,7 @@ state 224
     $default  reduce using rule 65 (OptExpr)
 
     StmtBlock    go to state 65
-    StmtList     go to state 228
+    StmtList     go to state 227
     Stmt         go to state 68
     OptExpr      go to state 69
     IfStmt       go to state 70
@@ -4009,21 +3995,21 @@ state 224
     Constant     go to state 75
 
 
-state 225
+state 224
 
    62 Stmt: T_Switch '(' Expr ')' '{' CaseStmtList DefaultStmt '}' .
 
     $default  reduce using rule 62 (Stmt)
 
 
-state 226
+state 225
 
    60 Stmt: T_For '(' OptExpr ';' Expr ';' OptExpr ')' Stmt .
 
     $default  reduce using rule 60 (Stmt)
 
 
-state 227
+state 226
 
    50 StmtList: StmtList . Stmt
    68 CaseStmt: T_Case T_IntConstant ':' StmtList .
@@ -4066,7 +4052,7 @@ state 227
     Constant     go to state 75
 
 
-state 228
+state 227
 
    50 StmtList: StmtList . Stmt
    70 DefaultStmt: T_Default ':' StmtList .

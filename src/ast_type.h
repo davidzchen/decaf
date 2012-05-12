@@ -17,12 +17,21 @@
 
 extern SymTable *globalEnv;
 
+#ifdef LATTE_COMPILER
+enum
+{
+  Unsigned  = 0x001,
+  Immutable = 0x002,
+  Const     = 0x004,
+};
+#endif
+
 class Type : public Node 
 {
   protected:
     char *typeName;
 
-  public :
+  public:
     static Type *intType, *doubleType, *boolType, *voidType,
                 *nullType, *stringType, *errorType;
 
@@ -48,8 +57,43 @@ class Type : public Node
     virtual void PrintToStream(ostream& out) { out << typeName; }
     virtual bool Check(SymTable *env) { return true; }
     virtual char *GetName() { return typeName; }
+    virtual int GetQualifier() { return 0; }
     virtual Identifier *GetIdent() { return NULL; }
 };
+
+#ifdef LATTE_COMPILER
+class QualifiedType : public Type
+{
+  protected:
+    int qualifier;
+    Type *base;
+
+  public:
+    QualifiedType(yyltype loc , Type *baseType, int q);
+    const char *GetPrintNameForNode() { return "QualifiedType"; }
+    void PrintChildren(int indentLevel);
+    bool IsBuiltin() { return true; }
+    bool IsEquivalentTo(Type *other)
+    {
+      return base->IsEquivalentTo(other)
+          && qualifier == other->GetQualifier();
+    }
+
+    bool IsConvertableTo(Type *other)
+    {
+
+    }
+
+    virtual bool Check(SymTable *env)
+    {
+
+    }
+
+    char *GetName() { return base->GetName(); }
+    int GetQualifier() { return qualifier; }
+};
+
+#endif
 
 class NamedType : public Type 
 {
@@ -92,5 +136,22 @@ class ArrayType : public Type
     bool IsConvertableTo(Type *other);
 };
 
+class FunctionType : public Type
+{
+  protected:
+    Type *returnType;
+    List<Type*> *formalsTypes;
+
+  public:
+    ClosureType(yyltype loc, Type *returnType, List<Type*> *formalsTypes);
+    void PrintChildren(int indentLevel);
+    void PrintToStream(ostream& out)
+    {
+      out << returnType << " ( ";
+      for (int i = 0; i < formalsTypes->NumElements(); i++)
+        out << formalsTypes->Nth(i) << " ";
+      out << ")";
+    }
+};
  
 #endif
