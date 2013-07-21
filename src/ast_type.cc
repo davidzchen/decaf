@@ -66,7 +66,7 @@ bool NamedType::IsConvertableTo(Type *other) {
 
   if (other->IsBuiltin()) {
     return false;
-  {
+  }
 
   if (IsEquivalentTo(other)) {
     return true;
@@ -122,7 +122,7 @@ bool ArrayType::IsConvertableTo(Type *other) {
     return true;
   }
 
-  Arraytype *nOther = dynamic_cast<ArrayType*>(other);
+  ArrayType *nOther = dynamic_cast<ArrayType*>(other);
   if (nOther == 0) {
     return false;
   }
@@ -137,19 +137,5 @@ bool ArrayType::IsEquivalentTo(Type *other) {
   }
   return elemType->IsEquivalentTo(nOther->getElemType());
 }
-
-#ifdef LATTE_COMPILER
-FunctionType::FunctionType(yyltype loc, Type *rt, List<Type*> *ft)
-    : Type(loc) {
-  Assert(rt != NULL && ft != NULL);
-  (returnType = rt)->SetParent(this);
-  (formalsTypes = ft)->SetParentAll(this);
-}
-
-void FunctionType::FunctionType(int indentLevel) {
-  returnType->Print(indentLevel + 1);
-  formalsTypes->PrintAll(indentLevel + 1, "(formals) ");
-}
-#endif
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */

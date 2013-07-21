@@ -72,37 +72,6 @@ void VarDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 #endif
 }
 
-/* Class: ClosureDecl
- * ----------------
- * Implementation of ClosureDecl class
- */
-
-ClosureDecl::ClosureDecl(Identifier *n, Type *t, List<VarDecl*> *d)
-  : Decl(n) {
-  Assert(n != NULL && t != NULL && d != NULL);
-  (type = t)->SetParent(this);
-  (formals = d)->SetParentAll(this);
-}
-
-void ClosureDecl::PrintChildren(int indentLevel) {
-  returnType->Print(indentLevel + 1, "(return type) ");
-  id->Print(indentLevel + 1);
-  formals->PrintAll(indentLevel + 1, "(formals) ");
-}
-
-bool ClosureDecl::CheckDecls(SymTable *env) {
-  return true;
-}
-
-bool ClosureDecl::Check(SymTable *env) {
-  return true;
-}
-
-void ClosureDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-    SymTable *env) {
-
-}
-
 /* Class: ClassDecl
  * ----------------
  * Implementation of ClassDecl class
@@ -191,7 +160,7 @@ bool ClassDecl::Inherit(SymTable *env)
     Symbol *intfSym = NULL;
     if ((intfSym = env->find(interface->GetName(), S_INTERFACE)) == NULL) {
       continue;
-    {
+    }
     InterfaceDecl *intfDecl = dynamic_cast<InterfaceDecl*>(intfSym->getNode());
     Assert(intfDecl != 0);
     List<Decl*> *intfMembers = intfDecl->getMembers();
@@ -315,7 +284,7 @@ bool ClassDecl::Check(SymTable *env) {
   // Check all members
   for (int i = 0; i < members->NumElements(); i++) {
     ret &= members->Nth(i)->Check(env);
-  {
+  }
   return ret;
 }
 

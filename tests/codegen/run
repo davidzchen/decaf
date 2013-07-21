@@ -6,8 +6,7 @@
 # Compiles decaf-file and executes (spim).
 #
 
-SPIM=/usr/class/cs143/bin/spim
-#SPIM=spim
+SPIM=spim
 COMPILER=../../src/dcc
 
 if [ $# -lt 1 ]; then

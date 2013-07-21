@@ -49,7 +49,7 @@ void Program::Check() {
     d = dynamic_cast<ClassDecl*>(decls->Nth(i));
     if (d == 0) {
       continue;
-    {
+    }
     d->Inherit(env);
   }
 
@@ -89,7 +89,7 @@ void Program::Emit() {
     ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls->Nth(i));
     if (classDecl != 0) {
       classDecl->Emit(falloc, codegen, env);
-    {
+    }
   }
 
   for (int i = 0; i < decls->NumElements(); i++) {

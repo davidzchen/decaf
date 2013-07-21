@@ -17,14 +17,6 @@
 
 extern SymTable *globalEnv;
 
-#ifdef LATTE_COMPILER
-enum {
-  Unsigned  = 0x001,
-  Immutable = 0x002,
-  Const     = 0x004,
-};
-#endif
-
 class Type : public Node {
  public:
   static Type *intType, *doubleType, *boolType, *voidType,
@@ -58,36 +50,6 @@ class Type : public Node {
  protected:
   char *typeName;
 };
-
-#ifdef LATTE_COMPILER
-class QualifiedType : public Type {
- public:
-  QualifiedType(yyltype loc , Type *baseType, int q);
-  const char *GetPrintNameForNode() { return "QualifiedType"; }
-  void PrintChildren(int indentLevel);
-  bool IsBuiltin() { return true; }
-  bool IsEquivalentTo(Type *other) {
-    return base->IsEquivalentTo(other)
-        && qualifier == other->GetQualifier();
-  }
-
-  bool IsConvertableTo(Type *other) {
-
-  }
-
-  virtual bool Check(SymTable *env) {
-
-  }
-
-  char *GetName() { return base->GetName(); }
-  int GetQualifier() { return qualifier; }
- 
- protected:
-  int qualifier;
-  Type *base;
-};
-
-#endif
 
 class NamedType : public Type {
  public:
