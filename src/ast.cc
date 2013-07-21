@@ -7,14 +7,12 @@
 #include <stdio.h>  // printf
 #include "ast.h"
 
-Node::Node(yyltype loc) 
-{
+Node::Node(yyltype loc) {
   location = new yyltype(loc);
   parent = NULL;
 }
 
-Node::Node() 
-{
+Node::Node() {
   location = NULL;
   parent = NULL;
 }
@@ -27,45 +25,40 @@ Node::Node()
  * virtual function PrintChildren which is expected to print the
  * internals of the node (itself & children) as appropriate.
  */
-void Node::Print(int indentLevel, const char *label) 
-{ 
+void Node::Print(int indentLevel, const char *label) { 
   const int numSpaces = 3;
   printf("\n");
-  if (GetLocation()) 
-    {
-      printf("%*d", numSpaces, GetLocation()->first_line);
-    } 
-  else 
-    { 
-      printf("%*s", numSpaces, "");
-    }
+  if (GetLocation()) {
+    printf("%*d", numSpaces, GetLocation()->first_line);
+  } else { 
+    printf("%*s", numSpaces, "");
+  }
   printf("%*s%s%s: ", indentLevel*numSpaces, "", 
-         label? label : "", GetPrintNameForNode());
+      label? label : "", GetPrintNameForNode());
   PrintChildren(indentLevel);
 } 
 	 
-Identifier::Identifier(yyltype loc, const char *n) : Node(loc) 
-{
+Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
   name = strdup(n);
 }
 
-void Identifier::PrintChildren(int indentLevel) 
-{
+void Identifier::PrintChildren(int indentLevel) {
   printf("%s", name);
 }
 
-bool Identifier::Check(SymTable *env)
-{
-  if (!env->find(name))
+bool Identifier::Check(SymTable *env) {
+  if (!env->find(name)) {
     return false;
+  }
+  return true;
+}
+
+bool Identifier::Check(SymTable *env, int type) {
+  if (!env->find(name, type)) {
+    return false;
+  }
 
   return true;
 }
 
-bool Identifier::Check(SymTable *env, int type)
-{
-  if (!env->find(name, type))
-    return false;
-
-  return true;
-}
+/* vim: set ai ts=2 sts=2 sw=2 et: */

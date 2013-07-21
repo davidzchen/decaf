@@ -17,7 +17,6 @@
 #include <string.h>
 #include "mips.h"
 
-
 /* Method: GetRegister
  * -------------------
  * Given a location for a current var, a reason (ForRead or ForWrite)
@@ -39,8 +38,7 @@
  * new value).
  */
 Mips::Register Mips::GetRegister(Location *var, Reason reason,
-                                 Register avoid1, Register avoid2)
-{
+                                 Register avoid1, Register avoid2) {
   Register reg;
 
   if (!FindRegisterWithContents(var, reg))
@@ -63,11 +61,11 @@ Mips::Register Mips::GetRegister(Location *var, Reason reason,
 	  regs[reg].isDirty = false;
         }
     }
-  if (reason == ForWrite)
+  if (reason == ForWrite) {
     regs[reg].isDirty = true;
+  }
   return reg;
 }
-
 
 // Two covers for the above method to make it slightly more
 // convenient to call it
@@ -597,4 +595,4 @@ Mips::Mips()
 }
 const char *Mips::mipsName[BinaryOp::NumOps];
 
-
+/* vim: set ai ts=2 sts=2 sw=2 et: */

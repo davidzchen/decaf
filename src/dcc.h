@@ -4,15 +4,15 @@
  * are used and/or exported by the yacc-generated parser.
  */
 
-#ifndef _H_DCC
-#define _H_DCC
+#ifndef DCC_H__
+#define DCC_H__
 
-  // here we need to include things needed for the yylval union
-  // (types, classes, constants, etc.)
+// here we need to include things needed for the yylval union
+// (types, classes, constants, etc.)
   
 #include "scanner.h"            // for MaxIdentLen
-#include "list.h"       	// because we use all these types
-#include "ast.h"		// in the union, we need their declarations
+#include "list.h"               // because we use all these types
+#include "ast.h"                // in the union, we need their declarations
 #include "symtable.h"
 #include "ast_type.h"
 #include "ast_decl.h"
@@ -36,4 +36,5 @@
 int yyparse();              // Defined in the generated y.tab.c file
 void InitParser();          // Defined in parser.y
 
+/* vim: set ai ts=2 sts=2 sw=2 et: */
 #endif

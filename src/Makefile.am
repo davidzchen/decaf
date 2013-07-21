@@ -1,5 +1,4 @@
 AM_CXXFLAGS = -g -Wno-unused -Wno-sign-compare
-AM_CPPFLAGS = -I$(top_srcdir)/lib
 AM_YFLAGS = -dvty
 AM_LFLAGS = -d
 
@@ -27,7 +26,7 @@ dcc_SOURCES = \
 	dcc.cc dcc.h
 dcc_CPPFLAGS = -I$(top_srcdir)/src/arch/mips
 EXTRA_dcc_SOURCES = decaf-parse.yy decaf-lex.ll
-dcc_LDADD = ../lib/libgnu.a -lc -lm -ll
+dcc_LDADD = -lc -lm -ll
 
 dcc_i386_SOURCES = \
 	utility.cc utility.h \
@@ -49,7 +48,7 @@ dcc_i386_SOURCES = \
 	dcc.cc dcc.h
 dcc_i386_CPPFLAGS = -I$(top_srcdir)/src/arch/x86
 EXTRA_dcc_i386_SOURCES = decaf-parse.yy decaf-lex.ll
-dcc_i386_LDADD = ../lib/libgnu.a -lc -lm -ll
+dcc_i386_LDADD = -lc -lm -ll
 
 ltc_SOURCES = \
 	utility.cc utility.h \
@@ -71,7 +70,7 @@ ltc_SOURCES = \
 	ltc.cc ltc.h
 ltc_CPPFLAGS = -I$(top_srcdir)/src/arch/mips
 EXTRA_ltc_SOURCES = latte-parse.yy latte-lex.ll
-ltc_LDADD = ../lib/libgnu.a -lc -lm -ll
+ltc_LDADD = -lc -lm -ll
 
 BUILT_SOURCES = \
 	decaf-parse.cc \

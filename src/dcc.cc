@@ -11,7 +11,6 @@
 #include "errors.h"
 #include "dcc.h"
 
-
 int testFlag = 0;
 
 /* Function: main()
@@ -22,12 +21,11 @@ int testFlag = 0;
  * InitParser() is used to set up the parser. The call to yyparse() will
  * attempt to parse a complete program from the input. 
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   ParseCommandLine(argc, argv);
   InitScanner();
   InitParser();
   yyparse();
-  return (ReportError::NumErrors() == 0? 0 : -1);
+  return (ReportError::NumErrors() == 0 ? 0 : -1);
 }
 

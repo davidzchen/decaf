@@ -1,10 +1,10 @@
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = -G -Wno-unused -Wno-sign-compare
 
-SUBDIRS = lib src
+SUBDIRS = src
 #SUBDIRS = src
 
-EXTRA_DIST = bootstrap clean synthesize tests m4/gnulib-cache.m4
+EXTRA_DIST = bootstrap clean synthesize tests
 #EXTRA_DIST = bootstrap clean synthesize tests
 
 

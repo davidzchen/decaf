@@ -49,63 +49,56 @@ using namespace std;
 
 class SymTable;
 
-class Node
-{
-  protected:
-    yyltype *location;
-    Node *parent;
+class Node {
+ protected:
+  yyltype *location;
+  Node *parent;
 
-  public:
-    Node(yyltype loc);
-    Node();
-    virtual ~Node() {}
-    
-    yyltype *GetLocation()   { return location; }
-    void SetParent(Node *p)  { parent = p; }
-    Node *GetParent()        { return parent; }
+ public:
+  Node(yyltype loc);
+  Node();
+  virtual ~Node() {}
+  
+  yyltype *GetLocation()   { return location; }
+  void SetParent(Node *p)  { parent = p; }
+  Node *GetParent()        { return parent; }
 
-    virtual const char *GetPrintNameForNode() = 0;
-    
-    // Print() is deliberately _not_ virtual
-    // subclasses should override PrintChildren() instead
-    void Print(int indentLevel, const char *label = NULL); 
-    virtual void PrintChildren(int indentLevel)  {}
-    virtual bool Check(SymTable *env) { return true; }
+  virtual const char *GetPrintNameForNode() = 0;
+  
+  // Print() is deliberately _not_ virtual
+  // subclasses should override PrintChildren() instead
+  void Print(int indentLevel, const char *label = NULL); 
+  virtual void PrintChildren(int indentLevel)  {}
+  virtual bool Check(SymTable *env) { return true; }
 };
    
-
-class Identifier : public Node 
-{
-  protected:
-    char *name;
+class Identifier : public Node {
+ protected:
+  char *name;
     
-  public:
-    Identifier(yyltype loc, const char *name);
-    const char *GetPrintNameForNode() { return "Identifier"; }
-    void PrintChildren(int indentLevel);
-    friend ostream& operator<<(ostream& out, Identifier *id)
-    {
-      return out << id->name;
-    }
-    char *getName() { return name; }
-    bool Check(SymTable *env);
-    bool Check(SymTable *env, int type);
+ public:
+  Identifier(yyltype loc, const char *name);
+  const char *GetPrintNameForNode() { return "Identifier"; }
+  void PrintChildren(int indentLevel);
+  friend ostream& operator<<(ostream& out, Identifier *id) {
+    return out << id->name;
+  }
+  char *getName() { return name; }
+  bool Check(SymTable *env);
+  bool Check(SymTable *env, int type);
 };
-
 
 // This node class is designed to represent a portion of the tree that 
 // encountered syntax errors during parsing. The partial completed tree
 // is discarded along with the states being popped, and an instance of
 // the Error class can stand in as the placeholder in the parse tree
 // when your parser can continue after an error.
-class Error : public Node
-{
-  public:
-    Error() : Node() {}
-    const char *GetPrintNameForNode() { return "Error"; }
-    bool check(SymTable *env) { return true; }
+class Error : public Node {
+ public:
+  Error() : Node() {}
+  const char *GetPrintNameForNode() { return "Error"; }
+  bool check(SymTable *env) { return true; }
 };
 
-
-
+/* vim: set ai ts=2 sts=2 sw=2 et: */
 #endif

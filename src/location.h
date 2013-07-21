@@ -37,8 +37,7 @@ extern struct yyltype yylloc;
  * Takes two locations and returns a new location which represents
  * the span from first to last, inclusive.
  */
-inline yyltype Join(yyltype first, yyltype last)
-{
+inline yyltype Join(yyltype first, yyltype last) {
   yyltype combined;
   combined.first_column = first.first_column;
   combined.first_line = first.first_line;
@@ -48,11 +47,9 @@ inline yyltype Join(yyltype first, yyltype last)
 }
 
 /* Same as above, except operates on pointers as a convenience  */
-inline yyltype Join(yyltype *firstPtr, yyltype *lastPtr)
-{
+inline yyltype Join(yyltype *firstPtr, yyltype *lastPtr) {
   return Join(*firstPtr, *lastPtr);
 }
 
-
+/* vim: set ai ts=2 sts=2 sw=2 et: */
 #endif
-

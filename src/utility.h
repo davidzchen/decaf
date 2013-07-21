@@ -10,8 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-enum
-{
+enum {
   TEST_SCANNER = 1,
   TEST_PARSER,
   TEST_SEMANT,
@@ -105,4 +104,5 @@ void ParseCommandLine(int argc, char *argv[]);
 
 int xtoi(const char *s);
 
+/* vim: set ai ts=2 sts=2 sw=2 et: */
 #endif

@@ -276,3 +276,4 @@ void VTable::EmitSpecific(Mips *mips)
   mips->EmitVTable(label, methodLabels);
 }
 
+/* vim: set ai ts=2 sts=2 sw=2 et: */

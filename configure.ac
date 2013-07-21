@@ -6,15 +6,13 @@ AC_INIT([dcc], [0.5], [dzchen@stanford.edu])
 AC_CONFIG_SRCDIR([src/utility.cc])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([-Wall -Werror])
+AM_INIT_AUTOMAKE([-Wall -Werror subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Checks for programs.
 AC_PROG_YACC
 AC_PROG_CXX
 AC_PROG_CC
-gl_EARLY
-gl_INIT
 AC_PROG_LEX
 
 # Checks for libraries.
@@ -39,7 +37,6 @@ AC_CONFIG_FILES(
 [
   Makefile
   src/Makefile
-  lib/Makefile
   tests/Makefile
   tests/codegen/Makefile
 ])

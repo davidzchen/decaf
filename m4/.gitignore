@@ -10,3 +10,7 @@
 /unistd_h.m4
 /warn-on-use.m4
 /wchar_t.m4
+/extern-inline.m4
+/off_t.m4
+/ssize_t.m4
+/sys_types_h.m4

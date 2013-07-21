@@ -29,79 +29,73 @@ Type *Type::errorType  = new Type("error");
  * Implementation of Type class
  */
 
-Type::Type(const char *n) 
-{
+Type::Type(const char *n) {
   Assert(n);
   typeName = strdup(n);
 }
 
-void Type::PrintChildren(int indentLevel) 
-{
+void Type::PrintChildren(int indentLevel) {
   printf("%s", typeName);
 }
-
 
 /* Class: NamedType
  * ----------------
  * Implementation of NamedType class
  */
 
-NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) 
-{
+NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
   Assert(i != NULL);
   (id = i)->SetParent(this);
 } 
 
-void NamedType::PrintChildren(int indentLevel) 
-{
+void NamedType::PrintChildren(int indentLevel) {
   id->Print(indentLevel + 1);
 }
 
-bool NamedType::Check(SymTable *env)
-{
-  if (!env->find(id->getName()))
-    {
-      return false;
-    }
-
+bool NamedType::Check(SymTable *env) {
+  if (!env->find(id->getName())) {
+    return false;
+  }
   return true;
 }
 
-bool NamedType::IsConvertableTo(Type *other)
-{
+bool NamedType::IsConvertableTo(Type *other) {
   Symbol *thisSym = NULL;
   ClassDecl *classDecl = NULL;
   char *otherName = other->GetName();
 
-  if (other->IsBuiltin())
+  if (other->IsBuiltin()) {
     return false;
+  {
 
-  if (IsEquivalentTo(other))
+  if (IsEquivalentTo(other)) {
     return true;
+  }
 
-  if ((thisSym = globalEnv->find(id->getName(), S_CLASS)) == NULL)
+  if ((thisSym = globalEnv->find(id->getName(), S_CLASS)) == NULL) {
     return false;
+  }
 
   classDecl = dynamic_cast<ClassDecl*>(thisSym->getNode());
   Assert(classDecl != 0);
 
-  if (classDecl->ImplementsInterface(otherName))
+  if (classDecl->ImplementsInterface(otherName)) {
     return true;
+  }
 
-  if (thisSym->getEnv()->subclassOf(otherName))
+  if (thisSym->getEnv()->subclassOf(otherName)) {
     return true;
+  }
 
-   return false;
+  return false;
 }
 
-bool NamedType::IsEquivalentTo(Type *other)
-{
+bool NamedType::IsEquivalentTo(Type *other) {
   NamedType *nOther = NULL;
-
   nOther = dynamic_cast<NamedType*>(other);
-  if (nOther == 0)
+  if (nOther == 0) {
     return false;
-
+  }
   return (strcmp(id->getName(), nOther->GetName()) == 0);
 }
 
@@ -110,61 +104,52 @@ bool NamedType::IsEquivalentTo(Type *other)
  * Implementation of ArrayType class
  */
 
-ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) 
-{
+ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
   Assert(et != NULL);
   (elemType = et)->SetParent(this);
 }
 
-void ArrayType::PrintChildren(int indentLevel) 
-{
+void ArrayType::PrintChildren(int indentLevel) {
   elemType->Print(indentLevel + 1);
 }
 
-bool ArrayType::Check(SymTable *env)
-{
+bool ArrayType::Check(SymTable *env) {
   return elemType->Check(env);
 }
 
-bool ArrayType::IsConvertableTo(Type *other)
-{
-  ArrayType *nOther = NULL;
-
-  if (other->IsEquivalentTo(Type::errorType))
+bool ArrayType::IsConvertableTo(Type *other) {
+  if (other->IsEquivalentTo(Type::errorType)) {
     return true;
+  }
 
-  nOther = dynamic_cast<ArrayType*>(other);
-  if (nOther == 0)
+  Arraytype *nOther = dynamic_cast<ArrayType*>(other);
+  if (nOther == 0) {
     return false;
+  }
 
   return elemType->IsEquivalentTo(nOther->getElemType());
 }
 
-
-bool ArrayType::IsEquivalentTo(Type *other)
-{
-  ArrayType *nOther = NULL;
-
-  nOther = dynamic_cast<ArrayType*>(other);
-  if (nOther == 0)
+bool ArrayType::IsEquivalentTo(Type *other) {
+  ArrayType *nOther = dynamic_cast<ArrayType*>(other);
+  if (nOther == 0) {
     return false;
-
+  }
   return elemType->IsEquivalentTo(nOther->getElemType());
 }
 
 #ifdef LATTE_COMPILER
 FunctionType::FunctionType(yyltype loc, Type *rt, List<Type*> *ft)
-  : Type(loc)
-{
+    : Type(loc) {
   Assert(rt != NULL && ft != NULL);
-
   (returnType = rt)->SetParent(this);
   (formalsTypes = ft)->SetParentAll(this);
 }
 
-void FunctionType::FunctionType(int indentLevel)
-{
+void FunctionType::FunctionType(int indentLevel) {
   returnType->Print(indentLevel + 1);
   formalsTypes->PrintAll(indentLevel + 1, "(formals) ");
 }
 #endif
+
+/* vim: set ai ts=2 sts=2 sw=2 et: */
