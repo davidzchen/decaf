@@ -26,192 +26,168 @@ class VFunction;
 class FnDecl;
 
 class Decl : public Node {
-  protected:
-    Identifier *id;
+ public:
+  Decl(Identifier *name);
+  friend ostream& operator<<(ostream& out, Decl *d) {
+    return out << d->id_;
+  }
+  void PrintToStream(ostream& out) { out << id_; }
+  virtual bool CheckDecls(SymTable *env) { return true; }
+  virtual bool Check(SymTable *env) { return true; }
+  virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,
+                    SymTable *env) { }
+  virtual Type* GetType() { return NULL; }
+  char *GetName() { return id_->name(); }
 
-  public:
-    Decl(Identifier *name);
-    friend ostream& operator<<(ostream& out, Decl *d)
-    {
-      return out << d->id;
-    }
-    void PrintToStream(ostream& out) { out << id; }
-    virtual bool CheckDecls(SymTable *env) { return true; }
-    virtual bool Check(SymTable *env) { return true; }
-    virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                      SymTable *env) { }
-    virtual Type *GetType() { return NULL; }
-    char *GetName() { return id->name(); }
+ protected:
+  Identifier* id_;
 };
 
-class VarDecl : public Decl 
-{
-  protected:
-    Type *type;
-    
-  public:
-    VarDecl(Identifier *name, Type *type);
-    const char *GetPrintNameForNode()
-    {
-      return "VarDecl";
-    }
-    void PrintChildren(int indentLevel);
-    bool CheckDecls(SymTable *env);
-    bool Check(SymTable *env);
-    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
-    Type *GetType() { return type; }
+class VarDecl : public Decl { 
+ public:
+  VarDecl(Identifier* name, Type* type);
+  const char* GetPrintNameForNode() {
+    return "VarDecl";
+  }
+  void PrintChildren(int indentLevel);
+  bool CheckDecls(SymTable* env);
+  bool Check(SymTable* env);
+  void Emit(FrameAllocator* falloc, CodeGenerator* codegen, SymTable* env);
+  Type* GetType() { return type_; }
+ 
+ protected:
+  Type* type_;
 };
 
-class ClosureDecl : public VarDecl
-{
-  protected:
-    List<VarDecl*> *formals;
-    Type *returnType;
+class ClassDecl : public Decl {
+ public:
+  ClassDecl(Identifier *name, NamedType *extends, 
+            List<NamedType*> *implements, List<Decl*> *members);
+  const char *GetPrintNameForNode() {
+    return "ClassDecl";
+  }
+  Identifier *GetIdent() { return id_; }
+  List<FnDecl*> *GetVTable() { return vTable; }
+  List<VarDecl*> *GetFields() { return fields; }
+  FrameAllocator *GetFalloc() { return classFalloc; }
 
-  public:
-    ClosureDecl(Identifier *n, Type *t, List<VarDecl*> *d);
-    const char *GetPrintNameForNode()
-    {
-      return "ClosureDecl";
-    }
-    void PrintChildren(int indentLevel);
-    List<VarDecl*> *GetFormals() { return formals; }
-    Type *GetType() { return returnType; }
+  void PrintChildren(int indentLevel);
+  bool CheckDecls(SymTable *env);
+  bool Inherit(SymTable *env);
+  bool ImplementsInterface(char *name);
+  bool Check(SymTable *env);
 
-    bool CheckDecls(SymTable *env);
-    bool Check(SymTable *env);
-    void Emit(FrameAllocator *falloc, CodeGenerator *codege, SymTable *env);
+  void EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
+                 SymTable *env);
+  void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
+
+  int NumFields() { return numFields; }
+  char* GetClassLabel() { return classLabel; }
+ 
+ private:
+  bool CheckAgainstParents(SymTable *env);
+  bool CheckAgainstInterfaces(SymTable *env);
+ 
+ protected:
+  // Fields and methods
+  List<Decl*>* members;
+  // Parent class, if any
+  NamedType* extends;
+  // List of interfaces implemented
+  List<NamedType*>* implements;
+
+  // Set and used for semantic checking
+  
+  // Symbol table for class
+  SymTable* classEnv;
+  // Hash table of interface methods
+  Hashtable<VFunction*>* vFunctions;
+
+  // Pointer to ClassDecl for parent class, NULL if no parent class
+  // Set during semantic checking, used during IR generation
+  ClassDecl* parent;
+
+  // Set and used for IR Generation
+  
+  // Frame allocator for class variables
+  FrameAllocator *classFalloc;
+  // List of methods for vtable gen
+  List<FnDecl*> *vTable;
+  // List of fields
+  List<VarDecl*> *fields;
+  int numFields;
+  char *classLabel;
+  List<FnDecl*> *methodsToEmit;
 };
 
-class ClassDecl : public Decl 
-{
-  protected:
-    List<Decl*> *members;                 // Fields and methods
-    NamedType *extends;                   // Parent class, if any
-    List<NamedType*> *implements;         // List of interfaces implemented
-
-    // Set and used for semantic checking
-    SymTable *classEnv;                   // Symbol table for class
-    Hashtable<VFunction*> *vFunctions;    // Hash table of interface methods
-
-    // Pointer to ClassDecl for parent class, NULL if no parent class
-    // Set during semantic checking, used during IR generation
-    ClassDecl *parent;
-
-    // Set and used for IR Generation
-    FrameAllocator *classFalloc;          // Frame allocator for class variables
-    List<FnDecl*> *vTable;                 // List of methods for vtable gen
-    List<VarDecl*> *fields;                // List of fields
-    int numFields;
-    char *classLabel;
-    List<FnDecl*> *methodsToEmit;
-
-  private:
-    bool CheckAgainstParents(SymTable *env);
-    bool CheckAgainstInterfaces(SymTable *env);
-
-  public:
-    ClassDecl(Identifier *name, NamedType *extends, 
-              List<NamedType*> *implements, List<Decl*> *members);
-    const char *GetPrintNameForNode()
-    {
-      return "ClassDecl";
-    }
-    Identifier *GetIdent() { return id; }
-    List<FnDecl*> *GetVTable() { return vTable; }
-    List<VarDecl*> *GetFields() { return fields; }
-    FrameAllocator *GetFalloc() { return classFalloc; }
-
-    void PrintChildren(int indentLevel);
-    bool CheckDecls(SymTable *env);
-    bool Inherit(SymTable *env);
-    bool ImplementsInterface(char *name);
-    bool Check(SymTable *env);
-
-    void EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
-                   SymTable *env);
-    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
-
-    int NumFields() { return numFields; }
-    char *GetClassLabel() { return classLabel; }
+class InterfaceDecl : public Decl { 
+ public:
+  InterfaceDecl(Identifier *name, List<Decl*> *members);
+  const char *GetPrintNameForNode() {
+    return "InterfaceDecl";
+  }
+  void PrintChildren(int indentLevel);
+  bool CheckDecls(SymTable *env);
+  bool Check(SymTable *env);
+  void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
+  List<Decl*> *getMembers() { return members; }
+ 
+ protected:
+  List<Decl*> *members;
+  SymTable *interfaceEnv;
 };
 
+class FnDecl : public Decl { 
+ public:
+  FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
+  void SetFunctionBody(Stmt *b);
+  const char *GetPrintNameForNode() {
+    return "FnDecl";
+  }
+  void PrintChildren(int indentLevel);
+  bool CheckDecls(SymTable *env);
+  bool Check(SymTable *env);
+  void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
+  void EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
+                  CodeGenerator *codegen, SymTable *env);
+  Type *GetReturnType() { return returnType; }
+  Type *GetType() { return returnType; }
+  List<VarDecl*> *GetFormals() { return formals; }
+  bool PrototypeEqual(FnDecl *fn);
+  bool TypeEqual(FnDecl *fn);
 
+  const char *GetMethodLabel() { return methodLabel; }
+  void SetMethodLabel(char *classLabel);
+  const char *GetFunctionLabel() { return functionLabel; }
+  bool IsMethod() { return (methodLabel != NULL); }
+  int GetMethodOffset() { return methodOffset; }
+  void SetMethodOffset(int off) { methodOffset = off; }
+ 
+ protected:
+  List<VarDecl*> *formals;
+  Type *returnType;
+  Stmt *body;
+  SymTable *fnEnv;
 
-class InterfaceDecl : public Decl 
-{
-  protected:
-    List<Decl*> *members;
-    SymTable *interfaceEnv;
-    
-  public:
-    InterfaceDecl(Identifier *name, List<Decl*> *members);
-    const char *GetPrintNameForNode()
-    {
-      return "InterfaceDecl";
-    }
-    void PrintChildren(int indentLevel);
-    bool CheckDecls(SymTable *env);
-    bool Check(SymTable *env);
-    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
-    List<Decl*> *getMembers() { return members; }
+  FrameAllocator *paramFalloc;
+  FrameAllocator *bodyFalloc;
+  char *methodLabel;
+  char *functionLabel;
+  int methodOffset;
 };
 
-class FnDecl : public Decl 
-{
-  protected:
-    List<VarDecl*> *formals;
-    Type *returnType;
-    Stmt *body;
-    SymTable *fnEnv;
+class VFunction {
+ public:
+  VFunction(FnDecl *p, NamedType *type);
+  FnDecl *getPrototype() { return prototype; }
+  NamedType *getIntfType() { return intfType; }
+  bool isImplemented() { return implemented; }
+  void setImplemented(bool im) { implemented = im; }
 
-    FrameAllocator *paramFalloc;
-    FrameAllocator *bodyFalloc;
-    char *methodLabel;
-    char *functionLabel;
-    int methodOffset;
-    
-  public:
-    FnDecl(Identifier *name, Type *returnType,
-           List<VarDecl*> *formals);
-    void SetFunctionBody(Stmt *b);
-    const char *GetPrintNameForNode()
-    {
-      return "FnDecl";
-    }
-    void PrintChildren(int indentLevel);
-    bool CheckDecls(SymTable *env);
-    bool Check(SymTable *env);
-    void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
-    void EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
-                    CodeGenerator *codegen, SymTable *env);
-    Type *GetReturnType() { return returnType; }
-    Type *GetType() { return returnType; }
-    List<VarDecl*> *GetFormals() { return formals; }
-    bool PrototypeEqual(FnDecl *fn);
-    bool TypeEqual(FnDecl *fn);
-
-    const char *GetMethodLabel() { return methodLabel; }
-    void SetMethodLabel(char *classLabel);
-    const char *GetFunctionLabel() { return functionLabel; }
-    bool IsMethod() { return (methodLabel != NULL); }
-    int GetMethodOffset() { return methodOffset; }
-    void SetMethodOffset(int off) { methodOffset = off; }
-};
-
-class VFunction
-{
-  protected:
-    FnDecl *prototype;
-    NamedType *intfType;
-    bool implemented;
-
-  public:
-    VFunction(FnDecl *p, NamedType *type);
-    FnDecl *getPrototype() { return prototype; }
-    NamedType *getIntfType() { return intfType; }
-    bool isImplemented() { return implemented; }
-    void setImplemented(bool im) { implemented = im; }
+ protected:
+  FnDecl *prototype;
+  NamedType *intfType;
+  bool implemented;
 };
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */
