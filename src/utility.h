@@ -4,8 +4,8 @@
  * helpful in writing the projects (error handling, debug printing)
  */
 
-#ifndef _H_utility
-#define _H_utility
+#ifndef DCC_UTILITY_H__
+#define DCC_UTILITY_H__
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@ enum {
   TEST_ALL,
 };
 
-extern int testFlag;
+extern int kTestFlag;
 
 #define __DEBUG_TAC 1
 
@@ -105,4 +105,4 @@ void ParseCommandLine(int argc, char *argv[]);
 int xtoi(const char *s);
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */
-#endif
+#endif /* DCC_UTILITY_H__ */

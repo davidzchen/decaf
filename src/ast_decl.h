@@ -10,8 +10,8 @@
  * and managing scoping issues.
  */
 
-#ifndef _H_ast_decl
-#define _H_ast_decl
+#ifndef DCC_AST_DECL_H__
+#define DCC_AST_DECL_H__
 
 #include "ast.h"
 #include "ast_decl.h"
@@ -25,8 +25,7 @@ class Stmt;
 class VFunction;
 class FnDecl;
 
-class Decl : public Node 
-{
+class Decl : public Node {
   protected:
     Identifier *id;
 
@@ -42,7 +41,7 @@ class Decl : public Node
     virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                       SymTable *env) { }
     virtual Type *GetType() { return NULL; }
-    char *GetName() { return id->getName(); }
+    char *GetName() { return id->name(); }
 };
 
 class VarDecl : public Decl 
@@ -215,4 +214,5 @@ class VFunction
     void setImplemented(bool im) { implemented = im; }
 };
 
-#endif
+/* vim: set ai ts=2 sts=2 sw=2 et: */
+#endif /* DCC_AST_DECL_H__ */

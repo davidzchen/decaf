@@ -11,7 +11,7 @@
 #include "errors.h"
 #include "dcc.h"
 
-int testFlag = 0;
+int kTestFlag = 0;
 
 /* Function: main()
  * ----------------

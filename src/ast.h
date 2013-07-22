@@ -33,11 +33,12 @@
  * semantic rules that apply to that construct.
  */
 
-#ifndef _H_ast
-#define _H_ast
+#ifndef DCC_AST_H__
+#define DCC_AST_H__
 
 #include <iostream>
 #include <stdlib.h>   // for NULL
+
 #include "location.h"
 #include "symtable.h"
 #include "codegen.h"
@@ -50,42 +51,43 @@ using namespace std;
 class SymTable;
 
 class Node {
- protected:
-  yyltype *location;
-  Node *parent;
-
  public:
   Node(yyltype loc);
   Node();
   virtual ~Node() {}
   
-  yyltype *GetLocation()   { return location; }
-  void SetParent(Node *p)  { parent = p; }
-  Node *GetParent()        { return parent; }
+  yyltype* location() { return location_; }
+  Node* parent() { return parent_; }
+  
+  void set_parent(Node* parent) { parent_ = parent; }
 
-  virtual const char *GetPrintNameForNode() = 0;
+  virtual const char* GetPrintNameForNode() = 0;
   
   // Print() is deliberately _not_ virtual
   // subclasses should override PrintChildren() instead
-  void Print(int indentLevel, const char *label = NULL); 
-  virtual void PrintChildren(int indentLevel)  {}
-  virtual bool Check(SymTable *env) { return true; }
+  void Print(int indentLevel, const char* label = NULL); 
+  virtual void PrintChildren(int indentLevel) {}
+  virtual bool Check(SymTable* env) { return true; }
+ 
+ protected:
+  yyltype* location_;
+  Node* parent_;
 };
    
-class Identifier : public Node {
- protected:
-  char *name;
-    
+class Identifier : public Node { 
  public:
-  Identifier(yyltype loc, const char *name);
-  const char *GetPrintNameForNode() { return "Identifier"; }
+  Identifier(yyltype loc, const char* name);
+  const char* GetPrintNameForNode() { return "Identifier"; }
   void PrintChildren(int indentLevel);
-  friend ostream& operator<<(ostream& out, Identifier *id) {
-    return out << id->name;
+  friend ostream& operator<<(ostream& out, Identifier* id) {
+    return out << id->name_;
   }
-  char *getName() { return name; }
+  char* name() { return name_; }
   bool Check(SymTable *env);
   bool Check(SymTable *env, int type);
+ 
+ protected:
+  char* name_;
 };
 
 // This node class is designed to represent a portion of the tree that 
@@ -96,9 +98,9 @@ class Identifier : public Node {
 class Error : public Node {
  public:
   Error() : Node() {}
-  const char *GetPrintNameForNode() { return "Error"; }
+  const char* GetPrintNameForNode() { return "Error"; }
   bool check(SymTable *env) { return true; }
 };
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */
-#endif
+#endif /* DCC_AST_H__ */

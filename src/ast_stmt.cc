@@ -188,8 +188,8 @@ void StmtBlock::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
   Assert(t != NULL && b != NULL);
-  (test = t)->SetParent(this);
-  (body = b)->SetParent(this);
+  (test = t)->set_parent(this);
+  (body = b)->set_parent(this);
 }
 
 /* Class: CaseStmt
@@ -199,7 +199,7 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 
 CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList) {
   Assert(intConst != NULL && stmtList != NULL);
-  (ic = intConst)->SetParent(this);
+  (ic = intConst)->set_parent(this);
   (stmts = stmtList)->SetParentAll(this);
   caseEnv = NULL;
 }
@@ -289,9 +289,9 @@ void DefaultStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 SwitchStmt::SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts, 
 		                   DefaultStmt *defaultStmt) {
   Assert(testExpr != NULL && caseStmts != NULL && defaultStmt != NULL);
-  (test = testExpr)->SetParent(this);
+  (test = testExpr)->set_parent(this);
   (cases = caseStmts)->SetParentAll(this);
-  (defaultCase = defaultStmt)->SetParent(this);
+  (defaultCase = defaultStmt)->set_parent(this);
 }
 
 void SwitchStmt::PrintChildren(int indentLevel) {
@@ -337,8 +337,8 @@ void SwitchStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b) : LoopStmt(t, b) { 
   Assert(i != NULL && t != NULL && s != NULL && b != NULL);
-  (init = i)->SetParent(this);
-  (step = s)->SetParent(this);
+  (init = i)->set_parent(this);
+  (step = s)->set_parent(this);
 }
 
 void ForStmt::PrintChildren(int indentLevel) {
@@ -435,7 +435,7 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
   Assert(t != NULL && tb != NULL); // else can be NULL
   elseBody = eb;
   if (elseBody) {
-    elseBody->SetParent(this);
+    elseBody->set_parent(this);
   }
 }
 
@@ -516,7 +516,7 @@ void BreakStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
   Assert(e != NULL);
-  (expr = e)->SetParent(this);
+  (expr = e)->set_parent(this);
 }
 
 void ReturnStmt::PrintChildren(int indentLevel) {

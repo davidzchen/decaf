@@ -87,27 +87,27 @@ void Operator::PrintChildren(int indentLevel) {
  */
 
 CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r) 
-    : Expr(Join(l->GetLocation(), r->GetLocation())) {
+    : Expr(Join(l->location(), r->location())) {
   Assert(l != NULL && o != NULL && r != NULL);
-  (op = o)->SetParent(this);
-  (left = l)->SetParent(this);
-  (right = r)->SetParent(this);
+  (op = o)->set_parent(this);
+  (left = l)->set_parent(this);
+  (right = r)->set_parent(this);
 }
 
 CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
-    : Expr(Join(o->GetLocation(), r->GetLocation())) {
+    : Expr(Join(o->location(), r->location())) {
   Assert(o != NULL && r != NULL);
   left = NULL; 
-  (op = o)->SetParent(this);
-  (right = r)->SetParent(this);
+  (op = o)->set_parent(this);
+  (right = r)->set_parent(this);
 }
 
 CompoundExpr::CompoundExpr(Expr *l, Operator *o)
-    : Expr(Join(l->GetLocation(), o->GetLocation())) {
+    : Expr(Join(l->location(), o->location())) {
   Assert(l != NULL && o != NULL);
   right = NULL;
-  (left = l)->SetParent(this);
-  (op = o)->SetParent(this);
+  (left = l)->set_parent(this);
+  (op = o)->set_parent(this);
 }
 
 void CompoundExpr::PrintChildren(int indentLevel) {
@@ -441,8 +441,8 @@ void This::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
  */
   
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
-  (base=b)->SetParent(this); 
-  (subscript=s)->SetParent(this);
+  (base=b)->set_parent(this); 
+  (subscript=s)->set_parent(this);
 }
 
 void ArrayAccess::PrintChildren(int indentLevel) {
@@ -485,7 +485,7 @@ void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   Location *upperTest = codegen->GenBinaryOp(falloc, strdup(">="), subscript->GetFrameLocation(), arraySize);
   Location *boundTest = codegen->GenBinaryOp(falloc, strdup("||"), lowerTest, upperTest);
   codegen->GenIfZ(boundTest, afterLabel);
-  codegen->GenPrintError(falloc, err_arr_out_of_bounds);
+  codegen->GenPrintError(falloc, kErrorArrOutOfBounds);
   codegen->GenLabel(afterLabel);
   Location *one = codegen->GenLoadConstant(falloc, 1);
   Location *four = codegen->GenLoadConstant(falloc, 4);
@@ -507,13 +507,13 @@ void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  */
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
-  : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) {
+    : LValue(b? Join(b->location(), f->location()) : *f->location()) {
   Assert(f != NULL); // b can be be NULL (just means no explicit base)
   base = b; 
   if (base) {
-    base->SetParent(this); 
+    base->set_parent(this); 
   }
-  (field = f)->SetParent(this);
+  (field = f)->set_parent(this);
 }
 
 void FieldAccess::PrintChildren(int indentLevel) {
@@ -526,9 +526,9 @@ void FieldAccess::PrintChildren(int indentLevel) {
 bool FieldAccess::Check(SymTable *env) {
   bool ret = true;
   if (!base) {
-    Symbol *sym = env->find(field->getName(), S_VARIABLE);
+    Symbol *sym = env->find(field->name(), S_VARIABLE);
     if (sym == NULL) {
-      ReportError::IdentifierNotDeclared(field, LookingForVariable);
+      ReportError::IdentifierNotDeclared(field, kLookingForVariable);
       SetRetType(Type::errorType);
       return false;
     }
@@ -548,7 +548,7 @@ bool FieldAccess::Check(SymTable *env) {
 
     // Check whether field is indeed a field of base
     Symbol *sym = NULL;
-    if ((sym = env->findClassField(baseType->GetName(), field->getName(), S_VARIABLE)) == NULL) {
+    if ((sym = env->findClassField(baseType->GetName(), field->name(), S_VARIABLE)) == NULL) {
       ReportError::FieldNotFoundInBase(field, baseType);
       SetRetType(Type::errorType);
       return false;
@@ -567,7 +567,7 @@ bool FieldAccess::Check(SymTable *env) {
       FieldAccess *baseFieldAccess = dynamic_cast<FieldAccess*>(base);
       Assert(baseFieldAccess != 0);
 
-      if (strcmp(classDecl->GetIdent()->getName(),
+      if (strcmp(classDecl->GetIdent()->name(),
                  base->GetRetType()->GetName()) != 0) {
         ReportError::InaccessibleField(field, base->GetRetType());
         SetRetType(Type::errorType);
@@ -591,11 +591,11 @@ bool FieldAccess::Check(SymTable *env) {
 void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                        SymTable *env) {
   if (!base) {
-    Symbol *sym = env->find(field->getName(), S_VARIABLE);
+    Symbol *sym = env->find(field->name(), S_VARIABLE);
     Location *loc = sym->getLocation();
 
 #ifdef __DEBUG_TAC
-    PrintDebug("tac", "Var Access\t%s @ %d:%d\n", field->getName(),
+    PrintDebug("tac", "Var Access\t%s @ %d:%d\n", field->name(),
                loc->GetSegment(), loc->GetOffset());
 #endif
 
@@ -633,13 +633,13 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
     Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
     Assert(classSym != NULL);
 
-    Symbol *fieldSym = classSym->getEnv()->find(field->getName(), S_VARIABLE);
+    Symbol *fieldSym = classSym->getEnv()->find(field->name(), S_VARIABLE);
     Location *fieldLoc = fieldSym->getLocation();
     Assert(fieldLoc->GetSegment() == classRelative);
 
 #ifdef __DEBUG_TAC
     PrintDebug("tac", "Var access with base\t%s::%s @ %d:%d\n",
-        base->GetRetType()->GetName(), field->getName(),
+        base->GetRetType()->GetName(), field->name(),
         fieldLoc->GetSegment(), fieldLoc->GetOffset());
 #endif
 
@@ -661,10 +661,10 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc) {
   Assert(f != NULL && a != NULL); // b can be be NULL (just means no explicit base)
   base = b;
   if (base) {
-    base->SetParent(this);
+    base->set_parent(this);
   }
-  (field=f)->SetParent(this);
-  (actuals=a)->SetParentAll(this);
+  (field = f)->set_parent(this);
+  (actuals = a)->SetParentAll(this);
 }
 
 void Call::PrintChildren(int indentLevel) {
@@ -714,9 +714,9 @@ bool Call::Check(SymTable *env) {
   ret &= CheckActuals(env);
 
   if (!base) {
-    Symbol *sym = env->find(field->getName(), S_FUNCTION);
+    Symbol *sym = env->find(field->name(), S_FUNCTION);
     if (sym == NULL) {
-      ReportError::IdentifierNotDeclared(field, LookingForFunction);
+      ReportError::IdentifierNotDeclared(field, kLookingForFunction);
       SetRetType(Type::errorType);
       return false;
     }
@@ -727,7 +727,7 @@ bool Call::Check(SymTable *env) {
   } else {
     ret &= base->Check(env);
     if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
-        strcmp(field->getName(), "length") == 0) {
+        strcmp(field->name(), "length") == 0) {
       SetRetType(Type::intType);
       return ret;
     }
@@ -747,7 +747,7 @@ bool Call::Check(SymTable *env) {
 
     // Check whether field is indeed a field of base
     Symbol *sym = NULL;
-    if ((sym = env->findClassField(baseType->GetName(), field->getName(), S_FUNCTION)) == NULL) {
+    if ((sym = env->findClassField(baseType->GetName(), field->name(), S_FUNCTION)) == NULL) {
       ReportError::FieldNotFoundInBase(field, baseType);
       SetRetType(Type::errorType);
       return false;
@@ -793,10 +793,10 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
   if (!base)
   {
 #ifdef __DEBUG_TAC
-    PrintDebug("tac", "Call %s\n", field->getName());
+    PrintDebug("tac", "Call %s\n", field->name());
 #endif
 
-    fnSym = env->find(field->getName(), S_FUNCTION);
+    fnSym = env->find(field->name(), S_FUNCTION);
     Assert(fnSym != NULL);
     fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
     Assert(fnDecl != 0);
@@ -827,14 +827,14 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
     base->Emit(falloc, codegen, env);
 
     if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
-        strcmp(field->getName(), "length") == 0) {
+        strcmp(field->name(), "length") == 0) {
       frameLocation = codegen->GenLoad(falloc, base->GetFrameLocation(), 0);
       return;
     }
 
     Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
     Assert(classSym != NULL);
-    fnSym = classSym->getEnv()->find(field->getName(), S_FUNCTION);
+    fnSym = classSym->getEnv()->find(field->name(), S_FUNCTION);
     Assert(fnSym != NULL);
     fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
     Assert(fnDecl != 0);
@@ -866,7 +866,7 @@ void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
 
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
   Assert(c != NULL);
-  (cType=c)->SetParent(this);
+  (cType=c)->set_parent(this);
 }
 
 void NewExpr::PrintChildren(int indentLevel) {	
@@ -877,7 +877,7 @@ bool NewExpr::Check(SymTable *env) {
   bool ret = true;
   ret &= cType->Check(env);
   if (!ret) {
-    ReportError::IdentifierNotDeclared(cType->GetIdent(), LookingForClass);
+    ReportError::IdentifierNotDeclared(cType->GetIdent(), kLookingForClass);
     SetRetType(Type::errorType);
   } else {
     SetRetType(cType);
@@ -910,8 +910,8 @@ void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
   Assert(sz != NULL && et != NULL);
-  (size=sz)->SetParent(this); 
-  (elemType=et)->SetParent(this);
+  (size=sz)->set_parent(this); 
+  (elemType=et)->set_parent(this);
 }
 
 void NewArrayExpr::PrintChildren(int indentLevel) {
@@ -933,11 +933,11 @@ bool NewArrayExpr::Check(SymTable *env)
   ret &= elemType->Check(env);
   if (!ret) {
     if (elemType->GetIdent() != NULL) {
-      ReportError::IdentifierNotDeclared(elemType->GetIdent(), LookingForType);
+      ReportError::IdentifierNotDeclared(elemType->GetIdent(), kLookingForType);
     }
     SetRetType(Type::errorType);
   } else {
-    SetRetType(new ArrayType(*location, elemType));
+    SetRetType(new ArrayType(*location_, elemType));
   }
 
   return ret;
@@ -959,7 +959,7 @@ void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   Location *sizeTest = codegen->GenBinaryOp(falloc, strdup("<="),
       size->GetFrameLocation(), zero);
   codegen->GenIfZ(sizeTest, afterLabel);
-  codegen->GenPrintError(falloc, err_arr_bad_size);
+  codegen->GenPrintError(falloc, kErrorArrBadSize);
 
   /* AfterLabel:
    * _t3 = 1;

@@ -17,12 +17,12 @@
 
 using std::vector;
 
-static vector<const char*> debugKeys;
-static const int BufferSize = 2048;
+static vector<const char*> kDebugKeys;
+static const int kBufferSize = 2048;
 
 void Failure(const char *format, ...)  {
   va_list args;
-  char errbuf[BufferSize];
+  char errbuf[kBufferSize];
   va_start(args, format);
   vsprintf(errbuf, format, args);
   va_end(args);
@@ -32,8 +32,8 @@ void Failure(const char *format, ...)  {
 }
 
 int IndexOf(const char *key)  {
-  for (unsigned int i = 0; i < debugKeys.size(); i++) {
-    if (!strcmp(debugKeys[i], key)) {
+  for (unsigned int i = 0; i < kDebugKeys.size(); ++i) {
+    if (!strcmp(kDebugKeys[i], key)) {
       return i;
     }
   }
@@ -47,16 +47,15 @@ bool IsDebugOn(const char *key) {
 void SetDebugForKey(const char *key, bool value) {
   int k = IndexOf(key);
   if (!value && k != -1) {
-    debugKeys.erase(debugKeys.begin() + k);
+    kDebugKeys.erase(kDebugKeys.begin() + k);
   } else if (value && k == -1) {
-    debugKeys.push_back(key);
+    kDebugKeys.push_back(key);
   }
 }
 
 void PrintDebug(const char *key, const char *format, ...) {
   va_list args;
-  char buf[BufferSize];
-
+  char buf[kBufferSize];
   if (!IsDebugOn(key)) {
     return;
   }
@@ -71,13 +70,13 @@ void ParseCommandLine(int argc, char *argv[]) {
   int c;
   char *dvalue = NULL;
   char *tvalue = NULL;
-  testFlag = TEST_ALL;
+  kTestFlag = TEST_ALL;
 
   while ((c = getopt(argc, argv, "d:t:")) != -1 || optind < argc) {
     switch (c) {
      case -1:
       //printf("Non-option argument %s\n", argv[optind]);
-      optind++;
+      ++optind;
       break;
      case 'd':
       SetDebugForKey(optarg, true);
@@ -85,11 +84,11 @@ void ParseCommandLine(int argc, char *argv[]) {
      case 't':
       tvalue = optarg;
       if (strcmp(optarg, "scanner") == 0) {
-        testFlag = TEST_SCANNER;
+        kTestFlag = TEST_SCANNER;
       } else if (strcmp(optarg, "parser") == 0) {
-        testFlag = TEST_PARSER;
+        kTestFlag = TEST_PARSER;
       } else if (strcmp(optarg, "semantic") == 0) {
-        testFlag = TEST_SEMANT;
+        kTestFlag = TEST_SEMANT;
       } else {
         fprintf(stderr, "Unknown test option %s\n", optarg);
       }

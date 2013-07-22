@@ -10,8 +10,8 @@
  * part, you will just use the class as given.
  */
 
-#ifndef ERRORS_H__
-#define ERRORS_H__
+#ifndef DCC_ERRORS_H__
+#define DCC_ERRORS_H__
 
 #include <string>
 #include <location.h>
@@ -50,12 +50,12 @@ class Operator;
  */
 
 typedef enum {
-  LookingForType, 
-  LookingForClass, 
-  LookingForInterface, 
-  LookingForVariable, 
-  LookingForFunction
-} reasonT;
+  kLookingForType, 
+  kLookingForClass, 
+  kLookingForInterface, 
+  kLookingForVariable, 
+  kLookingForFunction
+} LookingReason;
 
 class ReportError {
  public:
@@ -71,7 +71,7 @@ class ReportError {
   static void InterfaceNotImplemented(Decl *classDecl, Type *intfType);
 
   // Errors used by semantic analyzer for identifiers
-  static void IdentifierNotDeclared(Identifier *ident, reasonT whyNeeded);
+  static void IdentifierNotDeclared(Identifier *ident, LookingReason whyNeeded);
 
   // Errors used by semantic analyzer for expressions
   static void IncompatibleOperand(Operator *op, Type *rhs); // unary
@@ -105,17 +105,21 @@ class ReportError {
   static void Formatted(yyltype *loc, const char *format, ...);
 
   // Returns number of error messages printed
-  static int NumErrors() { return numErrors; }
+  static int NumErrors() { return num_errors_; }
 
  private:
   static void UnderlineErrorInLine(const char *line, yyltype *pos);
   static void OutputError(yyltype *loc, string msg);
-  static int numErrors;
+
+ private:
+  static int num_errors_;
 };
 
 // Wording to use for runtime error messages
-static const char* const err_arr_out_of_bounds = "Decaf runtime error: Array subscript out of bounds\\n";
-static const char* const err_arr_bad_size = "Decaf runtime error: Array size is <= 0\\n";
+static const char* const kErrorArrOutOfBounds = 
+    "Decaf runtime error: Array subscript out of bounds\\n";
+static const char* const kErrorArrBadSize = 
+    "Decaf runtime error: Array size is <= 0\\n";
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */
-#endif
+#endif /* DCC_ERRORS_H__ */

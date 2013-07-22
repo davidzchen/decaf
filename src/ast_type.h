@@ -58,7 +58,7 @@ class NamedType : public Type {
   const char *GetPrintNameForNode() { return "NamedType"; }
   void PrintChildren(int indentLevel);
   void PrintToStream(ostream& out) { out << id; }
-  char *GetName() { return id->getName(); }
+  char *GetName() { return id->name(); }
   Identifier *GetIdent() { return id; }
 
   bool Check(SymTable *env);

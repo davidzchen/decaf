@@ -15,9 +15,9 @@
  * Implementation of Decl class
  */
 
-Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
+Decl::Decl(Identifier *n) : Node(*n->location()) {
   Assert(n != NULL);
-  (id = n)->SetParent(this); 
+  (id = n)->set_parent(this); 
 }
 
 /* Class: VarDecl 
@@ -27,7 +27,7 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 
 VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
   Assert(n != NULL && t != NULL);
-  (type = t)->SetParent(this);
+  (type = t)->set_parent(this);
 }
   
 void VarDecl::PrintChildren(int indentLevel) { 
@@ -37,11 +37,11 @@ void VarDecl::PrintChildren(int indentLevel) {
 
 bool VarDecl::CheckDecls(SymTable *env) {
   Symbol *sym = NULL;
-  if ((sym = env->findLocal(id->getName())) != NULL) {
+  if ((sym = env->findLocal(id->name())) != NULL) {
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
     return false;
   }
-  if (!env->add(id->getName(), this)) {
+  if (!env->add(id->name(), this)) {
     return false;
   }
   return true;
@@ -53,7 +53,7 @@ bool VarDecl::Check(SymTable *env) {
 
   // If type is invalid, set type as error
   if (!ret) {
-    ReportError::IdentifierNotDeclared(type->GetIdent(), LookingForType);
+    ReportError::IdentifierNotDeclared(type->GetIdent(), kLookingForType);
     type = Type::errorType;
   }
 
@@ -62,12 +62,12 @@ bool VarDecl::Check(SymTable *env) {
 
 void VarDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, 
     SymTable *env) {
-  Location* loc = falloc->Alloc(id->getName(), 4);
-  Symbol* sym = env->find(id->getName(), S_VARIABLE);
+  Location* loc = falloc->Alloc(id->name(), 4);
+  Symbol* sym = env->find(id->name(), S_VARIABLE);
   sym->setLocation(loc);
 
 #ifdef __DEBUG_TAC
-  PrintDebug("tac", "Var Decl\t%s @ %d:%d\n", id->getName(), loc->GetSegment(), 
+  PrintDebug("tac", "Var Decl\t%s @ %d:%d\n", id->name(), loc->GetSegment(), 
       loc->GetOffset());
 #endif
 }
@@ -83,7 +83,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp,
   Assert(n != NULL && imp != NULL && m != NULL);     
   extends = ex;
   if (extends) { 
-    extends->SetParent(this);
+    extends->set_parent(this);
   }
   (implements = imp)->SetParentAll(this);
   (members = m)->SetParentAll(this);
@@ -108,11 +108,11 @@ void ClassDecl::PrintChildren(int indentLevel) {
 
 bool ClassDecl::CheckDecls(SymTable *env) {
   Symbol *sym = NULL;
-  if ((sym = env->findLocal(id->getName())) != NULL) {
+  if ((sym = env->findLocal(id->name())) != NULL) {
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
   }
 
-  if ((classEnv = env->addWithScope(id->getName(), this, S_CLASS)) == NULL) {
+  if ((classEnv = env->addWithScope(id->name(), this, S_CLASS)) == NULL) {
     return false;
   }
 
@@ -192,7 +192,7 @@ bool ClassDecl::CheckAgainstParents(SymTable *env) {
   // Check that parent exists
   if (extends) {
     if ((sym = env->find(extends->GetName())) == NULL) {
-      ReportError::IdentifierNotDeclared(extends->GetIdent(), LookingForClass);
+      ReportError::IdentifierNotDeclared(extends->GetIdent(), kLookingForClass);
       ret = false;
     }
   }
@@ -235,7 +235,7 @@ bool ClassDecl::CheckAgainstInterfaces(SymTable *env) {
   for (int i = 0; i < implements->NumElements(); i++) {
     NamedType *intf = implements->Nth(i);
     if ((sym = env->find(intf->GetName())) == NULL) {
-      ReportError::IdentifierNotDeclared(intf->GetIdent(), LookingForInterface);
+      ReportError::IdentifierNotDeclared(intf->GetIdent(), kLookingForInterface);
       ret = false;
     }
   }
@@ -299,7 +299,7 @@ void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
   }
 
 #ifdef __DEBUG_TAC
-  PrintDebug("tac", "ClassDecl %s\n", id->getName());
+  PrintDebug("tac", "ClassDecl %s\n", id->name());
 #endif
 
   // Recursively call Emit on the parent class to make sure that the vTable and
@@ -309,7 +309,7 @@ void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
   // placed after all inherited methods, we can begin at the offset set by
   // the parent's FrameAllocator
 
-  classLabel = codegen->NewClassLabel(id->getName());
+  classLabel = codegen->NewClassLabel(id->name());
 
   vTable = new List<FnDecl*>;
   fields = new List<VarDecl*>;
@@ -428,12 +428,12 @@ bool InterfaceDecl::CheckDecls(SymTable *env) {
   Symbol *sym = NULL;
   bool ret = true;
 
-  if ((sym = env->findLocal(id->getName())) != NULL) {
+  if ((sym = env->findLocal(id->name())) != NULL) {
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
     ret = false;
   }
 
-  interfaceEnv = env->addWithScope(id->getName(), this, S_INTERFACE);
+  interfaceEnv = env->addWithScope(id->name(), this, S_INTERFACE);
   if (interfaceEnv == false) {
     return false;
   }
@@ -470,7 +470,7 @@ void InterfaceDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 	
 FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
   Assert(n != NULL && r!= NULL && d != NULL);
-  (returnType = r)->SetParent(this);
+  (returnType = r)->set_parent(this);
   (formals = d)->SetParentAll(this);
   body = NULL;
   fnEnv = NULL;
@@ -483,7 +483,7 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
 }
 
 void FnDecl::SetFunctionBody(Stmt *b) {
-  (body = b)->SetParent(this);
+  (body = b)->set_parent(this);
 }
 
 void FnDecl::PrintChildren(int indentLevel) {
@@ -500,12 +500,12 @@ bool FnDecl::CheckDecls(SymTable *env) {
   Symbol *sym;
   bool ret = true;
 
-  if ((sym = env->findLocal(id->getName())) != NULL) {
+  if ((sym = env->findLocal(id->name())) != NULL) {
     ret = false;
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
   }
 
-  if ((fnEnv = env->addWithScope(id->getName(), this, S_FUNCTION)) == false) {
+  if ((fnEnv = env->addWithScope(id->name(), this, S_FUNCTION)) == false) {
     return false;
   }
 
@@ -565,7 +565,7 @@ bool FnDecl::PrototypeEqual(FnDecl *fn) {
     return false;
   }
 
-  if (strcmp(id->getName(), fn->GetName()) == 0) {
+  if (strcmp(id->name(), fn->GetName()) == 0) {
     return true;
   } else {
     return false;
@@ -579,10 +579,10 @@ void FnDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env)
   bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
 
 #ifdef __DEBUG_TAC
-  PrintDebug("tac", "FnDecl %s\n", id->getName());
+  PrintDebug("tac", "FnDecl %s\n", id->name());
 #endif
 
-  functionLabel = codegen->NewFunctionLabel(id->getName());
+  functionLabel = codegen->NewFunctionLabel(id->name());
   codegen->GenLabel(functionLabel);
   beginFn = codegen->GenBeginFunc();
   for (int i = 0; i < formals->NumElements(); i++) {
@@ -601,7 +601,7 @@ void FnDecl::EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
   bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
 
 #ifdef __DEBUG_TAC
-  PrintDebug("tac", "FnDecl Method %s::%s\n", classDecl->GetName(), id->getName());
+  PrintDebug("tac", "FnDecl Method %s::%s\n", classDecl->GetName(), id->name());
 #endif
 
   codegen->GenLabel(methodLabel);
@@ -621,13 +621,13 @@ void FnDecl::EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
 }
 
 void FnDecl::SetMethodLabel(char *classLabel) {
-  int len = strlen(classLabel) + strlen(id->getName()) + 2;
+  int len = strlen(classLabel) + strlen(id->name()) + 2;
   methodLabel = (char *) malloc(len);
   if (methodLabel == NULL) {
     Failure("FnDecl::SetMethodLabel(): Malloc out of memory");
   }
 
-  sprintf(methodLabel, "%s.%s", classLabel, id->getName());
+  sprintf(methodLabel, "%s.%s", classLabel, id->name());
   methodLabel[len - 1] = '\0';
 }
 

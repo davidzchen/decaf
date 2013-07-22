@@ -159,7 +159,7 @@ Program:
       // if no errors, advance to next phase
       if (ReportError::NumErrors() == 0)
         {
-          if (testFlag == TEST_PARSER)
+          if (kTestFlag == TEST_PARSER)
             {
               program->Print(0);
             }
@@ -173,7 +173,7 @@ Program:
             }
         }
         
-      if (testFlag > TEST_SEMANT && ReportError::NumErrors() == 0)
+      if (kTestFlag > TEST_SEMANT && ReportError::NumErrors() == 0)
         {
           program->Emit();
         }

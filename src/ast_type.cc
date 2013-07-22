@@ -43,9 +43,9 @@ void Type::PrintChildren(int indentLevel) {
  * Implementation of NamedType class
  */
 
-NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
+NamedType::NamedType(Identifier *i) : Type(*i->location()) {
   Assert(i != NULL);
-  (id = i)->SetParent(this);
+  (id = i)->set_parent(this);
 } 
 
 void NamedType::PrintChildren(int indentLevel) {
@@ -53,7 +53,7 @@ void NamedType::PrintChildren(int indentLevel) {
 }
 
 bool NamedType::Check(SymTable *env) {
-  if (!env->find(id->getName())) {
+  if (!env->find(id->name())) {
     return false;
   }
   return true;
@@ -72,7 +72,7 @@ bool NamedType::IsConvertableTo(Type *other) {
     return true;
   }
 
-  if ((thisSym = globalEnv->find(id->getName(), S_CLASS)) == NULL) {
+  if ((thisSym = globalEnv->find(id->name(), S_CLASS)) == NULL) {
     return false;
   }
 
@@ -96,7 +96,7 @@ bool NamedType::IsEquivalentTo(Type *other) {
   if (nOther == 0) {
     return false;
   }
-  return (strcmp(id->getName(), nOther->GetName()) == 0);
+  return (strcmp(id->name(), nOther->GetName()) == 0);
 }
 
 /* Class: ArrayType
@@ -106,7 +106,7 @@ bool NamedType::IsEquivalentTo(Type *other) {
 
 ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
   Assert(et != NULL);
-  (elemType = et)->SetParent(this);
+  (elemType = et)->set_parent(this);
 }
 
 void ArrayType::PrintChildren(int indentLevel) {

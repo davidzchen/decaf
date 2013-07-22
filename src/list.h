@@ -83,7 +83,7 @@ class List {
   // don't try to SetParentAll on that list.
   void SetParentAll(Node *p) {
     for (int i = 0; i < NumElements(); i++) {
-      Nth(i)->SetParent(p);
+      Nth(i)->set_parent(p);
     }
   }
 
