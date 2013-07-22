@@ -61,63 +61,63 @@ class VarDecl : public Decl {
 
 class ClassDecl : public Decl {
  public:
-  ClassDecl(Identifier *name, NamedType *extends, 
-            List<NamedType*> *implements, List<Decl*> *members);
-  const char *GetPrintNameForNode() {
+  ClassDecl(Identifier* name, NamedType* extends, 
+            List<NamedType*>* implements, List<Decl*>* members);
+  const char* GetPrintNameForNode() {
     return "ClassDecl";
   }
-  Identifier *GetIdent() { return id_; }
-  List<FnDecl*> *GetVTable() { return vTable; }
-  List<VarDecl*> *GetFields() { return fields; }
-  FrameAllocator *GetFalloc() { return classFalloc; }
+  Identifier* GetIdent() { return id_; }
+  List<FnDecl*>* GetVTable() { return v_table_; }
+  List<VarDecl*>* GetFields() { return fields_; }
+  FrameAllocator* GetFalloc() { return class_falloc_; }
 
   void PrintChildren(int indentLevel);
-  bool CheckDecls(SymTable *env);
-  bool Inherit(SymTable *env);
-  bool ImplementsInterface(char *name);
-  bool Check(SymTable *env);
+  bool CheckDecls(SymTable* env);
+  bool Inherit(SymTable* env);
+  bool ImplementsInterface(char* name);
+  bool Check(SymTable* env);
 
-  void EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
-                 SymTable *env);
-  void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
+  void EmitSetup(FrameAllocator* falloc, CodeGenerator* codegen,
+                 SymTable* env);
+  void Emit(FrameAllocator* falloc, CodeGenerator* codegen, SymTable* env);
 
-  int NumFields() { return numFields; }
-  char* GetClassLabel() { return classLabel; }
+  int NumFields() { return num_fields_; }
+  char* GetClassLabel() { return class_label_; }
  
  private:
-  bool CheckAgainstParents(SymTable *env);
-  bool CheckAgainstInterfaces(SymTable *env);
+  bool CheckAgainstParents(SymTable* env);
+  bool CheckAgainstInterfaces(SymTable* env);
  
  protected:
   // Fields and methods
-  List<Decl*>* members;
+  List<Decl*>* members_;
   // Parent class, if any
-  NamedType* extends;
+  NamedType* extends_;
   // List of interfaces implemented
-  List<NamedType*>* implements;
+  List<NamedType*>* implements_;
 
   // Set and used for semantic checking
   
   // Symbol table for class
-  SymTable* classEnv;
+  SymTable* class_env_;
   // Hash table of interface methods
-  Hashtable<VFunction*>* vFunctions;
+  Hashtable<VFunction*>* v_functions_;
 
   // Pointer to ClassDecl for parent class, NULL if no parent class
   // Set during semantic checking, used during IR generation
-  ClassDecl* parent;
+  ClassDecl* parent_;
 
   // Set and used for IR Generation
   
   // Frame allocator for class variables
-  FrameAllocator *classFalloc;
+  FrameAllocator* class_falloc_;
   // List of methods for vtable gen
-  List<FnDecl*> *vTable;
+  List<FnDecl*>* v_table_;
   // List of fields
-  List<VarDecl*> *fields;
-  int numFields;
-  char *classLabel;
-  List<FnDecl*> *methodsToEmit;
+  List<VarDecl*>* fields_;
+  int num_fields_;
+  char *class_label_;
+  List<FnDecl*> *methods_to_emit_;
 };
 
 class InterfaceDecl : public Decl { 
@@ -130,10 +130,10 @@ class InterfaceDecl : public Decl {
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
-  List<Decl*> *getMembers() { return members; }
+  List<Decl*> *getMembers() { return members_; }
  
  protected:
-  List<Decl*> *members;
+  List<Decl*> *members_;
   SymTable *interfaceEnv;
 };
 

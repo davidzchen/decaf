@@ -8,7 +8,6 @@
 #include "ast_decl.h"
 #include "ast_type.h"
 #include "ast_stmt.h"
-        
 
 /* Class: Decl 
  * -----------
@@ -78,29 +77,30 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp,
     List<Decl*> *m) : Decl(n) {
   // extends can be NULL, impl & mem may be empty lists but cannot be NULL
   Assert(n != NULL && imp != NULL && m != NULL);     
-  extends = ex;
-  if (extends) { 
-    extends->set_parent(this);
+  extends_ = ex;
+  if (extends_ != NULL) { 
+    extends_->set_parent(this);
   }
-  (implements = imp)->SetParentAll(this);
-  (members = m)->SetParentAll(this);
-  classEnv = NULL;
-  vFunctions = NULL;
-
-  parent = NULL;
-  classFalloc = NULL;
-  vTable = NULL;
-  fields = NULL;
-  numFields = 0;
+  
+  (implements_ = imp)->SetParentAll(this);
+  (members_ = m)->SetParentAll(this);
+  
+  class_env_ = NULL;
+  v_functions_ = NULL;
+  parent_ = NULL;
+  class_falloc_ = NULL;
+  v_table_ = NULL;
+  fields_ = NULL;
+  num_fields_ = 0;
 }
 
 void ClassDecl::PrintChildren(int indentLevel) {
   id_->Print(indentLevel+1);
-  if (extends) {
-    extends->Print(indentLevel + 1, "(extends) ");
+  if (extends_) {
+    extends_->Print(indentLevel + 1, "(extends) ");
   }
-  implements->PrintAll(indentLevel + 1, "(implements) ");
-  members->PrintAll(indentLevel + 1);
+  implements_->PrintAll(indentLevel + 1, "(implements) ");
+  members_->PrintAll(indentLevel + 1);
 }
 
 bool ClassDecl::CheckDecls(SymTable *env) {
@@ -109,21 +109,21 @@ bool ClassDecl::CheckDecls(SymTable *env) {
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
   }
 
-  if ((classEnv = env->addWithScope(id_->name(), this, S_CLASS)) == NULL) {
+  if ((class_env_ = env->addWithScope(id_->name(), this, S_CLASS)) == NULL) {
     return false;
   }
 
-  classEnv->setThis(classEnv);
-  for (int i = 0; i < members->NumElements(); i++) {
-    members->Nth(i)->CheckDecls(classEnv);
+  class_env_->setThis(class_env_);
+  for (int i = 0; i < members_->NumElements(); i++) {
+    members_->Nth(i)->CheckDecls(class_env_);
   }
  
   return true;
 }
 
 bool ClassDecl::ImplementsInterface(char *name) {
-  for (int i = 0; i < implements->NumElements(); i++) {
-    if (strcmp(name, implements->Nth(i)->GetName()) == 0) {
+  for (int i = 0; i < implements_->NumElements(); i++) {
+    if (strcmp(name, implements_->Nth(i)->GetName()) == 0) {
       return true;
     }
   }
@@ -142,18 +142,18 @@ bool ClassDecl::Inherit(SymTable *env)
 {
   bool ret = true;
 
-  if (extends) {
+  if (extends_) {
     Symbol *baseClass = NULL;
-    if ((baseClass = env->find(extends->GetName(), S_CLASS)) != NULL) {
-      classEnv->setSuper(baseClass->getEnv());
-      parent = dynamic_cast<ClassDecl*>(baseClass->getNode());
-      Assert(parent != 0);
+    if ((baseClass = env->find(extends_->GetName(), S_CLASS)) != NULL) {
+      class_env_->setSuper(baseClass->getEnv());
+      parent_ = dynamic_cast<ClassDecl*>(baseClass->getNode());
+      Assert(parent_ != 0);
     }
   }
 
-  vFunctions = new Hashtable<VFunction*>;
-  for (int i = 0; i < implements->NumElements(); i++) {
-    NamedType *interface = implements->Nth(i);
+  v_functions_ = new Hashtable<VFunction*>;
+  for (int i = 0; i < implements_->NumElements(); i++) {
+    NamedType *interface = implements_->Nth(i);
     Symbol *intfSym = NULL;
     if ((intfSym = env->find(interface->GetName(), S_INTERFACE)) == NULL) {
       continue;
@@ -165,8 +165,8 @@ bool ClassDecl::Inherit(SymTable *env)
       FnDecl *fn = dynamic_cast<FnDecl*>(intfMembers->Nth(j));
       Assert(fn != 0);
       VFunction *vf = NULL;
-      if ((vf = vFunctions->Lookup(fn->GetName())) == NULL) {
-        vFunctions->Enter(fn->GetName(), new VFunction(fn, implements->Nth(i)));
+      if ((vf = v_functions_->Lookup(fn->GetName())) == NULL) {
+        v_functions_->Enter(fn->GetName(), new VFunction(fn, implements_->Nth(i)));
         continue;
       }
 
@@ -187,20 +187,20 @@ bool ClassDecl::CheckAgainstParents(SymTable *env) {
   Symbol *sym = NULL;
 
   // Check that parent exists
-  if (extends) {
-    if ((sym = env->find(extends->GetName())) == NULL) {
-      ReportError::IdentifierNotDeclared(extends->GetIdent(), kLookingForClass);
+  if (extends_) {
+    if ((sym = env->find(extends_->GetName())) == NULL) {
+      ReportError::IdentifierNotDeclared(extends_->GetIdent(), kLookingForClass);
       ret = false;
     }
   }
 
   // Check each method and variable against parent fields for override
   // errors
-  for (int i = 0; i < members->NumElements(); i++) {
-    FnDecl *method = dynamic_cast<FnDecl*>(members->Nth(i));
+  for (int i = 0; i < members_->NumElements(); i++) {
+    FnDecl *method = dynamic_cast<FnDecl*>(members_->Nth(i));
     VarDecl *field = NULL;
     if (method != 0) {
-      if ((sym = classEnv->findSuper(method->GetName(), S_FUNCTION)) != NULL) {
+      if ((sym = class_env_->findSuper(method->GetName(), S_FUNCTION)) != NULL) {
         FnDecl *otherMethod = dynamic_cast<FnDecl*>(sym->getNode());
         Assert(otherMethod != 0);
         if (!method->TypeEqual(otherMethod)) {
@@ -209,9 +209,9 @@ bool ClassDecl::CheckAgainstParents(SymTable *env) {
         }
       }
     } else {
-      field = dynamic_cast<VarDecl*>(members->Nth(i));
+      field = dynamic_cast<VarDecl*>(members_->Nth(i));
       Assert(field != 0);
-      if ((sym = classEnv->findSuper(field->GetName(), S_VARIABLE)) != NULL) {
+      if ((sym = class_env_->findSuper(field->GetName(), S_VARIABLE)) != NULL) {
         ReportError::DeclConflict(field, dynamic_cast<Decl*>(sym->getNode()));
         ret = false;
       }
@@ -224,13 +224,13 @@ bool ClassDecl::CheckAgainstParents(SymTable *env) {
 bool ClassDecl::CheckAgainstInterfaces(SymTable *env) {
   bool ret = true;
   VFunction *vf = NULL;
-  Iterator<VFunction*> iter = vFunctions->GetIterator();
+  Iterator<VFunction*> iter = v_functions_->GetIterator();
   Hashtable<NamedType*> *incompleteIntfs = new Hashtable<NamedType*>;
   Symbol *sym = NULL;
 
   // Check that all interfaces implemented exists
-  for (int i = 0; i < implements->NumElements(); i++) {
-    NamedType *intf = implements->Nth(i);
+  for (int i = 0; i < implements_->NumElements(); i++) {
+    NamedType *intf = implements_->Nth(i);
     if ((sym = env->find(intf->GetName())) == NULL) {
       ReportError::IdentifierNotDeclared(intf->GetIdent(), kLookingForInterface);
       ret = false;
@@ -240,7 +240,7 @@ bool ClassDecl::CheckAgainstInterfaces(SymTable *env) {
   // Check each interface's methods have been implemented with correct type
   // signature. Otherwise, give OverrideMismatch error
   while ((vf = iter.GetNextValue()) != NULL) {
-    sym = classEnv->findInClass(vf->getPrototype()->GetName(), S_FUNCTION);
+    sym = class_env_->findInClass(vf->getPrototype()->GetName(), S_FUNCTION);
     if (sym == NULL) {
       incompleteIntfs->Enter(vf->getIntfType()->GetName(), vf->getIntfType(), false);
       ret = false;
@@ -269,18 +269,18 @@ bool ClassDecl::CheckAgainstInterfaces(SymTable *env) {
  *   1. Class hierarchy is set up.
  *   2. There are no conflicts among interfaces being implemented
  *   3. All the functions from interfaces being implemented have been added to
- *      the vFunctions table.
+ *      the v_functions_ table.
  *
  * pp3-checkpoint: for scope checking,
  */
 bool ClassDecl::Check(SymTable *env) {
   bool ret = true;
-  Assert(env != NULL && classEnv != NULL);
+  Assert(env != NULL && class_env_ != NULL);
   ret &= CheckAgainstParents(env);
   ret &= CheckAgainstInterfaces(env);
-  // Check all members
-  for (int i = 0; i < members->NumElements(); i++) {
-    ret &= members->Nth(i)->Check(env);
+  // Check all members_
+  for (int i = 0; i < members_->NumElements(); i++) {
+    ret &= members_->Nth(i)->Check(env);
   }
   return ret;
 }
@@ -291,7 +291,7 @@ void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
   // method for this object may be called by a child. If Emit has already been
   // called, just return.
 
-  if (classFalloc != NULL) {
+  if (class_falloc_ != NULL) {
     return;
   }
 
@@ -299,46 +299,42 @@ void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
   PrintDebug("tac", "ClassDecl %s\n", id_->name());
 #endif
 
-  // Recursively call Emit on the parent class to make sure that the vTable and
+  // Recursively call Emit on the parent class to make sure that the v_table_ and
   // fields list we are inheriting are properly set up in case the parent's
   // ClassDecl comes after this one. If we are inheriting, copy the parent's
   // vtable, field list, and FrameAllocator. Because any new fields would be
   // placed after all inherited methods, we can begin at the offset set by
   // the parent's FrameAllocator
 
-  classLabel = codegen->NewClassLabel(id_->name());
-
-  vTable = new List<FnDecl*>;
-  fields = new List<VarDecl*>;
-
-  if (extends) {
-    Assert(parent != NULL);
+  class_label_ = codegen->NewClassLabel(id_->name());
+  v_table_ = new List<FnDecl*>;
+  fields_ = new List<VarDecl*>;
+  if (extends_) {
+    Assert(parent_ != NULL);
 
     // Note: parent will ignore falloc and env parameters and use its own
-    parent->EmitSetup(falloc, codegen, env);
-
-    List<FnDecl*> *parentVTable = parent->GetVTable();
-    List<VarDecl*> *parentFields = parent->GetFields();
-
+    parent_->EmitSetup(falloc, codegen, env);
+    List<FnDecl*> *parentVTable = parent_->GetVTable();
+    List<VarDecl*> *parentFields = parent_->GetFields();
     for (int i = 0; i < parentVTable->NumElements(); i++) {
-      vTable->Append(parentVTable->Nth(i));
+      v_table_->Append(parentVTable->Nth(i));
     }
-
     for (int i = 0; i < parentFields->NumElements(); i++) {
-      fields->Append(parentFields->Nth(i));
+      fields_->Append(parentFields->Nth(i));
     }
 
 #ifdef __DEBUG_TAC
-    PrintDebug("tac", "Before: vtable %d fields %d\n", vTable->NumElements(), fields->NumElements());
+    PrintDebug("tac", "Before: vtable %d fields %d\n", v_table_->NumElements(), 
+               fields_->NumElements());
 #endif
 
-    classFalloc = new FrameAllocator(parent->GetFalloc());
+    class_falloc_ = new FrameAllocator(parent_->GetFalloc());
   } else {
-    classFalloc = new FrameAllocator(classRelative, FRAME_UP);
+    class_falloc_ = new FrameAllocator(classRelative, FRAME_UP);
   }
 
-  // Merge class's methods and fields with vTable and fields inherited from
-  // parent or empty vTable and field lists if class is a base class. For each
+  // Merge class's methods and fields with v_table_ and fields inherited from
+  // parent or empty v_table_ and field lists if class is a base class. For each
   // field or method, call the field or method's Emit method to set up the
   // field location (relative to base of class) and
   //
@@ -348,62 +344,62 @@ void ClassDecl::EmitSetup(FrameAllocator *falloc, CodeGenerator *codegen,
   FnDecl *method = NULL;
   VarDecl *field = NULL;
 
-  methodsToEmit = new List<FnDecl*>;
-  for (int i = 0; i < members->NumElements(); i++) {
-    method = dynamic_cast<FnDecl*>(members->Nth(i));
+  methods_to_emit_ = new List<FnDecl*>;
+  for (int i = 0; i < members_->NumElements(); ++i) {
+    method = dynamic_cast<FnDecl*>(members_->Nth(i));
     if (method != 0) {
       int j;
-      for (j = 0; j < vTable->NumElements(); j++) {
-        if (method->PrototypeEqual(vTable->Nth(j))) {
-          vTable->RemoveAt(j);
-          vTable->InsertAt(method, j);
+      for (j = 0; j < v_table_->NumElements(); ++j) {
+        if (method->PrototypeEqual(v_table_->Nth(j))) {
+          v_table_->RemoveAt(j);
+          v_table_->InsertAt(method, j);
 
-          method->SetMethodLabel(classLabel);
+          method->SetMethodLabel(class_label_);
           method->SetMethodOffset(j);
-          methodsToEmit->Append(method);
+          methods_to_emit_->Append(method);
           break;
         }
       }
 
-      if (j >= vTable->NumElements()) {
+      if (j >= v_table_->NumElements()) {
         // Method does not override any parent methods
-        vTable->Append(method);
+        v_table_->Append(method);
 
-        method->SetMethodLabel(classLabel);
+        method->SetMethodLabel(class_label_);
         method->SetMethodOffset(j);
-        methodsToEmit->Append(method);
+        methods_to_emit_->Append(method);
       }
     } else {
-      field = dynamic_cast<VarDecl*>(members->Nth(i));
+      field = dynamic_cast<VarDecl*>(members_->Nth(i));
       Assert(field != 0);
 
       // We might not need the insertion for loop because semantically
       // correct code will not be overriding parent fields.
-      fields->Append(field);
-      field->Emit(classFalloc, codegen, classEnv);
+      fields_->Append(field);
+      field->Emit(class_falloc_, codegen, class_env_);
     }
   }
 }
 
 void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
     SymTable *env) {
-  for (int i = 0; i < methodsToEmit->NumElements(); i++) {
-    methodsToEmit->Nth(i)->EmitMethod(this, classFalloc, codegen, classEnv);
+  for (int i = 0; i < methods_to_emit_->NumElements(); i++) {
+    methods_to_emit_->Nth(i)->EmitMethod(this, class_falloc_, codegen, class_env_);
   }
 
   // Emit vtable. We have already emitted fields and methods
 #ifdef __DEBUG_TAC
   PrintDebug("tac", "After: vtable %d fields %d\n",
-      vTable->NumElements(), fields->NumElements());
+      v_table_->NumElements(), fields_->NumElements());
 #endif
 
-  numFields = fields->NumElements();
+  num_fields_ = fields_->NumElements();
   List<const char*> *methodLabels = new List<const char*>;
-  for (int i = 0; i < vTable->NumElements(); i++) {
-    methodLabels->Append(vTable->Nth(i)->GetMethodLabel());
+  for (int i = 0; i < v_table_->NumElements(); i++) {
+    methodLabels->Append(v_table_->Nth(i)->GetMethodLabel());
   }
 
-  codegen->GenVTable(classLabel, methodLabels);
+  codegen->GenVTable(class_label_, methodLabels);
 }
 
 /* Class: InterfaceDecl
@@ -413,12 +409,12 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
   Assert(n != NULL && m != NULL);
-  (members = m)->SetParentAll(this);
+  (members_ = m)->SetParentAll(this);
 }
 
 void InterfaceDecl::PrintChildren(int indentLevel) {
   id_->Print(indentLevel + 1);
-  members->PrintAll(indentLevel + 1);
+  members_->PrintAll(indentLevel + 1);
 }
 
 bool InterfaceDecl::CheckDecls(SymTable *env) {
@@ -435,8 +431,8 @@ bool InterfaceDecl::CheckDecls(SymTable *env) {
     return false;
   }
 
-  for (int i = 0; i < members->NumElements(); i++) {
-    ret &= members->Nth(i)->CheckDecls(interfaceEnv);
+  for (int i = 0; i < members_->NumElements(); i++) {
+    ret &= members_->Nth(i)->CheckDecls(interfaceEnv);
   }
 
   return ret;
@@ -447,8 +443,8 @@ bool InterfaceDecl::CheckDecls(SymTable *env) {
  */
 bool InterfaceDecl::Check(SymTable *env) {
   bool ret = true;
-  for (int i = 0; i < members->NumElements(); i++) {
-    ret &= members->Nth(i)->Check(env);
+  for (int i = 0; i < members_->NumElements(); i++) {
+    ret &= members_->Nth(i)->Check(env);
   }
 
   return ret;
@@ -487,35 +483,29 @@ void FnDecl::PrintChildren(int indentLevel) {
   returnType->Print(indentLevel + 1, "(return type) ");
   id_->Print(indentLevel + 1);
   formals->PrintAll(indentLevel + 1, "(formals) ");
-
   if (body) {
     body->Print(indentLevel + 1, "(body) ");
   }
 }
 
 bool FnDecl::CheckDecls(SymTable *env) {
-  Symbol *sym;
   bool ret = true;
-
+  Symbol *sym;
   if ((sym = env->findLocal(id_->name())) != NULL) {
     ret = false;
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
   }
-
   if ((fnEnv = env->addWithScope(id_->name(), this, S_FUNCTION)) == false) {
     return false;
   }
-
   for (int i = 0; i < formals->NumElements(); i++) {
     ret &= formals->Nth(i)->CheckDecls(fnEnv);
   }
-
   if (body) {
     if (!body->CheckDecls(fnEnv)) {
       return false;
     }
   }
-
   return ret;
 }
 
@@ -617,17 +607,16 @@ void FnDecl::EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
   codegen->GenEndFunc();
 }
 
-void FnDecl::SetMethodLabel(char *classLabel) {
-  int len = strlen(classLabel) + strlen(id_->name()) + 2;
+void FnDecl::SetMethodLabel(char *class_label_) {
+  int len = strlen(class_label_) + strlen(id_->name()) + 2;
   methodLabel = (char *) malloc(len);
   if (methodLabel == NULL) {
     Failure("FnDecl::SetMethodLabel(): Malloc out of memory");
   }
 
-  sprintf(methodLabel, "%s.%s", classLabel, id_->name());
+  sprintf(methodLabel, "%s.%s", class_label_, id_->name());
   methodLabel[len - 1] = '\0';
 }
-
 
 /* Class: VFunction
  * ----------------
