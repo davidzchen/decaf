@@ -49,7 +49,7 @@ class VarDecl : public Decl {
   const char* GetPrintNameForNode() {
     return "VarDecl";
   }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable* env);
   bool Check(SymTable* env);
   void Emit(FrameAllocator* falloc, CodeGenerator* codegen, SymTable* env);
@@ -71,7 +71,7 @@ class ClassDecl : public Decl {
   List<VarDecl*>* GetFields() { return fields_; }
   FrameAllocator* GetFalloc() { return class_falloc_; }
 
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable* env);
   bool Inherit(SymTable* env);
   bool ImplementsInterface(char* name);
@@ -126,7 +126,7 @@ class InterfaceDecl : public Decl {
   const char *GetPrintNameForNode() {
     return "InterfaceDecl";
   }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
@@ -139,12 +139,12 @@ class InterfaceDecl : public Decl {
 
 class FnDecl : public Decl { 
  public:
-  FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
+  FnDecl(Identifier *name, Type *return_type, List<VarDecl*> *formals);
   void SetFunctionBody(Stmt *b);
   const char *GetPrintNameForNode() {
     return "FnDecl";
   }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
