@@ -138,15 +138,13 @@ bool ClassDecl::ImplementsInterface(char *name) {
  * the type signatures are the same. If they are the same, then skip. Otherwise,
  * print error and return.
  */
-bool ClassDecl::Inherit(SymTable *env)
-{
+bool ClassDecl::Inherit(SymTable *env) {
   bool ret = true;
-
   if (extends_) {
-    Symbol *baseClass = NULL;
-    if ((baseClass = env->find(extends_->GetName(), S_CLASS)) != NULL) {
-      class_env_->setSuper(baseClass->getEnv());
-      parent_ = dynamic_cast<ClassDecl*>(baseClass->getNode());
+    Symbol *base_class = NULL;
+    if ((base_class = env->find(extends_->GetName(), S_CLASS)) != NULL) {
+      class_env_->setSuper(base_class->getEnv());
+      parent_ = dynamic_cast<ClassDecl*>(base_class->getNode());
       Assert(parent_ != 0);
     }
   }
@@ -394,12 +392,12 @@ void ClassDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 #endif
 
   num_fields_ = fields_->NumElements();
-  List<const char*> *methodLabels = new List<const char*>;
+  List<const char*> *method_label_s = new List<const char*>;
   for (int i = 0; i < v_table_->NumElements(); i++) {
-    methodLabels->Append(v_table_->Nth(i)->GetMethodLabel());
+    method_label_s->Append(v_table_->Nth(i)->GetMethodLabel());
   }
 
-  codegen->GenVTable(class_label_, methodLabels);
+  codegen->GenVTable(class_label_, method_label_s);
 }
 
 /* Class: InterfaceDecl
@@ -426,13 +424,13 @@ bool InterfaceDecl::CheckDecls(SymTable *env) {
     ret = false;
   }
 
-  interfaceEnv = env->addWithScope(id_->name(), this, S_INTERFACE);
-  if (interfaceEnv == false) {
+  interface_env_ = env->addWithScope(id_->name(), this, S_INTERFACE);
+  if (interface_env_ == false) {
     return false;
   }
 
   for (int i = 0; i < members_->NumElements(); i++) {
-    ret &= members_->Nth(i)->CheckDecls(interfaceEnv);
+    ret &= members_->Nth(i)->CheckDecls(interface_env_);
   }
 
   return ret;
@@ -463,28 +461,28 @@ void InterfaceDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 	
 FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
   Assert(n != NULL && r!= NULL && d != NULL);
-  (returnType = r)->set_parent(this);
-  (formals = d)->SetParentAll(this);
-  body = NULL;
-  fnEnv = NULL;
+  (return_type_ = r)->set_parent(this);
+  (formals_ = d)->SetParentAll(this);
+  body_ = NULL;
+  fn_env_ = NULL;
 
-  paramFalloc = NULL;
-  bodyFalloc = NULL;
-  methodLabel = NULL;
-  functionLabel = NULL;
-  methodOffset = 0;
+  param_falloc_ = NULL;
+  body_falloc_ = NULL;
+  method_label_ = NULL;
+  function_label_ = NULL;
+  method_offset_ = 0;
 }
 
 void FnDecl::SetFunctionBody(Stmt *b) {
-  (body = b)->set_parent(this);
+  (body_ = b)->set_parent(this);
 }
 
 void FnDecl::PrintChildren(int indentLevel) {
-  returnType->Print(indentLevel + 1, "(return type) ");
+  return_type_->Print(indentLevel + 1, "(return type) ");
   id_->Print(indentLevel + 1);
-  formals->PrintAll(indentLevel + 1, "(formals) ");
-  if (body) {
-    body->Print(indentLevel + 1, "(body) ");
+  formals_->PrintAll(indentLevel + 1, "(formals) ");
+  if (body_) {
+    body_->Print(indentLevel + 1, "(body) ");
   }
 }
 
@@ -495,14 +493,14 @@ bool FnDecl::CheckDecls(SymTable *env) {
     ret = false;
     ReportError::DeclConflict(this, dynamic_cast<Decl *>(sym->getNode()));
   }
-  if ((fnEnv = env->addWithScope(id_->name(), this, S_FUNCTION)) == false) {
+  if ((fn_env_ = env->addWithScope(id_->name(), this, S_FUNCTION)) == false) {
     return false;
   }
-  for (int i = 0; i < formals->NumElements(); i++) {
-    ret &= formals->Nth(i)->CheckDecls(fnEnv);
+  for (int i = 0; i < formals_->NumElements(); i++) {
+    ret &= formals_->Nth(i)->CheckDecls(fn_env_);
   }
-  if (body) {
-    if (!body->CheckDecls(fnEnv)) {
+  if (body_) {
+    if (!body_->CheckDecls(fn_env_)) {
       return false;
     }
   }
@@ -516,30 +514,28 @@ bool FnDecl::CheckDecls(SymTable *env) {
  */
 bool FnDecl::Check(SymTable *env) {
   bool ret = true;
-  ret &= returnType->Check(env);
-  for (int i = 0; i < formals->NumElements(); i++) {
-    ret &= formals->Nth(i)->Check(env);
+  ret &= return_type_->Check(env);
+  for (int i = 0; i < formals_->NumElements(); i++) {
+    ret &= formals_->Nth(i)->Check(env);
   }
-
-  if (body) {
-    ret &= body->Check(env);
+  if (body_) {
+    ret &= body_->Check(env);
   }
-
   return ret;
 }
 
 bool FnDecl::TypeEqual(FnDecl *fn) {
-  if (!returnType->IsEquivalentTo(fn->GetReturnType())) {
+  if (!return_type_->IsEquivalentTo(fn->GetReturnType())) {
     return false;
   }
 
-  List<VarDecl*> *otherFormals = fn->GetFormals();
-  if (formals->NumElements() != otherFormals->NumElements()) {
+  List<VarDecl*> *other_formals_ = fn->GetFormals();
+  if (formals_->NumElements() != other_formals_->NumElements()) {
     return false;
   }
 
-  for (int i = 0; i < otherFormals->NumElements(); i++) {
-    if (!formals->Nth(i)->GetType()->IsEquivalentTo(otherFormals->Nth(i)->GetType())) {
+  for (int i = 0; i < other_formals_->NumElements(); i++) {
+    if (!formals_->Nth(i)->GetType()->IsEquivalentTo(other_formals_->Nth(i)->GetType())) {
       return false;
     }
   }
@@ -562,60 +558,59 @@ bool FnDecl::PrototypeEqual(FnDecl *fn) {
 void FnDecl::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
   BeginFunc *beginFn;
   Symbol *sym = NULL;
-  paramFalloc = new FrameAllocator(fpRelative, FRAME_UP);
-  bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
+  param_falloc_ = new FrameAllocator(fpRelative, FRAME_UP);
+  body_falloc_  = new FrameAllocator(fpRelative, FRAME_DOWN);
 
 #ifdef __DEBUG_TAC
   PrintDebug("tac", "FnDecl %s\n", id_->name());
 #endif
 
-  functionLabel = codegen->NewFunctionLabel(id_->name());
-  codegen->GenLabel(functionLabel);
+  function_label_ = codegen->NewFunctionLabel(id_->name());
+  codegen->GenLabel(function_label_);
   beginFn = codegen->GenBeginFunc();
-  for (int i = 0; i < formals->NumElements(); i++) {
-    formals->Nth(i)->Emit(paramFalloc, codegen, fnEnv);
+  for (int i = 0; i < formals_->NumElements(); i++) {
+    formals_->Nth(i)->Emit(param_falloc_, codegen, fn_env_);
   }
-
-  body->Emit(bodyFalloc, codegen, fnEnv);
-  beginFn->SetFrameSize(bodyFalloc->GetSize());
+  body_->Emit(body_falloc_, codegen, fn_env_);
+  beginFn->SetFrameSize(body_falloc_->GetSize());
   codegen->GenEndFunc();
 }
 
 void FnDecl::EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
     CodeGenerator *codegen, SymTable *env) {
   BeginFunc *beginFn;
-  paramFalloc = new FrameAllocator(fpRelative, FRAME_UP);
-  bodyFalloc  = new FrameAllocator(fpRelative, FRAME_DOWN);
+  param_falloc_ = new FrameAllocator(fpRelative, FRAME_UP);
+  body_falloc_  = new FrameAllocator(fpRelative, FRAME_DOWN);
 
 #ifdef __DEBUG_TAC
   PrintDebug("tac", "FnDecl Method %s::%s\n", classDecl->GetName(), id_->name());
 #endif
 
-  codegen->GenLabel(methodLabel);
+  codegen->GenLabel(method_label_);
   beginFn = codegen->GenBeginFunc();
 
   // Simulate an implicit first "this" parameter
   char *thisName = strdup("this");
-  Location *thisParam = paramFalloc->Alloc(thisName, 4);
-  fnEnv->add(thisName, NULL, thisParam);
-  for (int i = 0; i < formals->NumElements(); i++) {
-    formals->Nth(i)->Emit(paramFalloc, codegen, fnEnv);
+  Location *thisParam = param_falloc_->Alloc(thisName, 4);
+  fn_env_->add(thisName, NULL, thisParam);
+  for (int i = 0; i < formals_->NumElements(); i++) {
+    formals_->Nth(i)->Emit(param_falloc_, codegen, fn_env_);
   }
 
-  body->Emit(bodyFalloc, codegen, fnEnv);
-  beginFn->SetFrameSize(bodyFalloc->GetSize());
+  body_->Emit(body_falloc_, codegen, fn_env_);
+  beginFn->SetFrameSize(body_falloc_->GetSize());
   codegen->GenEndFunc();
 }
 
 void FnDecl::SetMethodLabel(char *class_label_) {
   int len = strlen(class_label_) + strlen(id_->name()) + 2;
-  methodLabel = (char *) malloc(len);
-  if (methodLabel == NULL) {
+  method_label_ = (char *) malloc(len);
+  if (method_label_ == NULL) {
     Failure("FnDecl::SetMethodLabel(): Malloc out of memory");
   }
 
-  sprintf(methodLabel, "%s.%s", class_label_, id_->name());
-  methodLabel[len - 1] = '\0';
+  sprintf(method_label_, "%s.%s", class_label_, id_->name());
+  method_label_[len - 1] = '\0';
 }
 
 /* Class: VFunction
@@ -624,9 +619,9 @@ void FnDecl::SetMethodLabel(char *class_label_) {
  */
 
 VFunction::VFunction(FnDecl *p, NamedType *type) {
-  prototype = p;
-  intfType = type;
-  implemented = false;
+  prototype_ = p;
+  intf_type_ = type;
+  implemented_ = false;
 }
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */

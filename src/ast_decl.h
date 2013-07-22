@@ -134,7 +134,7 @@ class InterfaceDecl : public Decl {
  
  protected:
   List<Decl*> *members_;
-  SymTable *interfaceEnv;
+  SymTable *interface_env_;
 };
 
 class FnDecl : public Decl { 
@@ -150,44 +150,44 @@ class FnDecl : public Decl {
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
   void EmitMethod(ClassDecl *classDecl, FrameAllocator *falloc,
                   CodeGenerator *codegen, SymTable *env);
-  Type *GetReturnType() { return returnType; }
-  Type *GetType() { return returnType; }
-  List<VarDecl*> *GetFormals() { return formals; }
+  Type *GetReturnType() { return return_type_; }
+  Type *GetType() { return return_type_; }
+  List<VarDecl*> *GetFormals() { return formals_; }
   bool PrototypeEqual(FnDecl *fn);
   bool TypeEqual(FnDecl *fn);
 
-  const char *GetMethodLabel() { return methodLabel; }
+  const char *GetMethodLabel() { return method_label_; }
   void SetMethodLabel(char *classLabel);
-  const char *GetFunctionLabel() { return functionLabel; }
-  bool IsMethod() { return (methodLabel != NULL); }
-  int GetMethodOffset() { return methodOffset; }
-  void SetMethodOffset(int off) { methodOffset = off; }
+  const char *GetFunctionLabel() { return function_label_; }
+  bool IsMethod() { return (method_label_ != NULL); }
+  int GetMethodOffset() { return method_offset_; }
+  void SetMethodOffset(int off) { method_offset_ = off; }
  
  protected:
-  List<VarDecl*> *formals;
-  Type *returnType;
-  Stmt *body;
-  SymTable *fnEnv;
+  List<VarDecl*>* formals_;
+  Type* return_type_;
+  Stmt* body_;
+  SymTable* fn_env_;
 
-  FrameAllocator *paramFalloc;
-  FrameAllocator *bodyFalloc;
-  char *methodLabel;
-  char *functionLabel;
-  int methodOffset;
+  FrameAllocator* param_falloc_;
+  FrameAllocator* body_falloc_;
+  char* method_label_;
+  char* function_label_;
+  int method_offset_;
 };
 
 class VFunction {
  public:
-  VFunction(FnDecl *p, NamedType *type);
-  FnDecl *getPrototype() { return prototype; }
-  NamedType *getIntfType() { return intfType; }
-  bool isImplemented() { return implemented; }
-  void setImplemented(bool im) { implemented = im; }
+  VFunction(FnDecl* p, NamedType* type);
+  FnDecl* getPrototype() { return prototype_; }
+  NamedType* getIntfType() { return intf_type_; }
+  bool isImplemented() { return implemented_; }
+  void setImplemented(bool implemented) { implemented_ = implemented; }
 
  protected:
-  FnDecl *prototype;
-  NamedType *intfType;
-  bool implemented;
+  FnDecl* prototype_;
+  NamedType* intf_type_;
+  bool implemented_;
 };
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */
