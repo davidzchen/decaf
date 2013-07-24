@@ -17,7 +17,7 @@
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
   value = val;
-  retType = Type::intType;
+  ret_type_ = Type::intType;
 }
 
 void IntConstant::PrintChildren(int indentLevel) { 
@@ -31,7 +31,7 @@ void IntConstant::PrintChildren(int indentLevel) {
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
   value = val;
-  retType = Type::doubleType;
+  ret_type_ = Type::doubleType;
 }
 
 void DoubleConstant::PrintChildren(int indentLevel) { 
@@ -45,7 +45,7 @@ void DoubleConstant::PrintChildren(int indentLevel) {
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
   value = val;
-  retType = Type::boolType;
+  ret_type_ = Type::boolType;
 }
 
 void BoolConstant::PrintChildren(int indentLevel) { 
@@ -60,7 +60,7 @@ void BoolConstant::PrintChildren(int indentLevel) {
 StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) {
   Assert(val != NULL);
   value = strdup(val);
-  retType = Type::stringType;
+  ret_type_ = Type::stringType;
 }
 
 void StringConstant::PrintChildren(int indentLevel) { 
