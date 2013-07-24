@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
+/* A Bison parser, made by GNU Bison 2.5.  */
 
 /* Bison implementation for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.7.12-4996"
+#define YYBISON_VERSION "2.5"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -58,11 +58,14 @@
 /* Pull parsers.  */
 #define YYPULL 1
 
+/* Using locations.  */
+#define YYLSP_NEEDED 1
 
 
 
 /* Copy the first part of user declarations.  */
-/* Line 371 of yacc.c  */
+
+/* Line 268 of yacc.c  */
 #line 11 "decaf-parse.yy"
 
 
@@ -82,16 +85,14 @@
 void yyerror(const char *msg); // standard error-handling routine
 
 
-/* Line 371 of yacc.c  */
-#line 87 "decaf-parse.cc"
 
-# ifndef YY_NULL
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULL nullptr
-#  else
-#   define YY_NULL 0
-#  endif
-# endif
+/* Line 268 of yacc.c  */
+#line 91 "decaf-parse.cc"
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
@@ -101,17 +102,11 @@ void yyerror(const char *msg); // standard error-handling routine
 # define YYERROR_VERBOSE 0
 #endif
 
-/* In a future release of Bison, this section will be replaced
-   by #include "y.tab.h".  */
-#ifndef YY_YY_DECAF_PARSE_HH_INCLUDED
-# define YY_YY_DECAF_PARSE_HH_INCLUDED
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
 #endif
-#if YYDEBUG
-extern int yydebug;
-#endif
+
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -215,10 +210,12 @@ extern int yydebug;
 
 
 
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-/* Line 387 of yacc.c  */
+
+/* Line 293 of yacc.c  */
 #line 44 "decaf-parse.yy"
 
     int              integerConstant;
@@ -249,8 +246,9 @@ typedef union YYSTYPE
     DefaultStmt      *defaultStmt;
 
 
-/* Line 387 of yacc.c  */
-#line 254 "decaf-parse.cc"
+
+/* Line 293 of yacc.c  */
+#line 252 "decaf-parse.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -270,28 +268,12 @@ typedef struct YYLTYPE
 # define YYLTYPE_IS_TRIVIAL 1
 #endif
 
-extern YYSTYPE yylval;
-extern YYLTYPE yylloc;
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
-
-#endif /* !YY_YY_DECAF_PARSE_HH_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-/* Line 390 of yacc.c  */
-#line 295 "decaf-parse.cc"
+
+/* Line 343 of yacc.c  */
+#line 277 "decaf-parse.cc"
 
 #ifdef short
 # undef short
@@ -344,33 +326,24 @@ typedef short int yytype_int16;
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
-#   define YY_(Msgid) dgettext ("bison-runtime", Msgid)
+#   define YY_(msgid) dgettext ("bison-runtime", msgid)
 #  endif
 # endif
 # ifndef YY_
-#  define YY_(Msgid) Msgid
-# endif
-#endif
-
-#ifndef __attribute__
-/* This feature is available in gcc versions 2.5 and later.  */
-# if (! defined __GNUC__ || __GNUC__ < 2 \
-      || (__GNUC__ == 2 && __GNUC_MINOR__ < 5))
-#  define __attribute__(Spec) /* empty */
+#  define YY_(msgid) msgid
 # endif
 #endif
 
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(E) ((void) (E))
+# define YYUSE(e) ((void) (e))
 #else
-# define YYUSE(E) /* empty */
+# define YYUSE(e) /* empty */
 #endif
-
 
 /* Identity function, used to suppress warnings about constant conditions.  */
 #ifndef lint
-# define YYID(N) (N)
+# define YYID(n) (n)
 #else
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
@@ -406,7 +379,6 @@ YYID (yyi)
 #    if ! defined _ALLOCA_H && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 #     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-      /* Use EXIT_SUCCESS as a witness for stdlib.h.  */
 #     ifndef EXIT_SUCCESS
 #      define EXIT_SUCCESS 0
 #     endif
@@ -500,20 +472,20 @@ union yyalloc
 #endif
 
 #if defined YYCOPY_NEEDED && YYCOPY_NEEDED
-/* Copy COUNT objects from SRC to DST.  The source and destination do
+/* Copy COUNT objects from FROM to TO.  The source and destination do
    not overlap.  */
 # ifndef YYCOPY
 #  if defined __GNUC__ && 1 < __GNUC__
-#   define YYCOPY(Dst, Src, Count) \
-      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
+#   define YYCOPY(To, From, Count) \
+      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
 #  else
-#   define YYCOPY(Dst, Src, Count)              \
-      do                                        \
-        {                                       \
-          YYSIZE_T yyi;                         \
-          for (yyi = 0; yyi < (Count); yyi++)   \
-            (Dst)[yyi] = (Src)[yyi];            \
-        }                                       \
+#   define YYCOPY(To, From, Count)		\
+      do					\
+	{					\
+	  YYSIZE_T yyi;				\
+	  for (yyi = 0; yyi < (Count); yyi++)	\
+	    (To)[yyi] = (From)[yyi];		\
+	}					\
       while (YYID (0))
 #  endif
 # endif
@@ -653,7 +625,7 @@ static const yytype_uint16 yyrline[] =
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 0
+#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -674,7 +646,7 @@ static const char *const yytname[] =
   "FieldList", "Formals", "FormalsList", "Prototype", "FnDef",
   "PrototypeList", "StmtBlock", "StmtList", "VarDeclList", "Stmt",
   "OptExpr", "CaseStmtList", "CaseStmt", "DefaultStmt", "IfStmt",
-  "ExprList", "Expr", "Call", "Actuals", "LValue", "Constant", YY_NULL
+  "ExprList", "Expr", "Call", "Actuals", "LValue", "Constant", 0
 };
 #endif
 
@@ -901,11 +873,11 @@ static const yytype_int16 yytable[] =
      110,   111,   112,   113,   114,   115,     0,     0,   116,   117
 };
 
-#define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-115)))
+#define yypact_value_is_default(yystate) \
+  ((yystate) == (-115))
 
-#define yytable_value_is_error(Yytable_value) \
-  (!!((Yytable_value) == (-67)))
+#define yytable_value_is_error(yytable_value) \
+  ((yytable_value) == (-67))
 
 static const yytype_int16 yycheck[] =
 {
@@ -1059,24 +1031,23 @@ static const yytype_uint8 yystos[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)                                  \
-do                                                              \
-  if (yychar == YYEMPTY)                                        \
-    {                                                           \
-      yychar = (Token);                                         \
-      yylval = (Value);                                         \
-      YYPOPSTACK (yylen);                                       \
-      yystate = *yyssp;                                         \
-      goto yybackup;                                            \
-    }                                                           \
-  else                                                          \
-    {                                                           \
+#define YYBACKUP(Token, Value)					\
+do								\
+  if (yychar == YYEMPTY && yylen == 1)				\
+    {								\
+      yychar = (Token);						\
+      yylval = (Value);						\
+      YYPOPSTACK (1);						\
+      goto yybackup;						\
+    }								\
+  else								\
+    {								\
       yyerror (YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
 while (YYID (0))
 
-/* Error token number */
+
 #define YYTERROR	1
 #define YYERRCODE	256
 
@@ -1085,27 +1056,26 @@ while (YYID (0))
    If N is 0, then set CURRENT to the empty location which ends
    the previous symbol: RHS[0] (always defined).  */
 
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
-    do                                                                  \
-      if (YYID (N))                                                     \
-        {                                                               \
-          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
-          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
-          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
-          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
-        }                                                               \
-      else                                                              \
-        {                                                               \
-          (Current).first_line   = (Current).last_line   =              \
-            YYRHSLOC (Rhs, 0).last_line;                                \
-          (Current).first_column = (Current).last_column =              \
-            YYRHSLOC (Rhs, 0).last_column;                              \
-        }                                                               \
+# define YYLLOC_DEFAULT(Current, Rhs, N)				\
+    do									\
+      if (YYID (N))                                                    \
+	{								\
+	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
+	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
+	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
+	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
+	}								\
+      else								\
+	{								\
+	  (Current).first_line   = (Current).last_line   =		\
+	    YYRHSLOC (Rhs, 0).last_line;				\
+	  (Current).first_column = (Current).last_column =		\
+	    YYRHSLOC (Rhs, 0).last_column;				\
+	}								\
     while (YYID (0))
 #endif
-
-#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 
 
 /* YY_LOCATION_PRINT -- Print the location on the stream.
@@ -1114,46 +1084,10 @@ while (YYID (0))
 
 #ifndef YY_LOCATION_PRINT
 # if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
-
-/* Print *YYLOCP on YYO.  Private, do not rely on its existence. */
-
-__attribute__((__unused__))
-#if (defined __STDC__ || defined __C99__FUNC__ \
-     || defined __cplusplus || defined _MSC_VER)
-static unsigned
-yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
-#else
-static unsigned
-yy_location_print_ (yyo, yylocp)
-    FILE *yyo;
-    YYLTYPE const * const yylocp;
-#endif
-{
-  unsigned res = 0;
-  int end_col = 0 != yylocp->last_column ? yylocp->last_column - 1 : 0;
-  if (0 <= yylocp->first_line)
-    {
-      res += fprintf (yyo, "%d", yylocp->first_line);
-      if (0 <= yylocp->first_column)
-        res += fprintf (yyo, ".%d", yylocp->first_column);
-    }
-  if (0 <= yylocp->last_line)
-    {
-      if (yylocp->first_line < yylocp->last_line)
-        {
-          res += fprintf (yyo, "-%d", yylocp->last_line);
-          if (0 <= end_col)
-            res += fprintf (yyo, ".%d", end_col);
-        }
-      else if (0 <= end_col && yylocp->first_column < end_col)
-        res += fprintf (yyo, "-%d", end_col);
-    }
-  return res;
- }
-
-#  define YY_LOCATION_PRINT(File, Loc)          \
-  yy_location_print_ (File, &(Loc))
-
+#  define YY_LOCATION_PRINT(File, Loc)			\
+     fprintf (File, "%d.%d-%d.%d",			\
+	      (Loc).first_line, (Loc).first_column,	\
+	      (Loc).last_line,  (Loc).last_column)
 # else
 #  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
 # endif
@@ -1161,6 +1095,7 @@ yy_location_print_ (yyo, yylocp)
 
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
+
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (YYLEX_PARAM)
 #else
@@ -1211,8 +1146,6 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
     YYLTYPE const * const yylocationp;
 #endif
 {
-  FILE *yyo = yyoutput;
-  YYUSE (yyo);
   if (!yyvaluep)
     return;
   YYUSE (yylocationp);
@@ -1222,7 +1155,11 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
 # else
   YYUSE (yyoutput);
 # endif
-  YYUSE (yytype);
+  switch (yytype)
+    {
+      default:
+	break;
+    }
 }
 
 
@@ -1465,11 +1402,12 @@ static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
+  YYSIZE_T yysize0 = yytnamerr (0, yytname[yytoken]);
   YYSIZE_T yysize = yysize0;
+  YYSIZE_T yysize1;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
-  const char *yyformat = YY_NULL;
+  const char *yyformat = 0;
   /* Arguments of yyformat. */
   char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Number of reported tokens (one for the "unexpected", one per
@@ -1529,13 +1467,11 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                     break;
                   }
                 yyarg[yycount++] = yytname[yyx];
-                {
-                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
-                  if (! (yysize <= yysize1
-                         && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
-                    return 2;
-                  yysize = yysize1;
-                }
+                yysize1 = yysize + yytnamerr (0, yytname[yyx]);
+                if (! (yysize <= yysize1
+                       && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+                  return 2;
+                yysize = yysize1;
               }
         }
     }
@@ -1555,12 +1491,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 # undef YYCASE_
     }
 
-  {
-    YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
-    if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
-      return 2;
-    yysize = yysize1;
-  }
+  yysize1 = yysize + yystrlen (yyformat);
+  if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+    return 2;
+  yysize = yysize1;
 
   if (*yymsg_alloc < yysize)
     {
@@ -1618,34 +1552,39 @@ yydestruct (yymsg, yytype, yyvaluep, yylocationp)
     yymsg = "Deleting";
   YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
-  YYUSE (yytype);
+  switch (yytype)
+    {
+
+      default:
+	break;
+    }
 }
 
 
+/* Prevent warnings from -Wmissing-prototypes.  */
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
 
 /* The lookahead symbol.  */
 int yychar;
 
-
-#ifndef YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END
-#endif
-#ifndef YY_INITIAL_VALUE
-# define YY_INITIAL_VALUE(Value) /* Nothing. */
-#endif
-
 /* The semantic value of the lookahead symbol.  */
-YYSTYPE yylval YY_INITIAL_VALUE(yyval_default);
+YYSTYPE yylval;
 
 /* Location data for the lookahead symbol.  */
-YYLTYPE yylloc
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
-  = { 1, 1, 1, 1 }
-# endif
-;
-
+YYLTYPE yylloc;
 
 /* Number of syntax errors so far.  */
 int yynerrs;
@@ -1686,7 +1625,7 @@ yyparse ()
        `yyvs': related to semantic values.
        `yyls': related to locations.
 
-       Refer to the stacks through separate pointers, to allow yyoverflow
+       Refer to the stacks thru separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
 
     /* The state stack.  */
@@ -1712,7 +1651,7 @@ yyparse ()
   int yyn;
   int yyresult;
   /* Lookahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  int yytoken;
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
@@ -1731,9 +1670,10 @@ yyparse ()
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
 
-  yyssp = yyss = yyssa;
-  yyvsp = yyvs = yyvsa;
-  yylsp = yyls = yylsa;
+  yytoken = 0;
+  yyss = yyssa;
+  yyvs = yyvsa;
+  yyls = yylsa;
   yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
@@ -1742,7 +1682,21 @@ yyparse ()
   yyerrstatus = 0;
   yynerrs = 0;
   yychar = YYEMPTY; /* Cause a token to be read.  */
-  yylsp[0] = yylloc;
+
+  /* Initialize stack pointers.
+     Waste one element of value and location stack
+     so that they stay on the same level as the state stack.
+     The wasted elements are never initialized.  */
+  yyssp = yyss;
+  yyvsp = yyvs;
+  yylsp = yyls;
+
+#if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+  /* Initialize the default location before parsing starts.  */
+  yylloc.first_line   = yylloc.last_line   = 1;
+  yylloc.first_column = yylloc.last_column = 1;
+#endif
+
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1888,9 +1842,7 @@ yybackup:
   yychar = YYEMPTY;
 
   yystate = yyn;
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
   *++yylsp = yylloc;
   goto yynewstate;
 
@@ -1928,7 +1880,8 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 153 "decaf-parse.yy"
     {
       (yylsp[(1) - (1)]);
@@ -1961,49 +1914,57 @@ yyreduce:
     break;
 
   case 3:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 184 "decaf-parse.yy"
     { ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].decl)); }
     break;
 
   case 4:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 185 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].decl)); }
     break;
 
   case 5:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 189 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].varDecl); }
     break;
 
   case 6:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 190 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].classDecl); }
     break;
 
   case 7:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 191 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].interfaceDecl); }
     break;
 
   case 8:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 192 "decaf-parse.yy"
     { (yyval.decl) = (yyvsp[(1) - (1)].fnDecl); }
     break;
 
   case 9:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 196 "decaf-parse.yy"
     { (yyval.varDecl) = (yyvsp[(1) - (2)].varDecl); }
     break;
 
   case 10:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 201 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (2)]), (yyvsp[(2) - (2)].identifier)) ;
@@ -2012,49 +1973,57 @@ yyreduce:
     break;
 
   case 11:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 208 "decaf-parse.yy"
     { (yyval.type) = Type::voidType; }
     break;
 
   case 12:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 209 "decaf-parse.yy"
     { (yyval.type) = Type::boolType; }
     break;
 
   case 13:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 210 "decaf-parse.yy"
     { (yyval.type) = Type::intType; }
     break;
 
   case 14:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 211 "decaf-parse.yy"
     { (yyval.type) = Type::doubleType; }
     break;
 
   case 15:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 212 "decaf-parse.yy"
     { (yyval.type) = Type::stringType; }
     break;
 
   case 16:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 213 "decaf-parse.yy"
     { (yyval.type) = (yyvsp[(1) - (1)].namedType); }
     break;
 
   case 17:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 214 "decaf-parse.yy"
     { (yyval.type) = new ArrayType(Join((yylsp[(1) - (2)]), (yylsp[(2) - (2)])), (yyvsp[(1) - (2)].type)); }
     break;
 
   case 18:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 219 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].identifier));
@@ -2063,7 +2032,8 @@ yyreduce:
     break;
 
   case 19:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 227 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (7)]), (yyvsp[(2) - (7)].identifier));
@@ -2072,7 +2042,8 @@ yyreduce:
     break;
 
   case 20:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 232 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (6)]), (yyvsp[(2) - (6)].identifier));
@@ -2081,7 +2052,8 @@ yyreduce:
     break;
 
   case 21:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 240 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(2) - (2)]), (yyvsp[(2) - (2)].identifier));
@@ -2090,13 +2062,15 @@ yyreduce:
     break;
 
   case 22:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 244 "decaf-parse.yy"
     { (yyval.namedType) = NULL; }
     break;
 
   case 23:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 249 "decaf-parse.yy"
     { 
       (yyval.implementsTypeList) = (yyvsp[(2) - (2)].implementsTypeList); 
@@ -2104,13 +2078,15 @@ yyreduce:
     break;
 
   case 24:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 252 "decaf-parse.yy"
     { (yyval.implementsTypeList) = new List<NamedType*>; }
     break;
 
   case 25:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 257 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(3) - (3)]), (yyvsp[(3) - (3)].identifier));
@@ -2120,7 +2096,8 @@ yyreduce:
     break;
 
   case 26:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 263 "decaf-parse.yy"
     { 
       Identifier *i = new Identifier((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].identifier));
@@ -2130,7 +2107,8 @@ yyreduce:
     break;
 
   case 27:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 272 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (5)]), (yyvsp[(2) - (5)].identifier));
@@ -2139,7 +2117,8 @@ yyreduce:
     break;
 
   case 28:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 280 "decaf-parse.yy"
     { 
       FnDecl *f = (yyvsp[(1) - (2)].fnDecl);
@@ -2148,49 +2127,57 @@ yyreduce:
     break;
 
   case 29:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 287 "decaf-parse.yy"
     { ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].varDecl)); }
     break;
 
   case 30:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 288 "decaf-parse.yy"
     { ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].fnDecl)); }
     break;
 
   case 31:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 289 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].varDecl)); }
     break;
 
   case 32:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 290 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].fnDecl)); }
     break;
 
   case 33:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 294 "decaf-parse.yy"
     { (yyval.varDeclList) = (yyvsp[(1) - (1)].varDeclList); }
     break;
 
   case 34:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 295 "decaf-parse.yy"
     { (yyval.varDeclList) = new List<VarDecl*>; }
     break;
 
   case 35:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 299 "decaf-parse.yy"
     { ((yyval.varDeclList) = new List<VarDecl*>)->Append((yyvsp[(1) - (1)].varDecl)); }
     break;
 
   case 36:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 301 "decaf-parse.yy"
     {
       ((yyval.varDeclList) = (yyvsp[(1) - (3)].varDeclList))->Append((yyvsp[(3) - (3)].varDecl));
@@ -2198,13 +2185,15 @@ yyreduce:
     break;
 
   case 37:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 307 "decaf-parse.yy"
     { (yyval.fnDecl) = (yyvsp[(1) - (2)].fnDecl); }
     break;
 
   case 38:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 312 "decaf-parse.yy"
     {
       Identifier *i = new Identifier((yylsp[(2) - (5)]), (yyvsp[(2) - (5)].identifier));
@@ -2213,7 +2202,8 @@ yyreduce:
     break;
 
   case 39:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 320 "decaf-parse.yy"
     {
       ((yyval.declList) = (yyvsp[(1) - (2)].declList))->Append((yyvsp[(2) - (2)].fnDecl));
@@ -2221,13 +2211,15 @@ yyreduce:
     break;
 
   case 40:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 323 "decaf-parse.yy"
     { ((yyval.declList) = new List<Decl*>)->Append((yyvsp[(1) - (1)].fnDecl)); }
     break;
 
   case 41:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 328 "decaf-parse.yy"
     {
       (yyval.stmtBlock) = new StmtBlock((yyvsp[(2) - (4)].varDeclList), (yyvsp[(3) - (4)].stmtList));
@@ -2235,19 +2227,22 @@ yyreduce:
     break;
 
   case 42:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 331 "decaf-parse.yy"
     { (yyval.stmtBlock) = new StmtBlock((yyvsp[(2) - (3)].varDeclList), new List<Stmt*>); }
     break;
 
   case 43:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 332 "decaf-parse.yy"
     { (yyval.stmtBlock) = new StmtBlock(new List<VarDecl*>, (yyvsp[(2) - (3)].stmtList)); }
     break;
 
   case 44:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 334 "decaf-parse.yy"
     { 
       (yyval.stmtBlock) = new StmtBlock(new List<VarDecl*>,
@@ -2256,37 +2251,43 @@ yyreduce:
     break;
 
   case 45:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 341 "decaf-parse.yy"
     { ((yyval.stmtList) = (yyvsp[(1) - (2)].stmtList))->Append((yyvsp[(2) - (2)].stmt)); }
     break;
 
   case 46:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 342 "decaf-parse.yy"
     { ((yyval.stmtList) = new List<Stmt*>)->Append((yyvsp[(1) - (1)].stmt)); }
     break;
 
   case 47:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 346 "decaf-parse.yy"
     { ((yyval.varDeclList) = (yyvsp[(1) - (2)].varDeclList))->Append((yyvsp[(2) - (2)].varDecl)); }
     break;
 
   case 48:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 347 "decaf-parse.yy"
     { ((yyval.varDeclList) = new List<VarDecl*>)->Append((yyvsp[(1) - (1)].varDecl)); }
     break;
 
   case 49:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 351 "decaf-parse.yy"
     { (yyval.stmt) = (yyvsp[(1) - (2)].expr); }
     break;
 
   case 50:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 353 "decaf-parse.yy"
     {
       (yyval.stmt) = new WhileStmt((yyvsp[(3) - (5)].expr), (yyvsp[(5) - (5)].stmt));
@@ -2294,25 +2295,29 @@ yyreduce:
     break;
 
   case 51:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 356 "decaf-parse.yy"
     { (yyval.stmt) = new ReturnStmt((yylsp[(1) - (2)]), new EmptyExpr); }
     break;
 
   case 52:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 357 "decaf-parse.yy"
     { (yyval.stmt) = new ReturnStmt((yylsp[(2) - (3)]), (yyvsp[(2) - (3)].expr)); }
     break;
 
   case 53:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 358 "decaf-parse.yy"
     { (yyval.stmt) = new BreakStmt((yylsp[(1) - (2)])); }
     break;
 
   case 54:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 360 "decaf-parse.yy"
     {
       (yyval.stmt) = new PrintStmt((yyvsp[(3) - (5)].exprList));
@@ -2320,7 +2325,8 @@ yyreduce:
     break;
 
   case 55:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 364 "decaf-parse.yy"
     {
       (yyval.stmt) = new ForStmt((yyvsp[(3) - (9)].expr), (yyvsp[(5) - (9)].expr), (yyvsp[(7) - (9)].expr), (yyvsp[(9) - (9)].stmt));
@@ -2328,13 +2334,15 @@ yyreduce:
     break;
 
   case 56:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 367 "decaf-parse.yy"
     { (yyval.stmt) = (yyvsp[(1) - (1)].ifStmt); }
     break;
 
   case 57:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 369 "decaf-parse.yy"
     {
       (yyval.stmt) = new SwitchStmt((yyvsp[(3) - (8)].expr), (yyvsp[(6) - (8)].caseStmtList), (yyvsp[(7) - (8)].defaultStmt));
@@ -2342,37 +2350,43 @@ yyreduce:
     break;
 
   case 58:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 372 "decaf-parse.yy"
     { (yyval.stmt) = (yyvsp[(1) - (1)].stmtBlock); }
     break;
 
   case 59:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 376 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 60:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 377 "decaf-parse.yy"
     { (yyval.expr) = new EmptyExpr(); }
     break;
 
   case 61:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 382 "decaf-parse.yy"
     { ((yyval.caseStmtList) = (yyvsp[(1) - (2)].caseStmtList))->Append((yyvsp[(2) - (2)].caseStmt)); }
     break;
 
   case 62:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 383 "decaf-parse.yy"
     { ((yyval.caseStmtList) = new List<CaseStmt*>)->Append((yyvsp[(1) - (1)].caseStmt)); }
     break;
 
   case 63:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 388 "decaf-parse.yy"
     { 
       IntConstant *ic = new IntConstant((yylsp[(2) - (4)]), (yyvsp[(2) - (4)].integerConstant));
@@ -2381,7 +2395,8 @@ yyreduce:
     break;
 
   case 64:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 393 "decaf-parse.yy"
     {
       IntConstant *ic = new IntConstant((yylsp[(2) - (3)]), (yyvsp[(2) - (3)].integerConstant));
@@ -2390,7 +2405,8 @@ yyreduce:
     break;
 
   case 65:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 401 "decaf-parse.yy"
     { 
       (yyval.defaultStmt) = new DefaultStmt((yyvsp[(3) - (3)].stmtList));
@@ -2398,7 +2414,8 @@ yyreduce:
     break;
 
   case 66:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 405 "decaf-parse.yy"
     { 
       (yyval.defaultStmt) = new DefaultStmt(new List<Stmt*>);
@@ -2406,7 +2423,8 @@ yyreduce:
     break;
 
   case 67:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 412 "decaf-parse.yy"
     {
       (yyval.ifStmt) = new IfStmt((yyvsp[(3) - (5)].expr), (yyvsp[(5) - (5)].stmt), NULL);
@@ -2414,7 +2432,8 @@ yyreduce:
     break;
 
   case 68:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 416 "decaf-parse.yy"
     {
       (yyval.ifStmt) = new IfStmt((yyvsp[(3) - (7)].expr), (yyvsp[(5) - (7)].stmt), (yyvsp[(7) - (7)].stmt));
@@ -2422,37 +2441,43 @@ yyreduce:
     break;
 
   case 69:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 422 "decaf-parse.yy"
     { ((yyval.exprList) = (yyvsp[(1) - (3)].exprList))->Append((yyvsp[(3) - (3)].expr)); }
     break;
 
   case 70:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 423 "decaf-parse.yy"
     { ((yyval.exprList) = new List<Expr*>)->Append((yyvsp[(1) - (1)].expr)); }
     break;
 
   case 71:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 427 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 72:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 428 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 73:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 429 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(1) - (1)].expr); }
     break;
 
   case 74:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 431 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "||");
@@ -2461,7 +2486,8 @@ yyreduce:
     break;
 
   case 75:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 436 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "&&");
@@ -2470,7 +2496,8 @@ yyreduce:
     break;
 
   case 76:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 441 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "<");
@@ -2479,7 +2506,8 @@ yyreduce:
     break;
 
   case 77:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 446 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), ">");
@@ -2488,7 +2516,8 @@ yyreduce:
     break;
 
   case 78:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 451 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), ">=");
@@ -2497,7 +2526,8 @@ yyreduce:
     break;
 
   case 79:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 456 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "<=");
@@ -2506,7 +2536,8 @@ yyreduce:
     break;
 
   case 80:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 461 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "==");
@@ -2515,7 +2546,8 @@ yyreduce:
     break;
 
   case 81:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 466 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "!=");
@@ -2524,7 +2556,8 @@ yyreduce:
     break;
 
   case 82:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 471 "decaf-parse.yy"
     {
        Operator *op = new Operator((yylsp[(2) - (3)]), "+");
@@ -2533,7 +2566,8 @@ yyreduce:
     break;
 
   case 83:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 476 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "-");
@@ -2542,7 +2576,8 @@ yyreduce:
     break;
 
   case 84:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 481 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "*");
@@ -2551,7 +2586,8 @@ yyreduce:
     break;
 
   case 85:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 486 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "/");
@@ -2560,7 +2596,8 @@ yyreduce:
     break;
 
   case 86:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 491 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (3)]), "%");
@@ -2569,7 +2606,8 @@ yyreduce:
     break;
 
   case 87:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 496 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(1) - (2)]), "-");
@@ -2578,7 +2616,8 @@ yyreduce:
     break;
 
   case 88:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 501 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(1) - (2)]), "!");
@@ -2587,7 +2626,8 @@ yyreduce:
     break;
 
   case 89:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 506 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (2)]), "++");
@@ -2596,7 +2636,8 @@ yyreduce:
     break;
 
   case 90:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 511 "decaf-parse.yy"
     {
       Operator *op = new Operator((yylsp[(2) - (2)]), "--");
@@ -2605,37 +2646,43 @@ yyreduce:
     break;
 
   case 91:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 515 "decaf-parse.yy"
     { (yyval.expr) = (yyvsp[(2) - (3)].expr); }
     break;
 
   case 92:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 516 "decaf-parse.yy"
     { (yyval.expr) = new This((yylsp[(1) - (1)])); }
     break;
 
   case 93:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 517 "decaf-parse.yy"
     { (yyval.expr) = new ReadIntegerExpr(Join((yylsp[(1) - (3)]), (yylsp[(3) - (3)]))); }
     break;
 
   case 94:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 518 "decaf-parse.yy"
     { (yyval.expr) = new ReadLineExpr(Join((yylsp[(1) - (3)]), (yylsp[(3) - (3)]))); }
     break;
 
   case 95:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 519 "decaf-parse.yy"
     { (yyval.expr) = new NewExpr(Join((yylsp[(1) - (2)]), (yylsp[(2) - (2)])), (yyvsp[(2) - (2)].namedType)); }
     break;
 
   case 96:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 521 "decaf-parse.yy"
     {
       (yyval.expr) = new NewArrayExpr(Join((yylsp[(1) - (6)]), (yylsp[(6) - (6)])), (yyvsp[(3) - (6)].expr), (yyvsp[(5) - (6)].type));
@@ -2643,7 +2690,8 @@ yyreduce:
     break;
 
   case 97:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 525 "decaf-parse.yy"
     {
     Operator *op = new Operator((yylsp[(2) - (3)]), "=");
@@ -2652,7 +2700,8 @@ yyreduce:
     break;
 
   case 98:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 533 "decaf-parse.yy"
     { 
       (yyval.expr) = new Call(Join((yylsp[(1) - (4)]),(yylsp[(4) - (4)])), NULL, new Identifier((yylsp[(1) - (4)]),(yyvsp[(1) - (4)].identifier)), (yyvsp[(3) - (4)].exprList)); 
@@ -2660,7 +2709,8 @@ yyreduce:
     break;
 
   case 99:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 537 "decaf-parse.yy"
     {
       (yyval.expr) = new Call(Join((yylsp[(1) - (6)]),(yylsp[(6) - (6)])), (yyvsp[(1) - (6)].expr), new Identifier((yylsp[(3) - (6)]),(yyvsp[(3) - (6)].identifier)), (yyvsp[(5) - (6)].exprList)); 
@@ -2668,68 +2718,79 @@ yyreduce:
     break;
 
   case 100:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 543 "decaf-parse.yy"
     { (yyval.exprList) = (yyvsp[(1) - (1)].exprList); }
     break;
 
   case 101:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 544 "decaf-parse.yy"
     { (yyval.exprList) = new List<Expr*>; }
     break;
 
   case 102:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 548 "decaf-parse.yy"
     { (yyval.expr) = new FieldAccess(NULL, new Identifier((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].identifier))); }
     break;
 
   case 103:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 549 "decaf-parse.yy"
     { (yyval.expr) = new FieldAccess((yyvsp[(1) - (3)].expr), new Identifier((yylsp[(3) - (3)]), (yyvsp[(3) - (3)].identifier))); }
     break;
 
   case 104:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 550 "decaf-parse.yy"
     { (yyval.expr) = new ArrayAccess(Join((yylsp[(1) - (4)]), (yylsp[(4) - (4)])), (yyvsp[(1) - (4)].expr), (yyvsp[(3) - (4)].expr)); }
     break;
 
   case 105:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 555 "decaf-parse.yy"
     { (yyval.expr) = new IntConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].integerConstant)); }
     break;
 
   case 106:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 556 "decaf-parse.yy"
     { (yyval.expr) = new DoubleConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].doubleConstant)); }
     break;
 
   case 107:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 557 "decaf-parse.yy"
     { (yyval.expr) = new BoolConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].boolConstant)); }
     break;
 
   case 108:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 558 "decaf-parse.yy"
     { (yyval.expr) = new StringConstant((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].stringConstant)); }
     break;
 
   case 109:
-/* Line 1787 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 559 "decaf-parse.yy"
     { (yyval.expr) = new NullConstant((yylsp[(1) - (1)])); }
     break;
 
 
-/* Line 1787 of yacc.c  */
-#line 2733 "decaf-parse.cc"
+
+/* Line 1806 of yacc.c  */
+#line 2794 "decaf-parse.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2894,9 +2955,7 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
   yyerror_range[2] = yylloc;
   /* Using YYLLOC is tempting, but would change the location of
@@ -2925,7 +2984,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#if !defined yyoverflow || YYERROR_VERBOSE
+#if !defined(yyoverflow) || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -2967,7 +3026,8 @@ yyreturn:
 }
 
 
-/* Line 2050 of yacc.c  */
+
+/* Line 2067 of yacc.c  */
 #line 562 "decaf-parse.yy"
 
 
@@ -2995,3 +3055,4 @@ void InitParser()
   PrintDebug("parser", "Initializing parser");
   yydebug = false;
 }
+

@@ -16,12 +16,12 @@
  */
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
-  value = val;
+  value_ = val;
   ret_type_ = Type::intType;
 }
 
-void IntConstant::PrintChildren(int indentLevel) { 
-  printf("%d", value);
+void IntConstant::PrintChildren(int indent_level) { 
+  printf("%d", value_);
 }
 
 /* Class: DoubleConstant
@@ -30,12 +30,12 @@ void IntConstant::PrintChildren(int indentLevel) {
  */
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
-  value = val;
+  value_ = val;
   ret_type_ = Type::doubleType;
 }
 
-void DoubleConstant::PrintChildren(int indentLevel) { 
-  printf("%g", value);
+void DoubleConstant::PrintChildren(int indent_level) { 
+  printf("%g", value_);
 }
 
 /* Class: BoolConstant
@@ -44,12 +44,12 @@ void DoubleConstant::PrintChildren(int indentLevel) {
  */
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
-  value = val;
+  value_ = val;
   ret_type_ = Type::boolType;
 }
 
-void BoolConstant::PrintChildren(int indentLevel) { 
-  printf("%s", value ? "true" : "false");
+void BoolConstant::PrintChildren(int indent_level) { 
+  printf("%s", value_ ? "true" : "false");
 }
 
 /* Class: StringConstant
@@ -59,12 +59,12 @@ void BoolConstant::PrintChildren(int indentLevel) {
 
 StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) {
   Assert(val != NULL);
-  value = strdup(val);
+  value_ = strdup(val);
   ret_type_ = Type::stringType;
 }
 
-void StringConstant::PrintChildren(int indentLevel) { 
-  printf("%s",value);
+void StringConstant::PrintChildren(int indent_level) { 
+  printf("%s",value_);
 }
 
 /* Class: Operator
@@ -72,13 +72,13 @@ void StringConstant::PrintChildren(int indentLevel) {
  * Implementation for Operator class
  */
 
-Operator::Operator(yyltype loc, const char *tok) : Node(loc) {
+Operator::Operator(yyltype loc, const char* tok) : Node(loc) {
   Assert(tok != NULL);
-  strncpy(tokenString, tok, sizeof(tokenString));
+  strncpy(token_string_, tok, sizeof(token_string_));
 }
 
-void Operator::PrintChildren(int indentLevel) {
-  printf("%s",tokenString);
+void Operator::PrintChildren(int indent_level) {
+  printf("%s",token_string_);
 }
 
 /* Class: CompoundExpr
@@ -86,37 +86,37 @@ void Operator::PrintChildren(int indentLevel) {
  * Implementation for CompoundExpr class
  */
 
-CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r) 
+CompoundExpr::CompoundExpr(Expr* l, Operator* o, Expr* r) 
     : Expr(Join(l->location(), r->location())) {
   Assert(l != NULL && o != NULL && r != NULL);
-  (op = o)->set_parent(this);
-  (left = l)->set_parent(this);
-  (right = r)->set_parent(this);
+  (op_ = o)->set_parent(this);
+  (left_ = l)->set_parent(this);
+  (right_ = r)->set_parent(this);
 }
 
-CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
+CompoundExpr::CompoundExpr(Operator* o, Expr* r) 
     : Expr(Join(o->location(), r->location())) {
   Assert(o != NULL && r != NULL);
-  left = NULL; 
-  (op = o)->set_parent(this);
-  (right = r)->set_parent(this);
+  left_ = NULL; 
+  (op_ = o)->set_parent(this);
+  (right_ = r)->set_parent(this);
 }
 
-CompoundExpr::CompoundExpr(Expr *l, Operator *o)
+CompoundExpr::CompoundExpr(Expr* l, Operator* o)
     : Expr(Join(l->location(), o->location())) {
   Assert(l != NULL && o != NULL);
-  right = NULL;
-  (left = l)->set_parent(this);
-  (op = o)->set_parent(this);
+  right_ = NULL;
+  (left_ = l)->set_parent(this);
+  (op_ = o)->set_parent(this);
 }
 
-void CompoundExpr::PrintChildren(int indentLevel) {
-  if (left) {
-    left->Print(indentLevel+1);
+void CompoundExpr::PrintChildren(int indent_level) {
+  if (left_) {
+    left_->Print(indent_level+1);
   }
-  op->Print(indentLevel+1);
-  if (right) {
-    right->Print(indentLevel+1);
+  op_->Print(indent_level+1);
+  if (right_) {
+    right_->Print(indent_level+1);
   }
 }
 
@@ -125,64 +125,64 @@ void CompoundExpr::PrintChildren(int indentLevel) {
  * Implementation for ArithmeticExpr class
  */
 
-bool ArithmeticExpr::Check(SymTable *env) {
+bool ArithmeticExpr::Check(SymTable* env) {
   bool ret = true;
-  Type *leftType = NULL;
-  Type *rightType = NULL;
+  Type* left_type = NULL;
+  Type* right_type = NULL;
 
-  if (left) {
-    ret &= left->Check(env);
-    leftType = left->GetRetType();
+  if (left_) {
+    ret &= left_->Check(env);
+    left_type = left_->GetRetType();
   }
 
-  ret &= right->Check(env);
-  rightType = right->GetRetType();
+  ret &= right_->Check(env);
+  right_type = right_->GetRetType();
 
-  if (left) {
-    if (leftType->IsConvertableTo(Type::intType) && 
-        rightType->IsConvertableTo(Type::intType)) {
+  if (left_) {
+    if (left_type->IsConvertableTo(Type::intType) && 
+        right_type->IsConvertableTo(Type::intType)) {
       SetRetType(Type::intType);
-    } else if (leftType->IsConvertableTo(Type::doubleType) && 
-        rightType->IsConvertableTo(Type::doubleType)) {
+    } else if (left_type->IsConvertableTo(Type::doubleType) && 
+        right_type->IsConvertableTo(Type::doubleType)) {
       SetRetType(Type::doubleType);
     } else {
-      ReportError::IncompatibleOperands(op, leftType, rightType);
+      ReportError::IncompatibleOperands(op_, left_type, right_type);
       SetRetType(Type::errorType);
       ret = false;
     }
   } else {
     // XXX: Are we allowing negative doubles?
-    if (!rightType->IsConvertableTo(Type::intType) && 
-        !rightType->IsConvertableTo(Type::doubleType)) {
-      ReportError::IncompatibleOperand(op, rightType);
+    if (!right_type->IsConvertableTo(Type::intType) && 
+        !right_type->IsConvertableTo(Type::doubleType)) {
+      ReportError::IncompatibleOperand(op_, right_type);
       SetRetType(Type::errorType);
     } else {
-      SetRetType(rightType);
+      SetRetType(right_type);
     }
   }
 
   return ret;
 }
 
-void ArithmeticExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                          SymTable *env) {
-  Location *loc = NULL;
-  if (left) {
-    left->Emit(falloc, codegen, env);
+void ArithmeticExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                          SymTable* env) {
+  Location* loc = NULL;
+  if (left_) {
+    left_->Emit(falloc, codegen, env);
   }
-  right->Emit(falloc, codegen, env);
+  right_->Emit(falloc, codegen, env);
 
   // Negation?
-  if (!left) {
-    loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
-                              right->GetFrameLocation());
+  if (!left_) {
+    loc = codegen->GenUnaryOp(falloc, op_->GetTokenString(),
+                              right_->GetFrameLocation());
   } else {
-    loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
-                               left->GetFrameLocation(),
-                               right->GetFrameLocation());
+    loc = codegen->GenBinaryOp(falloc, op_->GetTokenString(),
+                               left_->GetFrameLocation(),
+                               right_->GetFrameLocation());
   }
 
-  frameLocation = loc;
+  frame_location_ = loc;
 }
 
 /* Class: RelationalExpr
@@ -192,22 +192,22 @@ void ArithmeticExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 bool RelationalExpr::Check(SymTable *env) {
   bool ret = true;
-  Type *leftType = NULL;
-  Type *rightType = NULL;
+  Type* left_type = NULL;
+  Type* right_type = NULL;
 
-  ret &= left->Check(env);
-  leftType = left->GetRetType();
+  ret &= left_->Check(env);
+  left_type = left_->GetRetType();
 
-  ret &= right->Check(env);
-  rightType = right->GetRetType();
+  ret &= right_->Check(env);
+  right_type = right_->GetRetType();
 
-  if ((leftType->IsConvertableTo(Type::intType) &&
-       rightType->IsConvertableTo(Type::intType)) ||
-      (leftType->IsConvertableTo(Type::doubleType) &&
-       rightType->IsConvertableTo(Type::doubleType))) {
+  if ((left_type->IsConvertableTo(Type::intType) &&
+       right_type->IsConvertableTo(Type::intType)) ||
+      (left_type->IsConvertableTo(Type::doubleType) &&
+       right_type->IsConvertableTo(Type::doubleType))) {
     SetRetType(Type::boolType);
   } else {
-    ReportError::IncompatibleOperands(op, leftType, rightType);
+    ReportError::IncompatibleOperands(op_, left_type, right_type);
     SetRetType(Type::errorType);
     ret = false;
   }
@@ -215,16 +215,15 @@ bool RelationalExpr::Check(SymTable *env) {
   return ret;
 }
 
-void RelationalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                          SymTable *env) {
-  Location *loc = NULL;
-  left->Emit(falloc, codegen, env);
-  right->Emit(falloc, codegen, env);
-  loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
-                             left->GetFrameLocation(),
-                             right->GetFrameLocation());
+void RelationalExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                          SymTable* env) {
+  left_->Emit(falloc, codegen, env);
+  right_->Emit(falloc, codegen, env);
+  Location* loc = codegen->GenBinaryOp(falloc, op_->GetTokenString(),
+                                       left_->GetFrameLocation(),
+                                       right_->GetFrameLocation());
 
-  frameLocation = loc;
+  frame_location_ = loc;
 }
 
 /* Class: EqualityExpr
@@ -234,18 +233,18 @@ void RelationalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 bool EqualityExpr::Check(SymTable *env) {
   bool ret = true;
-  Type *leftType = NULL;
-  Type *rightType = NULL;
+  Type *left_type = NULL;
+  Type *right_type = NULL;
 
-  ret &= left->Check(env);
-  leftType = left->GetRetType();
+  ret &= left_->Check(env);
+  left_type = left_->GetRetType();
 
-  ret &= right->Check(env);
-  rightType = right->GetRetType();
+  ret &= right_->Check(env);
+  right_type = right_->GetRetType();
 
-  if (!(leftType->IsConvertableTo(rightType) || 
-        rightType->IsConvertableTo(leftType))) {
-    ReportError::IncompatibleOperands(op, leftType, rightType);
+  if (!(left_type->IsConvertableTo(right_type) || 
+        right_type->IsConvertableTo(left_type))) {
+    ReportError::IncompatibleOperands(op_, left_type, right_type);
     SetRetType(Type::errorType);
     ret = false;
   } else {
@@ -255,26 +254,26 @@ bool EqualityExpr::Check(SymTable *env) {
   return ret;
 }
 
-void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                        SymTable *env) {
-  Location *loc = NULL;
-  left->Emit(falloc, codegen, env);
-  right->Emit(falloc, codegen, env);
-  if (left->GetRetType()->IsConvertableTo(Type::stringType) &&
-      right->GetRetType()->IsConvertableTo(Type::stringType)) {
+void EqualityExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                        SymTable* env) {
+  Location* loc = NULL;
+  left_->Emit(falloc, codegen, env);
+  right_->Emit(falloc, codegen, env);
+  if (left_->GetRetType()->IsConvertableTo(Type::stringType) &&
+      right_->GetRetType()->IsConvertableTo(Type::stringType)) {
     loc = codegen->GenBuiltInCall(falloc, StringEqual,
-                                  left->GetFrameLocation(),
-                                  right->GetFrameLocation());
-    if (strcmp(op->GetTokenString(), "!=") == 0) {
+                                  left_->GetFrameLocation(),
+                                  right_->GetFrameLocation());
+    if (strcmp(op_->GetTokenString(), "!=") == 0) {
       loc = codegen->GenUnaryOp(falloc, strdup("!"), loc);
     }
   } else {
-    loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
-                               left->GetFrameLocation(),
-                               right->GetFrameLocation());
+    loc = codegen->GenBinaryOp(falloc, op_->GetTokenString(),
+                               left_->GetFrameLocation(),
+                               right_->GetFrameLocation());
   }
 
-  frameLocation = loc;
+  frame_location_ = loc;
 }
 
 /* Class: LogicalExpr
@@ -282,29 +281,29 @@ void EqualityExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for LogicalExpr class
  */
 
-bool LogicalExpr::Check(SymTable *env) {
+bool LogicalExpr::Check(SymTable* env) {
   bool ret = true;
-  Type *leftType = NULL;
-  Type *rightType = NULL;
+  Type* left_type = NULL;
+  Type* right_type = NULL;
 
-  if (left) {
-    ret &= left->Check(env);
-    leftType = left->GetRetType();
+  if (left_) {
+    ret &= left_->Check(env);
+    left_type = left_->GetRetType();
   }
 
-  ret &= right->Check(env);
-  rightType = right->GetRetType();
+  ret &= right_->Check(env);
+  right_type = right_->GetRetType();
   SetRetType(Type::boolType);
-  if (left) {
-    if (!leftType->IsConvertableTo(Type::boolType) || 
-        !rightType->IsConvertableTo(Type::boolType)) {
-      ReportError::IncompatibleOperands(op, leftType, rightType);
+  if (left_) {
+    if (!left_type->IsConvertableTo(Type::boolType) || 
+        !right_type->IsConvertableTo(Type::boolType)) {
+      ReportError::IncompatibleOperands(op_, left_type, right_type);
       SetRetType(Type::errorType);
       ret = false;
     }
   } else {
-    if (!rightType->IsConvertableTo(Type::boolType)) {
-      ReportError::IncompatibleOperand(op, rightType);
+    if (!right_type->IsConvertableTo(Type::boolType)) {
+      ReportError::IncompatibleOperand(op_, right_type);
       SetRetType(Type::errorType);
       ret = false;
     }
@@ -313,25 +312,25 @@ bool LogicalExpr::Check(SymTable *env) {
   return ret;
 }
 
-void LogicalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                       SymTable *env) {
-  Location *loc = NULL;
-  if (left) {
-    left->Emit(falloc, codegen, env);
+void LogicalExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                       SymTable* env) {
+  Location* loc = NULL;
+  if (left_) {
+    left_->Emit(falloc, codegen, env);
   }
-  right->Emit(falloc, codegen, env);
+  right_->Emit(falloc, codegen, env);
 
   // Logical Negation?
-  if (!left) {
-    loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
-                              right->GetFrameLocation());
+  if (!left_) {
+    loc = codegen->GenUnaryOp(falloc, op_->GetTokenString(),
+                              right_->GetFrameLocation());
   } else {
-    loc = codegen->GenBinaryOp(falloc, op->GetTokenString(),
-                               left->GetFrameLocation(),
-                               right->GetFrameLocation());
+    loc = codegen->GenBinaryOp(falloc, op_->GetTokenString(),
+                               left_->GetFrameLocation(),
+                               right_->GetFrameLocation());
   }
 
-  frameLocation = loc;
+  frame_location_ = loc;
 }
 
 /* Class: PostfixExpr
@@ -339,29 +338,26 @@ void LogicalExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for PostfixExpr class
  */
 
-bool PostfixExpr::Check(SymTable *env) {
+bool PostfixExpr::Check(SymTable* env) {
   bool ret = true;
-
-  ret &= left->Check(env);
-
-  if (!left->GetRetType()->IsConvertableTo(Type::intType)) {
-    ReportError::IncompatibleOperand(op, left->GetRetType());
+  ret &= left_->Check(env);
+  if (!left_->GetRetType()->IsConvertableTo(Type::intType)) {
+    ReportError::IncompatibleOperand(op_, left_->GetRetType());
     SetRetType(Type::errorType);
     ret = false;
   } else {
     SetRetType(Type::intType);
   }
-
   return ret;
 }
 
-void PostfixExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                       SymTable *env) {
-  left->Emit(falloc, codegen, env);
-  Location* loc = codegen->GenUnaryOp(falloc, op->GetTokenString(),
-                                      left->GetFrameLocation());
+void PostfixExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                       SymTable* env) {
+  left_->Emit(falloc, codegen, env);
+  Location* loc = codegen->GenUnaryOp(falloc, op_->GetTokenString(),
+                                      left_->GetFrameLocation());
 
-  frameLocation = loc;
+  frame_location_ = loc;
 }
 
 /* Class: AssignExpr
@@ -369,40 +365,40 @@ void PostfixExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for AssignExpr class
  */
 
-bool AssignExpr::Check(SymTable *env) {
+bool AssignExpr::Check(SymTable* env) {
   bool ret = true;
-  ret &= left->Check(env);
-  Type* leftType = left->GetRetType();
+  ret &= left_->Check(env);
+  Type *left_type = left_->GetRetType();
 
-  ret &= right->Check(env);
-  Type* rightType = right->GetRetType();
+  ret &= right_->Check(env);
+  Type *right_type = right_->GetRetType();
 
-  if (!rightType->IsConvertableTo(leftType) &&
-      !leftType->IsEquivalentTo(Type::errorType)) {
-    ReportError::IncompatibleOperands(op, leftType, rightType);
+  if (!right_type->IsConvertableTo(left_type) &&
+      !left_type->IsEquivalentTo(Type::errorType)) {
+    ReportError::IncompatibleOperands(op_, left_type, right_type);
     SetRetType(Type::errorType);
     ret = false;
   } else {
-    SetRetType(leftType);
+    SetRetType(left_type);
   }
 
   return ret;
 }
 
-void AssignExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                      SymTable *env) {
-  left->Emit(falloc, codegen, env);
-  right->Emit(falloc, codegen, env);
+void AssignExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                      SymTable* env) {
+  left_->Emit(falloc, codegen, env);
+  right_->Emit(falloc, codegen, env);
 
-  Assert(left->GetFrameLocation() != NULL);
-  Assert(right->GetFrameLocation() != NULL);
+  Assert(left_->GetFrameLocation() != NULL);
+  Assert(right_->GetFrameLocation() != NULL);
 
-  if (left->NeedsDereference()) {
-    codegen->GenStore(left->GetReference(), right->GetFrameLocation(), 0);
+  if (left_->NeedsDereference()) {
+    codegen->GenStore(left_->GetReference(), right_->GetFrameLocation(), 0);
   } else {
-    codegen->GenAssign(left->GetFrameLocation(), right->GetFrameLocation());
+    codegen->GenAssign(left_->GetFrameLocation(), right_->GetFrameLocation());
   }
-  frameLocation = left->GetFrameLocation();
+  frame_location_ = left_->GetFrameLocation();
 }
 
 /* Class: This
@@ -410,29 +406,30 @@ void AssignExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation of This class
  */
 
-bool This::Check(SymTable *env) {
+bool This::Check(SymTable* env) {
   if (!env->getThis()) {
     ReportError::ThisOutsideClassScope(this);
     SetRetType(Type::errorType);
     return false;
   }
 
-  Node *node = env->getThisClass();
+  Node* node = env->getThisClass();
   Assert(node != NULL);
 
-  ClassDecl *thisClass = dynamic_cast<ClassDecl*>(node);
+  ClassDecl* this_class = dynamic_cast<ClassDecl*>(node);
   //printf("%s\n", sym->getNode()->GetPrintNameForNode());
-  Assert(thisClass != 0);
+  Assert(this_class != 0);
 
-  SetRetType(new NamedType(thisClass->GetIdent()));
+  SetRetType(new NamedType(this_class->GetIdent()));
 
   return true;
 }
 
-void This::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
-  Symbol *sym = env->find(strdup("this"));
+void This::Emit(FrameAllocator* falloc, CodeGenerator* codegen, 
+                SymTable* env) {
+  Symbol* sym = env->find(strdup("this"));
   Assert(sym != NULL);
-  frameLocation = sym->getLocation();
+  frame_location_ = sym->getLocation();
 }
 
 /* Class: ArrayAccess
@@ -440,32 +437,31 @@ void This::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
  * Implementation for ArrayAccess class
  */
   
-ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
-  (base=b)->set_parent(this); 
-  (subscript=s)->set_parent(this);
+ArrayAccess::ArrayAccess(yyltype loc, Expr* b, Expr* s) : LValue(loc) {
+  (base_ = b)->set_parent(this); 
+  (subscript_ = s)->set_parent(this);
 }
 
-void ArrayAccess::PrintChildren(int indentLevel) {
-  base->Print(indentLevel+1);
-  subscript->Print(indentLevel+1, "(subscript) ");
+void ArrayAccess::PrintChildren(int indent_level) {
+  base_->Print(indent_level + 1);
+  subscript_->Print(indent_level + 1, "(subscript) ");
 }
 
-bool ArrayAccess::Check(SymTable *env) {
+bool ArrayAccess::Check(SymTable* env) {
   bool ret = false;
-
-  ret &= base->Check(env);
-  ArrayType *at = dynamic_cast<ArrayType*>(base->GetRetType());
+  ret &= base_->Check(env);
+  ArrayType* at = dynamic_cast<ArrayType*>(base_->GetRetType());
   if (at == 0) {
-    ReportError::BracketsOnNonArray(base);
+    ReportError::BracketsOnNonArray(base_);
     ret = false;
     SetRetType(Type::errorType);
   } else {
     SetRetType(at->getElemType());
   }
 
-  ret &= subscript->Check(env);
-  if (!subscript->GetRetType()->IsConvertableTo(Type::intType)) {
-    ReportError::SubscriptNotInteger(subscript);
+  ret &= subscript_->Check(env);
+  if (!subscript_->GetRetType()->IsConvertableTo(Type::intType)) {
+    ReportError::SubscriptNotInteger(subscript_);
     ret = false;
     SetRetType(Type::errorType);
   }
@@ -473,32 +469,39 @@ bool ArrayAccess::Check(SymTable *env) {
   return ret;
 }
 
-void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                       SymTable *env) {
-  char *afterLabel = codegen->NewLabel();
-  base->Emit(falloc, codegen, env);
-  subscript->Emit(falloc, codegen, env);
+void ArrayAccess::Emit(FrameAllocator* falloc, CodeGenerator * codegen,
+                       SymTable* env) {
+  char* after_label = codegen->NewLabel();
+  base_->Emit(falloc, codegen, env);
+  subscript_->Emit(falloc, codegen, env);
 
-  Location *arraySize = codegen->GenLoad(falloc, base->GetFrameLocation(), 0);
-  Location *zero      = codegen->GenLoadConstant(falloc, 0);
-  Location *lowerTest = codegen->GenBinaryOp(falloc, strdup("<"), subscript->GetFrameLocation(), zero);
-  Location *upperTest = codegen->GenBinaryOp(falloc, strdup(">="), subscript->GetFrameLocation(), arraySize);
-  Location *boundTest = codegen->GenBinaryOp(falloc, strdup("||"), lowerTest, upperTest);
-  codegen->GenIfZ(boundTest, afterLabel);
+  Location* array_size = codegen->GenLoad(falloc, base_->GetFrameLocation(), 0);
+  Location* zero = codegen->GenLoadConstant(falloc, 0);
+  Location* lower_test = codegen->GenBinaryOp(falloc, strdup("<"), 
+                                              subscript_->GetFrameLocation(), 
+                                              zero);
+  Location* upper_test = codegen->GenBinaryOp(falloc, strdup(">="), 
+                                              subscript_->GetFrameLocation(), 
+                                              array_size);
+  Location* bound_test = codegen->GenBinaryOp(falloc, strdup("||"), 
+                                              lower_test, upper_test);
+  codegen->GenIfZ(bound_test, after_label);
   codegen->GenPrintError(falloc, kErrorArrOutOfBounds);
-  codegen->GenLabel(afterLabel);
-  Location *one = codegen->GenLoadConstant(falloc, 1);
-  Location *four = codegen->GenLoadConstant(falloc, 4);
-  Location *trueOff = codegen->GenBinaryOp(falloc, strdup("*"),
-      codegen->GenBinaryOp(falloc, strdup("+"), subscript->GetFrameLocation(), one),
+  codegen->GenLabel(after_label);
+  Location* one = codegen->GenLoadConstant(falloc, 1);
+  Location* four = codegen->GenLoadConstant(falloc, 4);
+  Location* true_off = codegen->GenBinaryOp(falloc, strdup("*"),
+      codegen->GenBinaryOp(falloc, strdup("+"), 
+                           subscript_->GetFrameLocation(), one),
       four);
 
-  Location *addr = codegen->GenBinaryOp(falloc, strdup("+"), base->GetFrameLocation(), trueOff);
-  Location *loc = codegen->GenLoad(falloc, addr, 0);
+  Location* addr = codegen->GenBinaryOp(falloc, strdup("+"), 
+                                        base_->GetFrameLocation(), true_off);
+  Location* loc = codegen->GenLoad(falloc, addr, 0);
 
-  frameLocation = loc;
-  reference = addr;
-  needsDereference = true;
+  frame_location_ = loc;
+  reference_ = addr;
+  needs_dereference_ = true;
 }
 
 /* Class: FieldAccess
@@ -506,83 +509,83 @@ void ArrayAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for FieldAccess class
  */
      
-FieldAccess::FieldAccess(Expr *b, Identifier *f) 
-    : LValue(b? Join(b->location(), f->location()) : *f->location()) {
+FieldAccess::FieldAccess(Expr* b, Identifier* f) 
+    : LValue(b ? Join(b->location(), f->location()) : *f->location()) {
   Assert(f != NULL); // b can be be NULL (just means no explicit base)
-  base = b; 
-  if (base) {
-    base->set_parent(this); 
+  base_ = b; 
+  if (base_) {
+    base_->set_parent(this); 
   }
-  (field = f)->set_parent(this);
+  (field_ = f)->set_parent(this);
 }
 
-void FieldAccess::PrintChildren(int indentLevel) {
-  if (base) {
-    base->Print(indentLevel+1);
+void FieldAccess::PrintChildren(int indent_level) {
+  if (base_) {
+    base_->Print(indent_level + 1);
   }
-  field->Print(indentLevel+1);
+  field_->Print(indent_level + 1);
 }
 
-bool FieldAccess::Check(SymTable *env) {
+bool FieldAccess::Check(SymTable* env) {
   bool ret = true;
-  if (!base) {
-    Symbol *sym = env->find(field->name(), S_VARIABLE);
+  if (!base_) {
+    Symbol* sym = env->find(field_->name(), S_VARIABLE);
     if (sym == NULL) {
-      ReportError::IdentifierNotDeclared(field, kLookingForVariable);
+      ReportError::IdentifierNotDeclared(field_, kLookingForVariable);
       SetRetType(Type::errorType);
       return false;
     }
 
-      VarDecl *decl = dynamic_cast<VarDecl*>(sym->getNode());
-      SetRetType(decl->GetType());
+    VarDecl* decl = dynamic_cast<VarDecl*>(sym->getNode());
+    SetRetType(decl->GetType());
   } else {
-    ret &= base->Check(env);
+    ret &= base_->Check(env);
 
-    // Error if base is not of a class's type
-    NamedType *baseType = dynamic_cast<NamedType*>(base->GetRetType());
-    if (baseType == 0) {
-      ReportError::FieldNotFoundInBase(field, base->GetRetType());
+    // Error if base_ is not of a class's type
+    NamedType* base_type = dynamic_cast<NamedType*>(base_->GetRetType());
+    if (base_type == 0) {
+      ReportError::FieldNotFoundInBase(field_, base_->GetRetType());
       SetRetType(Type::errorType);
       return false;
     }
 
-    // Check whether field is indeed a field of base
+    // Check whether field_ is indeed a field of base
     Symbol *sym = NULL;
-    if ((sym = env->findClassField(baseType->GetName(), field->name(), S_VARIABLE)) == NULL) {
-      ReportError::FieldNotFoundInBase(field, baseType);
+    if ((sym = env->findClassField(base_type->GetName(), field_->name(), S_VARIABLE)) == NULL) {
+      ReportError::FieldNotFoundInBase(field_, base_type);
       SetRetType(Type::errorType);
       return false;
     }
 
     if (env->getThisClass() == NULL) {
-      ReportError::InaccessibleField(field, base->GetRetType());
+      ReportError::InaccessibleField(field_, base_->GetRetType());
       SetRetType(Type::errorType);
       return false;
     }
 
-    ClassDecl *classDecl = dynamic_cast<ClassDecl*>(env->getThisClass());
-    Assert(classDecl != 0);
+    ClassDecl *class_decl = dynamic_cast<ClassDecl*>(env->getThisClass());
+    Assert(class_decl != 0);
 
-    if (strcmp(base->GetPrintNameForNode(), "This") != 0) {
-      FieldAccess *baseFieldAccess = dynamic_cast<FieldAccess*>(base);
+    if (strcmp(base_->GetPrintNameForNode(), "This") != 0) {
+      FieldAccess *baseFieldAccess = dynamic_cast<FieldAccess*>(base_);
       Assert(baseFieldAccess != 0);
 
-      if (strcmp(classDecl->GetIdent()->name(),
-                 base->GetRetType()->GetName()) != 0) {
-        ReportError::InaccessibleField(field, base->GetRetType());
+      if (strcmp(class_decl->GetIdent()->name(),
+                 base_->GetRetType()->GetName()) != 0) {
+        ReportError::InaccessibleField(field_, base_->GetRetType());
         SetRetType(Type::errorType);
         return false;
       }
       /*if (baseFieldAccess->GetBase() != NULL) {
-        ReportError::InaccessibleField(field, base->GetRetType());
+        ReportError::InaccessibleField(field_, base_->GetRetType());
         SetRetType(Type::errorType);
         return false;
       }*/
     }
 
-    Decl *fieldDecl = dynamic_cast<Decl*>(sym->getNode());
-    Assert(fieldDecl != 0);
-    SetRetType(fieldDecl->GetType());
+    Decl *field_decl = dynamic_cast<Decl*>(sym->getNode());
+    Assert(field_decl != 0);
+    SetRetType(field_decl->GetType());
   }
 
   return ret;
@@ -590,65 +593,65 @@ bool FieldAccess::Check(SymTable *env) {
 
 void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                        SymTable *env) {
-  if (!base) {
-    Symbol *sym = env->find(field->name(), S_VARIABLE);
+  if (!base_) {
+    Symbol *sym = env->find(field_->name(), S_VARIABLE);
     Location *loc = sym->getLocation();
 
 #ifdef __DEBUG_TAC
-    PrintDebug("tac", "Var Access\t%s @ %d:%d\n", field->name(),
+    PrintDebug("tac", "Var Access\t%s @ %d:%d\n", field_->name(),
                loc->GetSegment(), loc->GetOffset());
 #endif
 
     Assert(loc != NULL);
 
     if (loc->GetSegment() != classRelative) {
-      frameLocation = loc;
+      frame_location_ = loc;
       return;
     }
 
     // We have an implicit "this."
-    Symbol *thisSym = env->find(strdup("this"), S_VARIABLE);
-    Assert(thisSym != NULL);
-    Location *thisLoc = thisSym->getLocation();
+    Symbol *this_sym = env->find(strdup("this"), S_VARIABLE);
+    Assert(this_sym != NULL);
+    Location *this_loc = this_sym->getLocation();
 
-    needsDereference = true;
-    Location *fieldOffset = codegen->GenLoadConstant(falloc, loc->GetOffset());
-    reference = codegen->GenBinaryOp(falloc, strdup("+"), thisLoc, fieldOffset);
+    needs_dereference_ = true;
+    Location *field_offset = codegen->GenLoadConstant(falloc, loc->GetOffset());
+    reference_ = codegen->GenBinaryOp(falloc, strdup("+"), this_loc, field_offset);
 
-    frameLocation = codegen->GenLoad(falloc, reference, 0);
+    frame_location_ = codegen->GenLoad(falloc, reference_, 0);
   } else {
-    // Now, the frameLocation of the base contains the location of base, which
+    // Now, the frame_location_ of the base contains the location of base, which
     // is a pointer to an object.
-    //   Given: - field is a field of base
+    //   Given: - field_ is a field of base
     //          - base's type is a NamedType
-    //          - We are in class scope and can access field
+    //          - We are in class scope and can access field_
     // Approach:
     //   off = offset of field in class of base
     //   loc = *(base + off)
-    //   frameLocation = loc
+    //   frame_location_ = loc
 
 
 
-    base->Emit(falloc, codegen, env);
-    Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
-    Assert(classSym != NULL);
+    base_->Emit(falloc, codegen, env);
+    Symbol *class_sym = env->find(base_->GetRetType()->GetName(), S_CLASS);
+    Assert(class_sym != NULL);
 
-    Symbol *fieldSym = classSym->getEnv()->find(field->name(), S_VARIABLE);
-    Location *fieldLoc = fieldSym->getLocation();
+    Symbol *field_sym = class_sym->getEnv()->find(field_->name(), S_VARIABLE);
+    Location *fieldLoc = field_sym->getLocation();
     Assert(fieldLoc->GetSegment() == classRelative);
 
 #ifdef __DEBUG_TAC
     PrintDebug("tac", "Var access with base\t%s::%s @ %d:%d\n",
-        base->GetRetType()->GetName(), field->name(),
+        base_->GetRetType()->GetName(), field_->name(),
         fieldLoc->GetSegment(), fieldLoc->GetOffset());
 #endif
 
-    needsDereference = true;
-    Location *fieldOffset = codegen->GenLoadConstant(falloc, fieldLoc->GetOffset());
-    reference = codegen->GenBinaryOp(falloc, strdup("+"),
-        base->GetFrameLocation(), fieldOffset);
+    needs_dereference_ = true;
+    Location *field_offset = codegen->GenLoadConstant(falloc, fieldLoc->GetOffset());
+    reference_ = codegen->GenBinaryOp(falloc, strdup("+"),
+        base_->GetFrameLocation(), field_offset);
 
-    frameLocation = codegen->GenLoad(falloc, reference, 0);
+    frame_location_ = codegen->GenLoad(falloc, reference_, 0);
   }
 }
 
@@ -659,37 +662,37 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc) {
   Assert(f != NULL && a != NULL); // b can be be NULL (just means no explicit base)
-  base = b;
-  if (base) {
-    base->set_parent(this);
+  base_ = b;
+  if (base_) {
+    base_->set_parent(this);
   }
-  (field = f)->set_parent(this);
-  (actuals = a)->SetParentAll(this);
+  (field_ = f)->set_parent(this);
+  (actuals_ = a)->SetParentAll(this);
 }
 
-void Call::PrintChildren(int indentLevel) {
-  if (base) {
-    base->Print(indentLevel+1);
+void Call::PrintChildren(int indent_level) {
+  if (base_) {
+    base_->Print(indent_level+1);
   }
-  field->Print(indentLevel+1);
-  actuals->PrintAll(indentLevel+1, "(actuals) ");
+  field_->Print(indent_level+1);
+  actuals_->PrintAll(indent_level+1, "(actuals) ");
 }
 
 bool Call::CheckCall(FnDecl *prototype, SymTable *env) {
   List<VarDecl*> *formals = prototype->GetFormals();
   bool ret = true;
 
-  if (formals->NumElements() != actuals->NumElements()) {
-    ReportError::NumArgsMismatch(field, formals->NumElements(), actuals->NumElements());
+  if (formals->NumElements() != actuals_->NumElements()) {
+    ReportError::NumArgsMismatch(field_, formals->NumElements(), actuals_->NumElements());
     return false;
   }
 
   Type *formalType, *actualType;
-  for (int i = 0; i < formals->NumElements(); i++) {
+  for (int i = 0; i < formals->NumElements(); ++i) {
     formalType = formals->Nth(i)->GetType();
-    actualType = actuals->Nth(i)->GetRetType();
+    actualType = actuals_->Nth(i)->GetRetType();
     if (!actualType->IsConvertableTo(formalType)) {
-      ReportError::ArgMismatch(actuals->Nth(i), i+1, actualType, formalType);
+      ReportError::ArgMismatch(actuals_->Nth(i), i+1, actualType, formalType);
       ret = false;
     }
   }
@@ -700,8 +703,8 @@ bool Call::CheckCall(FnDecl *prototype, SymTable *env) {
 bool Call::CheckActuals(SymTable *env) {
   bool ret = true;
 
-  for (int i = 0; i < actuals->NumElements(); i++) {
-    ret &= actuals->Nth(i)->Check(env);
+  for (int i = 0; i < actuals_->NumElements(); ++i) {
+    ret &= actuals_->Nth(i)->Check(env);
   }
 
   return ret;
@@ -713,10 +716,10 @@ bool Call::Check(SymTable *env) {
 
   ret &= CheckActuals(env);
 
-  if (!base) {
-    Symbol *sym = env->find(field->name(), S_FUNCTION);
+  if (!base_) {
+    Symbol *sym = env->find(field_->name(), S_FUNCTION);
     if (sym == NULL) {
-      ReportError::IdentifierNotDeclared(field, kLookingForFunction);
+      ReportError::IdentifierNotDeclared(field_, kLookingForFunction);
       SetRetType(Type::errorType);
       return false;
     }
@@ -725,30 +728,30 @@ bool Call::Check(SymTable *env) {
     Assert(prototype != 0);
     ret &= CheckCall(prototype, env);
   } else {
-    ret &= base->Check(env);
-    if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
-        strcmp(field->name(), "length") == 0) {
+    ret &= base_->Check(env);
+    if (strcmp(base_->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
+        strcmp(field_->name(), "length") == 0) {
       SetRetType(Type::intType);
       return ret;
     }
 
-    // Error if base is not of a class's type
-    Type *baseType = base->GetRetType();
-    if (baseType == Type::errorType) {
+    // Error if base_ is not of a class's type
+    Type* base_type = base_->GetRetType();
+    if (base_type == Type::errorType) {
       SetRetType(Type::errorType);
       return false;
     }
 
-    if (baseType->IsBuiltin()) {
-      ReportError::FieldNotFoundInBase(field, base->GetRetType());
+    if (base_type->IsBuiltin()) {
+      ReportError::FieldNotFoundInBase(field_, base_->GetRetType());
       SetRetType(Type::errorType);
       return false;
     }
 
-    // Check whether field is indeed a field of base
-    Symbol *sym = NULL;
-    if ((sym = env->findClassField(baseType->GetName(), field->name(), S_FUNCTION)) == NULL) {
-      ReportError::FieldNotFoundInBase(field, baseType);
+    // Check whether field_ is indeed a field of base
+    Symbol* sym = NULL;
+    if ((sym = env->findClassField(base_type->GetName(), field_->name(), S_FUNCTION)) == NULL) {
+      ReportError::FieldNotFoundInBase(field_, base_type);
       SetRetType(Type::errorType);
       return false;
     }
@@ -761,146 +764,139 @@ bool Call::Check(SymTable *env) {
   return ret;
 }
 
-int Call::EmitActuals(FrameAllocator *falloc, CodeGenerator *codegen,
-                       SymTable *env) {
-  int numParams = 0;
-
-  for (int i = 0; i < actuals->NumElements(); i++) {
-    actuals->Nth(i)->Emit(falloc, codegen, env);
-    numParams++;
+int Call::EmitActuals(FrameAllocator* falloc, CodeGenerator* codegen,
+                      SymTable* env) {
+  int num_params = 0;
+  for (int i = 0; i < actuals_->NumElements(); ++i) {
+    actuals_->Nth(i)->Emit(falloc, codegen, env);
+    ++num_params;
   }
 
   // Push params in reverse order
-  for (int i = actuals->NumElements() - 1; i >= 0; i--) {
-    codegen->GenPushParam(actuals->Nth(i)->GetFrameLocation());
+  for (int i = actuals_->NumElements() - 1; i >= 0; --i) {
+    codegen->GenPushParam(actuals_->Nth(i)->GetFrameLocation());
   }
 
-  return numParams;
+  return num_params;
 }
 
-
-void Call::Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env) {
-  Symbol *fnSym = NULL;
-  FnDecl *fnDecl = NULL;
-  int numParams = 0;
-  bool hasReturnVal = true;
+void Call::Emit(FrameAllocator* falloc, CodeGenerator* codegen, SymTable* env) {
+  Symbol* fn_sym = NULL;
+  FnDecl* fn_decl = NULL;
+  int num_params = 0;
+  bool has_return_val = true;
 
   // Used if we're doing a method call
-  int methodOffset = 0;
-  Location *objectLocation = NULL;
-  Location *methodAddr = NULL;
+  int method_offset = 0;
+  Location* object_location = NULL;
+  Location* method_addr = NULL;
 
-  if (!base)
-  {
+  if (!base_) {
 #ifdef __DEBUG_TAC
-    PrintDebug("tac", "Call %s\n", field->name());
+    PrintDebug("tac", "Call %s\n", field_->name());
 #endif
 
-    fnSym = env->find(field->name(), S_FUNCTION);
-    Assert(fnSym != NULL);
-    fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
-    Assert(fnDecl != 0);
+    fn_sym = env->find(field_->name(), S_FUNCTION);
+    Assert(fn_sym != NULL);
+    fn_decl = dynamic_cast<FnDecl*>(fn_sym->getNode());
+    Assert(fn_decl != 0);
 
-    if (fnDecl->GetReturnType()->IsEquivalentTo(Type::voidType)) {
-      hasReturnVal = false;
+    if (fn_decl->GetReturnType()->IsEquivalentTo(Type::voidType)) {
+      has_return_val = false;
     }
 
-    if (!fnDecl->IsMethod()) {
-      numParams += EmitActuals(falloc, codegen, env);
-      char *functionLabel = codegen->NewFunctionLabel(fnDecl->GetName());
-      frameLocation = codegen->GenLCall(falloc, functionLabel, hasReturnVal);
-      codegen->GenPopParams(numParams * 4);
+    if (!fn_decl->IsMethod()) {
+      num_params += EmitActuals(falloc, codegen, env);
+      char* function_label = codegen->NewFunctionLabel(fn_decl->GetName());
+      frame_location_ = codegen->GenLCall(falloc, function_label, has_return_val);
+      codegen->GenPopParams(num_params * 4);
       return;
     }
 
     // Implicit this
     // Get location of this and
 
-    Symbol *thisSym = env->find(strdup("this"), S_VARIABLE);
-    Assert(thisSym != NULL);
-    objectLocation = thisSym->getLocation();
+    Symbol* this_sym = env->find(strdup("this"), S_VARIABLE);
+    Assert(this_sym != NULL);
+    object_location = this_sym->getLocation();
 
-    methodOffset = fnDecl->GetMethodOffset();
-    methodAddr = codegen->GenLoad(falloc,
-        codegen->GenLoad(falloc, thisSym->getLocation(), 0), methodOffset * 4);
+    method_offset = fn_decl->GetMethodOffset();
+    method_addr = codegen->GenLoad(falloc,
+        codegen->GenLoad(falloc, this_sym->getLocation(), 0), method_offset * 4);
   } else {
-    base->Emit(falloc, codegen, env);
-
-    if (strcmp(base->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
-        strcmp(field->name(), "length") == 0) {
-      frameLocation = codegen->GenLoad(falloc, base->GetFrameLocation(), 0);
+    base_->Emit(falloc, codegen, env);
+    if (strcmp(base_->GetRetType()->GetPrintNameForNode(), "ArrayType") == 0 &&
+        strcmp(field_->name(), "length") == 0) {
+      frame_location_ = codegen->GenLoad(falloc, base_->GetFrameLocation(), 0);
       return;
     }
 
-    Symbol *classSym = env->find(base->GetRetType()->GetName(), S_CLASS);
-    Assert(classSym != NULL);
-    fnSym = classSym->getEnv()->find(field->name(), S_FUNCTION);
-    Assert(fnSym != NULL);
-    fnDecl = dynamic_cast<FnDecl*>(fnSym->getNode());
-    Assert(fnDecl != 0);
+    Symbol* class_sym = env->find(base_->GetRetType()->GetName(), S_CLASS);
+    Assert(class_sym != NULL);
+    fn_sym = class_sym->getEnv()->find(field_->name(), S_FUNCTION);
+    Assert(fn_sym != NULL);
+    fn_decl = dynamic_cast<FnDecl*>(fn_sym->getNode());
+    Assert(fn_decl != 0);
 
-    if (fnDecl->GetReturnType()->IsEquivalentTo(Type::voidType)) {
-      hasReturnVal = false;
+    if (fn_decl->GetReturnType()->IsEquivalentTo(Type::voidType)) {
+      has_return_val = false;
     }
 
-    objectLocation = base->GetFrameLocation();
-
-    methodOffset = fnDecl->GetMethodOffset();
-    methodAddr = codegen->GenLoad(falloc,
-        codegen->GenLoad(falloc, base->GetFrameLocation(), 0), methodOffset * 4);
+    object_location = base_->GetFrameLocation();
+    method_offset = fn_decl->GetMethodOffset();
+    method_addr = codegen->GenLoad(falloc,
+        codegen->GenLoad(falloc, base_->GetFrameLocation(), 0), 
+                         method_offset * 4);
   }
 
-  numParams += EmitActuals(falloc, codegen, env);
-  numParams++;
-  codegen->GenPushParam(objectLocation);
+  num_params += EmitActuals(falloc, codegen, env);
+  ++num_params;
+  codegen->GenPushParam(object_location);
 
-  frameLocation = codegen->GenACall(falloc, methodAddr, hasReturnVal);
-  codegen->GenPopParams(numParams * 4);
+  frame_location_ = codegen->GenACall(falloc, method_addr, has_return_val);
+  codegen->GenPopParams(num_params * 4);
 }
-
 
 /* Class: NewExpr
  * ------------------
  * Implementation for NewExpr class
  */
 
-NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
+NewExpr::NewExpr(yyltype loc, NamedType* c) : Expr(loc) {
   Assert(c != NULL);
-  (cType=c)->set_parent(this);
+  (c_type_ = c)->set_parent(this);
 }
 
-void NewExpr::PrintChildren(int indentLevel) {	
-  cType->Print(indentLevel+1);
+void NewExpr::PrintChildren(int indent_level) {	
+  c_type_->Print(indent_level + 1);
 }
 
-bool NewExpr::Check(SymTable *env) {
+bool NewExpr::Check(SymTable* env) {
   bool ret = true;
-  ret &= cType->Check(env);
+  ret &= c_type_->Check(env);
   if (!ret) {
-    ReportError::IdentifierNotDeclared(cType->GetIdent(), kLookingForClass);
+    ReportError::IdentifierNotDeclared(c_type_->GetIdent(), kLookingForClass);
     SetRetType(Type::errorType);
   } else {
-    SetRetType(cType);
+    SetRetType(c_type_);
   }
   return ret;
 }
 
-void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                   SymTable *env) {
-  Location *loc = NULL;
+void NewExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                   SymTable* env) {
+  Location* loc = NULL;
+  Symbol* class_sym = env->find(c_type_->GetName(), S_CLASS);
+  ClassDecl* class_decl = dynamic_cast<ClassDecl*>(class_sym->getNode());
+  Assert(class_decl != 0);
 
-  Symbol *classSym = env->find(cType->GetName(), S_CLASS);
-  ClassDecl *classDecl = dynamic_cast<ClassDecl*>(classSym->getNode());
-  Assert(classDecl != 0);
-
-  Location *four = codegen->GenLoadConstant(falloc, 4);
-  Location *classSize = codegen->GenBinaryOp(falloc, strdup("*"),
-      codegen->GenLoadConstant(falloc, classDecl->NumFields() + 1), four);
-  loc = codegen->GenBuiltInCall(falloc, Alloc, classSize, NULL);
-  Location *vtableLabel = codegen->GenLoadLabel(falloc, classDecl->GetClassLabel());
-  codegen->GenStore(loc, vtableLabel, 0);
-
-  frameLocation = loc;
+  Location* four = codegen->GenLoadConstant(falloc, 4);
+  Location* class_size = codegen->GenBinaryOp(falloc, strdup("*"),
+      codegen->GenLoadConstant(falloc, class_decl->NumFields() + 1), four);
+  loc = codegen->GenBuiltInCall(falloc, Alloc, class_size, NULL);
+  Location* vtable_label = codegen->GenLoadLabel(falloc, class_decl->GetClassLabel());
+  codegen->GenStore(loc, vtable_label, 0);
+  frame_location_ = loc;
 }
 
 /* Class: NewArrayExpr
@@ -908,45 +904,43 @@ void NewExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for NewArrayExpr class
  */
 
-NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
+NewArrayExpr::NewArrayExpr(yyltype loc, Expr* sz, Type* et) : Expr(loc) {
   Assert(sz != NULL && et != NULL);
-  (size=sz)->set_parent(this); 
-  (elemType=et)->set_parent(this);
+  (size_ = sz)->set_parent(this); 
+  (elem_type_ = et)->set_parent(this);
 }
 
-void NewArrayExpr::PrintChildren(int indentLevel) {
-  size->Print(indentLevel+1);
-  elemType->Print(indentLevel+1);
+void NewArrayExpr::PrintChildren(int indent_level) {
+  size_->Print(indent_level + 1);
+  elem_type_->Print(indent_level + 1);
 }
 
-bool NewArrayExpr::Check(SymTable *env)
-{
+bool NewArrayExpr::Check(SymTable* env) {
   bool ret = true;
-
-  ret &= size->Check(env);
-  if (!size->GetRetType()->IsConvertableTo(Type::intType)) {
-    ReportError::NewArraySizeNotInteger(size);
+  ret &= size_->Check(env);
+  if (!size_->GetRetType()->IsConvertableTo(Type::intType)) {
+    ReportError::NewArraySizeNotInteger(size_);
     SetRetType(Type::errorType);
     ret = false;
   }
 
-  ret &= elemType->Check(env);
+  ret &= elem_type_->Check(env);
   if (!ret) {
-    if (elemType->GetIdent() != NULL) {
-      ReportError::IdentifierNotDeclared(elemType->GetIdent(), kLookingForType);
+    if (elem_type_->GetIdent() != NULL) {
+      ReportError::IdentifierNotDeclared(elem_type_->GetIdent(), kLookingForType);
     }
     SetRetType(Type::errorType);
   } else {
-    SetRetType(new ArrayType(*location_, elemType));
+    SetRetType(new ArrayType(*location_, elem_type_));
   }
 
   return ret;
 }
 
-void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                        SymTable *env) {
-  size->Emit(falloc, codegen, env);
-  char *afterLabel = codegen->NewLabel();
+void NewArrayExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                        SymTable* env) {
+  size_->Emit(falloc, codegen, env);
+  char *after_label = codegen->NewLabel();
 
   /* _t0 = 0;
    * _t1 = size <= 0
@@ -955,10 +949,10 @@ void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
    * PrintString(_t2)
    * Halt()
    */
-  Location *zero = codegen->GenLoadConstant(falloc, 0);
-  Location *sizeTest = codegen->GenBinaryOp(falloc, strdup("<="),
-      size->GetFrameLocation(), zero);
-  codegen->GenIfZ(sizeTest, afterLabel);
+  Location* zero = codegen->GenLoadConstant(falloc, 0);
+  Location* size_test = codegen->GenBinaryOp(falloc, strdup("<="),
+      size_->GetFrameLocation(), zero);
+  codegen->GenIfZ(size_test, after_label);
   codegen->GenPrintError(falloc, kErrorArrBadSize);
 
   /* AfterLabel:
@@ -969,17 +963,17 @@ void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
    * _t7 = Alloc(_t6)
    * *(_t7) = size
    */
-  codegen->GenLabel(afterLabel);
-  Location *one = codegen->GenLoadConstant(falloc, 1);
-  Location *eltSize = codegen->GenLoadConstant(falloc, 4);
-  Location *arraySize = codegen->GenBinaryOp(falloc, strdup("*"),
-      codegen->GenBinaryOp(falloc, strdup("+"), size->GetFrameLocation(), one),
-      eltSize);
+  codegen->GenLabel(after_label);
+  Location* one = codegen->GenLoadConstant(falloc, 1);
+  Location* elt_size = codegen->GenLoadConstant(falloc, 4);
+  Location* array_size = codegen->GenBinaryOp(falloc, strdup("*"),
+      codegen->GenBinaryOp(falloc, strdup("+"), size_->GetFrameLocation(), one),
+      elt_size);
 
-  Location *loc = codegen->GenBuiltInCall(falloc, Alloc, arraySize, NULL);
-  codegen->GenStore(loc, size->GetFrameLocation(), 0);
+  Location* loc = codegen->GenBuiltInCall(falloc, Alloc, array_size, NULL);
+  codegen->GenStore(loc, size_->GetFrameLocation(), 0);
 
-  frameLocation = loc;
+  frame_location_ = loc;
 }
 
 /* Class: ReadIntegerExpr
@@ -987,15 +981,15 @@ void NewArrayExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for ReadIntegerExpr
  */
 
-bool ReadIntegerExpr::Check(SymTable *env) {
+bool ReadIntegerExpr::Check(SymTable* env) {
   SetRetType(Type::intType);
   return true;
 }
 
-void ReadIntegerExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                           SymTable *env) {
-  Location *loc = codegen->GenBuiltInCall(falloc, ReadInteger, NULL, NULL);
-  frameLocation = loc;
+void ReadIntegerExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                           SymTable* env) {
+  Location* loc = codegen->GenBuiltInCall(falloc, ReadInteger, NULL, NULL);
+  frame_location_ = loc;
 }
 
 /* Class: ReadLineExpr
@@ -1003,15 +997,15 @@ void ReadIntegerExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation for ReadLineExpr
  */
 
-bool ReadLineExpr::Check(SymTable *env) {
+bool ReadLineExpr::Check(SymTable* env) {
   SetRetType(Type::stringType);
   return true;
 }
 
-void ReadLineExpr::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
-                        SymTable *env) {
-  Location *loc = codegen->GenBuiltInCall(falloc, ReadLine, NULL, NULL);
-  frameLocation = loc;
+void ReadLineExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                        SymTable* env) {
+  Location* loc = codegen->GenBuiltInCall(falloc, ReadLine, NULL, NULL);
+  frame_location_ = loc;
 }
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */
