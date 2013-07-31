@@ -12,8 +12,8 @@
  * semantic analysis for rules pertaining to statements.
  */
 
-#ifndef AST_STMT_H__
-#define AST_STMT_H__
+#ifndef DCC_AST_STMT_H__
+#define DCC_AST_STMT_H__
 
 #include "ast.h"
 
@@ -25,15 +25,15 @@ class Program : public Node {
  public:
   Program(List<Decl*> *declList);
   const char *GetPrintNameForNode() { return "Program"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   void Check();
   void Emit();
  
  protected:
-  List<Decl*> *decls;
-  SymTable *env;
-  CodeGenerator *codegen;
-  FrameAllocator *falloc;
+  List<Decl*> *decls_;
+  SymTable *env_;
+  CodeGenerator *codegen_;
+  FrameAllocator *falloc_;
 };
 
 class Stmt : public Node {
@@ -51,16 +51,16 @@ class StmtBlock : public Stmt {
  public:
   StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
   const char *GetPrintNameForNode() { return "StmtBlock"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool CheckDecls(SymTable *env, bool inheritEnv);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
  protected:
-  List<VarDecl*> *decls;
-  List<Stmt*> *stmts;
-  SymTable *blockEnv;
+  List<VarDecl*> *decls_;
+  List<Stmt*> *stmts_;
+  SymTable *block_env_;
 };
 
 class ConditionalStmt : public Stmt {
@@ -71,37 +71,37 @@ class ConditionalStmt : public Stmt {
                     SymTable *env) { }
  
  protected:
-  Expr *test;
-  Stmt *body;
+  Expr *test_;
+  Stmt *body_;
 };
 
 class CaseStmt : public Stmt {
  public:
   CaseStmt(Expr *intConst, List<Stmt*> *stmtList);
   const char *GetPrintNameForNode() { return "Case"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
  protected:
-  Expr *ic;
-  List<Stmt*> *stmts;
-  SymTable *caseEnv;
+  Expr *ic_;
+  List<Stmt*> *stmts_;
+  SymTable *case_env_;
 };
 
 class DefaultStmt : public Stmt { 
  public:
   DefaultStmt(List<Stmt*> *stmts);
   const char *GetPrintNameForNode() { return "Default"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 
  protected:
-  List<Stmt*> *stmts;
-  SymTable *caseEnv;
+  List<Stmt*> *stmts_;
+  SymTable *case_env_;
 };
 
 class SwitchStmt : public Stmt { 
@@ -109,69 +109,70 @@ class SwitchStmt : public Stmt {
   SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts,
              DefaultStmt *defaultStmt);
   const char *GetPrintNameForNode() { return "SwitchStmt"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
  protected:
-  Expr *test;
-  List<CaseStmt*> *cases;
-  DefaultStmt *defaultCase;
+  Expr *test_;
+  List<CaseStmt*> *cases_;
+  DefaultStmt *default_case_;
 };
 
 class LoopStmt : public ConditionalStmt {
  public:
   LoopStmt(Expr *testExpr, Stmt *body)
           : ConditionalStmt(testExpr, body) {
-    afterLabel = NULL;
+    after_label = NULL;
   }
   virtual bool CheckDecls(SymTable *env) { return true; }
   virtual bool Check(SymTable *env) { return true; }
-  char *GetAfterLabel() { return afterLabel; }
+  char *GetAfterLabel() { return after_label_; }
 
  protected:
-  char *afterLabel;
+  char *after_label_;
 };
 
 class ForStmt : public LoopStmt {
  public:
   ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
   const char *GetPrintNameForNode() { return "ForStmt"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
  protected:
-  Expr *init, *step;
-  SymTable *blockEnv;
+  Expr *init_;
+  Expr *step_;
+  SymTable *block_env_;
 };
 
 class WhileStmt : public LoopStmt {
  public:
   WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
   const char *GetPrintNameForNode() { return "WhileStmt"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
 
  protected:
-  SymTable *blockEnv;
+  SymTable *block_env_;
 };
 
 class IfStmt : public ConditionalStmt {
  public:
   IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
   const char *GetPrintNameForNode() { return "IfStmt"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool CheckDecls(SymTable *env);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
  protected:
-  Stmt *elseBody;
+  Stmt *else_body_;
 };
 
 class BreakStmt : public Stmt {
@@ -186,27 +187,27 @@ class ReturnStmt : public Stmt {
  public:
   ReturnStmt(yyltype loc, Expr *expr);
   const char *GetPrintNameForNode() { return "ReturnStmt"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
  protected:
-  Expr *expr;
+  Expr *expr_;
 };
 
 class PrintStmt : public Stmt { 
  public:
   PrintStmt(List<Expr*> *arguments);
   const char *GetPrintNameForNode() { return "PrintStmt"; }
-  void PrintChildren(int indentLevel);
+  void PrintChildren(int indent_level);
   bool Check(SymTable *env);
   void Emit(FrameAllocator *falloc, CodeGenerator *codegen, SymTable *env);
  
- protected:
-  List<Expr*> *args;
-
  private:
   bool PrintableType(Type *t);
+ 
+ protected:
+  List<Expr*> *args_;
 };
 
 /* vim: set ai ts=2 sts=2 sw=2 et: */

@@ -18,12 +18,12 @@ SymTable *globalEnv = NULL;
 
 Program::Program(List<Decl*> *d) {
   Assert(d != NULL);
-  (decls=d)->SetParentAll(this);
-  env = NULL;
+  (decls_=d)->SetParentAll(this);
+  env_ = NULL;
 }
 
-void Program::PrintChildren(int indentLevel) {
-  decls->PrintAll(indentLevel+1);
+void Program::PrintChildren(int indent_level) {
+  decls_->PrintAll(indent_level+1);
   printf("\n");
 }
 
@@ -37,27 +37,27 @@ void Program::PrintChildren(int indentLevel) {
 void Program::Check() {
   ClassDecl *d;
 
-  env = new SymTable;
+  env_ = new SymTable;
 
   // Pass 1: Build symbol table
-  for (int i = 0; i < decls->NumElements(); i++) {
-    decls->Nth(i)->CheckDecls(env);
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    decls_->Nth(i)->CheckDecls(env_);
   }
 
   // Pass 2: Set up class inheritance hierarchy
-  for (int i = 0; i < decls->NumElements(); i++) {
-    d = dynamic_cast<ClassDecl*>(decls->Nth(i));
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    d = dynamic_cast<ClassDecl*>(decls_->Nth(i));
     if (d == 0) {
       continue;
     }
-    d->Inherit(env);
+    d->Inherit(env_);
   }
 
-  globalEnv = env;
+  globalEnv = env_;
 
   // Pass 2: Scope check and type check
-  for (int i = 0; i < decls->NumElements(); i++) {
-    decls->Nth(i)->Check(env);
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    decls_->Nth(i)->Check(env_);
   }
 }
 
@@ -71,31 +71,31 @@ void Program::Check() {
 void Program::Emit() {
   codegen = new CodeGenerator;
   falloc  = new FrameAllocator(gpRelative, FRAME_UP);
-  for (int i = 0; i < decls->NumElements(); i++) {
-    VarDecl *varDecl = dynamic_cast<VarDecl*>(decls->Nth(i));
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    VarDecl *varDecl = dynamic_cast<VarDecl*>(decls_->Nth(i));
     if (varDecl != 0) {
-      varDecl->Emit(falloc, codegen, env);
+      varDecl->Emit(falloc, codegen, env_);
     }
   }
 
-  for (int i = 0; i < decls->NumElements(); i++) {
-    ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls->Nth(i));
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls_->Nth(i));
     if (classDecl != 0) {
-      classDecl->EmitSetup(falloc, codegen, env);
+      classDecl->EmitSetup(falloc, codegen, env_);
     }
   }
 
-  for (int i = 0; i < decls->NumElements(); i++) {
-    ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls->Nth(i));
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls_->Nth(i));
     if (classDecl != 0) {
-      classDecl->Emit(falloc, codegen, env);
+      classDecl->Emit(falloc, codegen, env_);
     }
   }
 
-  for (int i = 0; i < decls->NumElements(); i++) {
-    FnDecl *fnDecl = dynamic_cast<FnDecl*>(decls->Nth(i));
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    FnDecl *fnDecl = dynamic_cast<FnDecl*>(decls_->Nth(i));
     if (fnDecl != 0) {
-      fnDecl->Emit(falloc, codegen, env);
+      fnDecl->Emit(falloc, codegen, env_);
     }
   }
 
@@ -109,14 +109,14 @@ void Program::Emit() {
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
   Assert(d != NULL && s != NULL);
-  (decls = d)->SetParentAll(this);
+  (decls_ = d)->SetParentAll(this);
   (stmts = s)->SetParentAll(this);
   blockEnv = NULL;
 }
 
-void StmtBlock::PrintChildren(int indentLevel) {
-  decls->PrintAll(indentLevel + 1);
-  stmts->PrintAll(indentLevel + 1);
+void StmtBlock::PrintChildren(int indent_level) {
+  decls_->PrintAll(indent_level + 1);
+  stmts->PrintAll(indent_level + 1);
 }
 
 bool StmtBlock::CheckDecls(SymTable *env) {
@@ -124,8 +124,8 @@ bool StmtBlock::CheckDecls(SymTable *env) {
     return false;
   }
 
-  for (int i = 0; i < decls->NumElements(); i++) {
-    decls->Nth(i)->CheckDecls(blockEnv);
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    decls_->Nth(i)->CheckDecls(blockEnv);
   }
 
   for (int i = 0; i < stmts->NumElements(); i++) {
@@ -142,8 +142,8 @@ bool StmtBlock::CheckDecls(SymTable *env, bool inheritEnv) {
     }
   }
 
-  for (int i = 0; i < decls->NumElements(); i++) {
-    decls->Nth(i)->CheckDecls(blockEnv);
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    decls_->Nth(i)->CheckDecls(blockEnv);
   }
 
   for (int i = 0; i < stmts->NumElements(); i++) {
@@ -159,8 +159,8 @@ bool StmtBlock::Check(SymTable *env) {
    */
   bool ret = true;
 
-  for (int i = 0; i < decls->NumElements(); i++) {
-    ret &= decls->Nth(i)->Check(blockEnv);
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    ret &= decls_->Nth(i)->Check(blockEnv);
   }
 
   for (int i = 0; i < stmts->NumElements(); i++) {
@@ -172,8 +172,8 @@ bool StmtBlock::Check(SymTable *env) {
 
 void StmtBlock::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                      SymTable *env) {
-  for (int i = 0; i < decls->NumElements(); i++) {
-    decls->Nth(i)->Emit(falloc, codegen, blockEnv);
+  for (int i = 0; i < decls_->NumElements(); i++) {
+    decls_->Nth(i)->Emit(falloc, codegen, blockEnv);
   }
 
   for (int i = 0; i < stmts->NumElements(); i++) {
@@ -204,9 +204,9 @@ CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList) {
   caseEnv = NULL;
 }
 
-void CaseStmt::PrintChildren(int indentLevel) {
-  ic->Print(indentLevel+1);
-  stmts->PrintAll(indentLevel+1);
+void CaseStmt::PrintChildren(int indent_level) {
+  ic->Print(indent_level+1);
+  stmts->PrintAll(indent_level+1);
 }
 
 bool CaseStmt::CheckDecls(SymTable *env) {
@@ -248,8 +248,8 @@ DefaultStmt::DefaultStmt(List<Stmt*> *stmtList) {
   (stmts = stmtList)->SetParentAll(this);
 }
 
-void DefaultStmt::PrintChildren(int indentLevel) {
-  stmts->PrintAll(indentLevel+1);
+void DefaultStmt::PrintChildren(int indent_level) {
+  stmts->PrintAll(indent_level+1);
 }
 
 bool DefaultStmt::CheckDecls(SymTable *env) {
@@ -294,10 +294,10 @@ SwitchStmt::SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts,
   (defaultCase = defaultStmt)->set_parent(this);
 }
 
-void SwitchStmt::PrintChildren(int indentLevel) {
-  test->Print(indentLevel+1);
-  cases->PrintAll(indentLevel+1);
-  defaultCase->Print(indentLevel+1);
+void SwitchStmt::PrintChildren(int indent_level) {
+  test->Print(indent_level+1);
+  cases->PrintAll(indent_level+1);
+  defaultCase->Print(indent_level+1);
 }
 
 bool SwitchStmt::CheckDecls(SymTable *env) {
@@ -341,11 +341,11 @@ ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b) : LoopStmt(t, b) {
   (step = s)->set_parent(this);
 }
 
-void ForStmt::PrintChildren(int indentLevel) {
-  init->Print(indentLevel + 1, "(init) ");
-  test->Print(indentLevel + 1, "(test) ");
-  step->Print(indentLevel + 1, "(step) ");
-  body->Print(indentLevel + 1, "(body) ");
+void ForStmt::PrintChildren(int indent_level) {
+  init->Print(indent_level + 1, "(init) ");
+  test->Print(indent_level + 1, "(test) ");
+  step->Print(indent_level + 1, "(step) ");
+  body->Print(indent_level + 1, "(body) ");
 }
 
 bool ForStmt::CheckDecls(SymTable *env) {
@@ -389,9 +389,9 @@ void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  * Implementation of WhileStmt class
  */
 
-void WhileStmt::PrintChildren(int indentLevel) {
-  test->Print(indentLevel+1, "(test) ");
-  body->Print(indentLevel+1, "(body) ");
+void WhileStmt::PrintChildren(int indent_level) {
+  test->Print(indent_level+1, "(test) ");
+  body->Print(indent_level+1, "(body) ");
 }
 
 bool WhileStmt::CheckDecls(SymTable *env) {
@@ -439,11 +439,11 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
   }
 }
 
-void IfStmt::PrintChildren(int indentLevel) {
-  test->Print(indentLevel+1, "(test) ");
-  body->Print(indentLevel+1, "(then) ");
+void IfStmt::PrintChildren(int indent_level) {
+  test->Print(indent_level+1, "(test) ");
+  body->Print(indent_level+1, "(then) ");
   if (elseBody) {
-    elseBody->Print(indentLevel+1, "(else) ");
+    elseBody->Print(indent_level+1, "(else) ");
   }
 }
 
@@ -519,8 +519,8 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
   (expr = e)->set_parent(this);
 }
 
-void ReturnStmt::PrintChildren(int indentLevel) {
-  expr->Print(indentLevel+1);
+void ReturnStmt::PrintChildren(int indent_level) {
+  expr->Print(indent_level+1);
 }
 
 bool ReturnStmt::Check(SymTable *env) {
@@ -552,8 +552,8 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
   (args = a)->SetParentAll(this);
 }
 
-void PrintStmt::PrintChildren(int indentLevel) {
-  args->PrintAll(indentLevel+1, "(args) ");
+void PrintStmt::PrintChildren(int indent_level) {
+  args->PrintAll(indent_level+1, "(args) ");
 }
 
 bool PrintStmt::PrintableType(Type *type) {
