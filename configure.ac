@@ -33,12 +33,6 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strdup])
 
-AC_CONFIG_FILES(
-[
-  Makefile
-  src/Makefile
-  tests/Makefile
-  tests/codegen/Makefile
-])
+AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT
