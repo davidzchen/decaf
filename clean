@@ -11,6 +11,7 @@ rm -rf aclocal.m4 \
        config.sub \
        configure \
        depcomp \
+       snippet \
        install-sh \
        ltmain.sh \
        missing \

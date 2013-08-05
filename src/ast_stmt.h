@@ -124,7 +124,7 @@ class LoopStmt : public ConditionalStmt {
  public:
   LoopStmt(Expr *testExpr, Stmt *body)
           : ConditionalStmt(testExpr, body) {
-    after_label = NULL;
+    after_label_ = NULL;
   }
   virtual bool CheckDecls(SymTable *env) { return true; }
   virtual bool Check(SymTable *env) { return true; }

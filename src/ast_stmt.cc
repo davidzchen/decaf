@@ -69,37 +69,37 @@ void Program::Check() {
  *      polymorphism in the node classes.
  */
 void Program::Emit() {
-  codegen = new CodeGenerator;
-  falloc  = new FrameAllocator(gpRelative, FRAME_UP);
+  codegen_ = new CodeGenerator;
+  falloc_  = new FrameAllocator(gpRelative, FRAME_UP);
   for (int i = 0; i < decls_->NumElements(); i++) {
     VarDecl *varDecl = dynamic_cast<VarDecl*>(decls_->Nth(i));
     if (varDecl != 0) {
-      varDecl->Emit(falloc, codegen, env_);
+      varDecl->Emit(falloc_, codegen_, env_);
     }
   }
 
   for (int i = 0; i < decls_->NumElements(); i++) {
     ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls_->Nth(i));
     if (classDecl != 0) {
-      classDecl->EmitSetup(falloc, codegen, env_);
+      classDecl->EmitSetup(falloc_, codegen_, env_);
     }
   }
 
   for (int i = 0; i < decls_->NumElements(); i++) {
     ClassDecl *classDecl = dynamic_cast<ClassDecl*>(decls_->Nth(i));
     if (classDecl != 0) {
-      classDecl->Emit(falloc, codegen, env_);
+      classDecl->Emit(falloc_, codegen_, env_);
     }
   }
 
   for (int i = 0; i < decls_->NumElements(); i++) {
     FnDecl *fnDecl = dynamic_cast<FnDecl*>(decls_->Nth(i));
     if (fnDecl != 0) {
-      fnDecl->Emit(falloc, codegen, env_);
+      fnDecl->Emit(falloc_, codegen_, env_);
     }
   }
 
-  codegen->DoFinalCodeGen();
+  codegen_->DoFinalCodeGen();
 }
 
 /* Class: StmtBlock
@@ -110,26 +110,26 @@ void Program::Emit() {
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
   Assert(d != NULL && s != NULL);
   (decls_ = d)->SetParentAll(this);
-  (stmts = s)->SetParentAll(this);
-  blockEnv = NULL;
+  (stmts_ = s)->SetParentAll(this);
+  block_env_ = NULL;
 }
 
 void StmtBlock::PrintChildren(int indent_level) {
   decls_->PrintAll(indent_level + 1);
-  stmts->PrintAll(indent_level + 1);
+  stmts_->PrintAll(indent_level + 1);
 }
 
 bool StmtBlock::CheckDecls(SymTable *env) {
-  if ((blockEnv = env->addScope()) == false) {
+  if ((block_env_ = env->addScope()) == false) {
     return false;
   }
 
   for (int i = 0; i < decls_->NumElements(); i++) {
-    decls_->Nth(i)->CheckDecls(blockEnv);
+    decls_->Nth(i)->CheckDecls(block_env_);
   }
 
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    stmts->Nth(i)->CheckDecls(blockEnv);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    stmts_->Nth(i)->CheckDecls(block_env_);
   }
 
   return true;
@@ -137,17 +137,17 @@ bool StmtBlock::CheckDecls(SymTable *env) {
 
 bool StmtBlock::CheckDecls(SymTable *env, bool inheritEnv) {
   if (!inheritEnv) {
-    if ((blockEnv = env->addScope()) == false) {
+    if ((block_env_ = env->addScope()) == false) {
       return false;
     }
   }
 
   for (int i = 0; i < decls_->NumElements(); i++) {
-    decls_->Nth(i)->CheckDecls(blockEnv);
+    decls_->Nth(i)->CheckDecls(block_env_);
   }
 
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    stmts->Nth(i)->CheckDecls(blockEnv);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    stmts_->Nth(i)->CheckDecls(block_env_);
   }
 
   return true;
@@ -155,16 +155,16 @@ bool StmtBlock::CheckDecls(SymTable *env, bool inheritEnv) {
 
 bool StmtBlock::Check(SymTable *env) {
   /*
-   * Note: don't use env passed as argument. Use blockEnv
+   * Note: don't use env passed as argument. Use block_env_
    */
   bool ret = true;
 
   for (int i = 0; i < decls_->NumElements(); i++) {
-    ret &= decls_->Nth(i)->Check(blockEnv);
+    ret &= decls_->Nth(i)->Check(block_env_);
   }
 
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    ret &= stmts->Nth(i)->Check(blockEnv);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    ret &= stmts_->Nth(i)->Check(block_env_);
   }
 
   return true;
@@ -173,11 +173,11 @@ bool StmtBlock::Check(SymTable *env) {
 void StmtBlock::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                      SymTable *env) {
   for (int i = 0; i < decls_->NumElements(); i++) {
-    decls_->Nth(i)->Emit(falloc, codegen, blockEnv);
+    decls_->Nth(i)->Emit(falloc, codegen, block_env_);
   }
 
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    stmts->Nth(i)->Emit(falloc, codegen, blockEnv);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    stmts_->Nth(i)->Emit(falloc, codegen, block_env_);
   }
 }
 
@@ -188,8 +188,8 @@ void StmtBlock::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
   Assert(t != NULL && b != NULL);
-  (test = t)->set_parent(this);
-  (body = b)->set_parent(this);
+  (test_ = t)->set_parent(this);
+  (body_ = b)->set_parent(this);
 }
 
 /* Class: CaseStmt
@@ -199,25 +199,25 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 
 CaseStmt::CaseStmt(Expr *intConst, List<Stmt*> *stmtList) {
   Assert(intConst != NULL && stmtList != NULL);
-  (ic = intConst)->set_parent(this);
-  (stmts = stmtList)->SetParentAll(this);
-  caseEnv = NULL;
+  (ic_ = intConst)->set_parent(this);
+  (stmts_ = stmtList)->SetParentAll(this);
+  case_env_ = NULL;
 }
 
 void CaseStmt::PrintChildren(int indent_level) {
-  ic->Print(indent_level+1);
-  stmts->PrintAll(indent_level+1);
+  ic_->Print(indent_level+1);
+  stmts_->PrintAll(indent_level+1);
 }
 
 bool CaseStmt::CheckDecls(SymTable *env) {
   bool ret = true;
-  if ((caseEnv = env->addScope()) == false) {
+  if ((case_env_ = env->addScope()) == false) {
     return false;
   }
 
-  caseEnv->setBreakNode(this);
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    ret &= stmts->Nth(i)->CheckDecls(env);
+  case_env_->setBreakNode(this);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    ret &= stmts_->Nth(i)->CheckDecls(env);
   }
 
   return ret;
@@ -225,9 +225,9 @@ bool CaseStmt::CheckDecls(SymTable *env) {
 
 bool CaseStmt::Check(SymTable *env) {
   bool ret = true;
-  ret &= ic->Check(env);
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    ret &= stmts->Nth(i)->Check(env);
+  ret &= ic_->Check(env);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    ret &= stmts_->Nth(i)->Check(env);
   }
   return ret;
 }
@@ -245,22 +245,22 @@ void CaseStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 DefaultStmt::DefaultStmt(List<Stmt*> *stmtList) {
   Assert(stmtList != NULL);
-  (stmts = stmtList)->SetParentAll(this);
+  (stmts_ = stmtList)->SetParentAll(this);
 }
 
 void DefaultStmt::PrintChildren(int indent_level) {
-  stmts->PrintAll(indent_level+1);
+  stmts_->PrintAll(indent_level+1);
 }
 
 bool DefaultStmt::CheckDecls(SymTable *env) {
   bool ret = true;
-  if ((caseEnv = env->addScope()) == false) {
+  if ((case_env_ = env->addScope()) == false) {
     return false;
   }
 
-  caseEnv->setBreakNode(this);
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    ret &= stmts->Nth(i)->CheckDecls(env);
+  case_env_->setBreakNode(this);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    ret &= stmts_->Nth(i)->CheckDecls(env);
   }
 
   return ret;
@@ -268,8 +268,8 @@ bool DefaultStmt::CheckDecls(SymTable *env) {
 
 bool DefaultStmt::Check(SymTable *env) {
   bool ret = true;
-  for (int i = 0; i < stmts->NumElements(); i++) {
-    ret &= stmts->Nth(i)->Check(env);
+  for (int i = 0; i < stmts_->NumElements(); i++) {
+    ret &= stmts_->Nth(i)->Check(env);
   }
   return ret;
 }
@@ -289,37 +289,37 @@ void DefaultStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 SwitchStmt::SwitchStmt(Expr *testExpr, List<CaseStmt*> *caseStmts, 
 		                   DefaultStmt *defaultStmt) {
   Assert(testExpr != NULL && caseStmts != NULL && defaultStmt != NULL);
-  (test = testExpr)->set_parent(this);
-  (cases = caseStmts)->SetParentAll(this);
-  (defaultCase = defaultStmt)->set_parent(this);
+  (test_ = testExpr)->set_parent(this);
+  (cases_ = caseStmts)->SetParentAll(this);
+  (default_case_ = defaultStmt)->set_parent(this);
 }
 
 void SwitchStmt::PrintChildren(int indent_level) {
-  test->Print(indent_level+1);
-  cases->PrintAll(indent_level+1);
-  defaultCase->Print(indent_level+1);
+  test_->Print(indent_level + 1);
+  cases_->PrintAll(indent_level + 1);
+  default_case_->Print(indent_level + 1);
 }
 
 bool SwitchStmt::CheckDecls(SymTable *env) {
   bool ret = true;
-  for (int i = 0; i < cases->NumElements(); i++) {
-    ret &= cases->Nth(i)->CheckDecls(env);
+  for (int i = 0; i < cases_->NumElements(); i++) {
+    ret &= cases_->Nth(i)->CheckDecls(env);
   }
-  ret &= defaultCase->CheckDecls(env);
+  ret &= default_case_->CheckDecls(env);
   return ret;
 }
 
 bool SwitchStmt::Check(SymTable *env) {
   bool ret = true;
-  ret &= test->Check(env);
-  if (!test->GetRetType()->IsEquivalentTo(Type::intType)) {
-    ReportError::SwitchTestNotInt(test);
+  ret &= test_->Check(env);
+  if (!test_->GetRetType()->IsEquivalentTo(Type::intType)) {
+    ReportError::SwitchTestNotInt(test_);
     ret = false;
   }
-  for (int i = 0; i < cases->NumElements(); i++) {
-    ret &= cases->Nth(i)->Check(env);
+  for (int i = 0; i < cases_->NumElements(); i++) {
+    ret &= cases_->Nth(i)->Check(env);
   }
-  ret &= defaultCase->Check(env);
+  ret &= default_case_->Check(env);
   return ret;
 }
 
@@ -337,51 +337,51 @@ void SwitchStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b) : LoopStmt(t, b) { 
   Assert(i != NULL && t != NULL && s != NULL && b != NULL);
-  (init = i)->set_parent(this);
-  (step = s)->set_parent(this);
+  (init_ = i)->set_parent(this);
+  (step_ = s)->set_parent(this);
 }
 
 void ForStmt::PrintChildren(int indent_level) {
-  init->Print(indent_level + 1, "(init) ");
-  test->Print(indent_level + 1, "(test) ");
-  step->Print(indent_level + 1, "(step) ");
-  body->Print(indent_level + 1, "(body) ");
+  init_->Print(indent_level + 1, "(init) ");
+  test_->Print(indent_level + 1, "(test) ");
+  step_->Print(indent_level + 1, "(step) ");
+  body_->Print(indent_level + 1, "(body) ");
 }
 
 bool ForStmt::CheckDecls(SymTable *env) {
-  if ((blockEnv = env->addScope()) == false) {
+  if ((block_env_ = env->addScope()) == false) {
     return false;
   }
 
-  blockEnv->setBreakNode(this);
-  return body->CheckDecls(blockEnv);
+  block_env_->setBreakNode(this);
+  return body_->CheckDecls(block_env_);
 }
 
 bool ForStmt::Check(SymTable *env) {
   bool ret = true;
-  ret &= test->Check(env);
-  if (!test->GetRetType()->IsEquivalentTo(Type::boolType)) {
-    ReportError::TestNotBoolean(test);
+  ret &= test_->Check(env);
+  if (!test_->GetRetType()->IsEquivalentTo(Type::boolType)) {
+    ReportError::TestNotBoolean(test_);
     ret = false;
   }
-  ret &= init->Check(env);
-  ret &= step->Check(env);
-  ret &= body->Check(blockEnv);
+  ret &= init_->Check(env);
+  ret &= step_->Check(env);
+  ret &= body_->Check(block_env_);
   return ret;
 }
 
 void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                    SymTable *env) {
   char *loopLabel = codegen->NewLabel();
-  afterLabel = codegen->NewLabel();
-  init->Emit(falloc, codegen, blockEnv);
+  after_label_ = codegen->NewLabel();
+  init_->Emit(falloc, codegen, block_env_);
   codegen->GenLabel(loopLabel);
-  test->Emit(falloc, codegen, blockEnv);
-  codegen->GenIfZ(test->GetFrameLocation(), afterLabel);
-  body->Emit(falloc, codegen, blockEnv);
-  step->Emit(falloc, codegen, blockEnv);
+  test_->Emit(falloc, codegen, block_env_);
+  codegen->GenIfZ(test_->GetFrameLocation(), after_label_);
+  body_->Emit(falloc, codegen, block_env_);
+  step_->Emit(falloc, codegen, block_env_);
   codegen->GenGoto(loopLabel);
-  codegen->GenLabel(afterLabel);
+  codegen->GenLabel(after_label_);
 }
 
 /* Class: WhileStmt
@@ -390,40 +390,40 @@ void ForStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
  */
 
 void WhileStmt::PrintChildren(int indent_level) {
-  test->Print(indent_level+1, "(test) ");
-  body->Print(indent_level+1, "(body) ");
+  test_->Print(indent_level+1, "(test) ");
+  body_->Print(indent_level+1, "(body) ");
 }
 
 bool WhileStmt::CheckDecls(SymTable *env) {
-  if ((blockEnv = env->addScope()) == false) {
+  if ((block_env_ = env->addScope()) == false) {
     return false;
   }
 
-  blockEnv->setBreakNode(this);
-  return body->CheckDecls(blockEnv);
+  block_env_->setBreakNode(this);
+  return body_->CheckDecls(block_env_);
 }
 
 bool WhileStmt::Check(SymTable *env) {
   bool ret = true;
-  ret &= test->Check(env);
-  if (!test->GetRetType()->IsEquivalentTo(Type::boolType)) {
-    ReportError::TestNotBoolean(test);
+  ret &= test_->Check(env);
+  if (!test_->GetRetType()->IsEquivalentTo(Type::boolType)) {
+    ReportError::TestNotBoolean(test_);
     ret = false;
   }
-  ret &= body->Check(blockEnv);
+  ret &= body_->Check(block_env_);
   return ret;
 }
 
 void WhileStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen, 
                      SymTable *env) {
   char *loopLabel = codegen->NewLabel();
-  afterLabel = codegen->NewLabel();
+  after_label_ = codegen->NewLabel();
   codegen->GenLabel(loopLabel);
-  test->Emit(falloc, codegen, blockEnv);
-  codegen->GenIfZ(test->GetFrameLocation(), afterLabel);
-  body->Emit(falloc, codegen, blockEnv);
+  test_->Emit(falloc, codegen, block_env_);
+  codegen->GenIfZ(test_->GetFrameLocation(), after_label_);
+  body_->Emit(falloc, codegen, block_env_);
   codegen->GenGoto(loopLabel);
-  codegen->GenLabel(afterLabel);
+  codegen->GenLabel(after_label_);
 }
 
 /* Class: IfStmt
@@ -433,39 +433,39 @@ void WhileStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) { 
   Assert(t != NULL && tb != NULL); // else can be NULL
-  elseBody = eb;
-  if (elseBody) {
-    elseBody->set_parent(this);
+  else_body_ = eb;
+  if (else_body_) {
+    else_body_->set_parent(this);
   }
 }
 
 void IfStmt::PrintChildren(int indent_level) {
-  test->Print(indent_level+1, "(test) ");
-  body->Print(indent_level+1, "(then) ");
-  if (elseBody) {
-    elseBody->Print(indent_level+1, "(else) ");
+  test_->Print(indent_level+1, "(test) ");
+  body_->Print(indent_level+1, "(then) ");
+  if (else_body_) {
+    else_body_->Print(indent_level+1, "(else) ");
   }
 }
 
 bool IfStmt::CheckDecls(SymTable *env) {
   bool ret = true;
-  ret &= body->CheckDecls(env);
-  if (elseBody) {
-    ret &= elseBody->CheckDecls(env);
+  ret &= body_->CheckDecls(env);
+  if (else_body_) {
+    ret &= else_body_->CheckDecls(env);
   }
   return ret;
 }
 
 bool IfStmt::Check(SymTable *env) {
   bool ret = true;
-  ret &= test->Check(env);
-  if (!test->GetRetType()->IsConvertableTo(Type::boolType)) {
-    ReportError::TestNotBoolean(test);
+  ret &= test_->Check(env);
+  if (!test_->GetRetType()->IsConvertableTo(Type::boolType)) {
+    ReportError::TestNotBoolean(test_);
     ret = false;
   }
-  ret &= body->Check(env);
-  if (elseBody) {
-    ret &= elseBody->Check(env);
+  ret &= body_->Check(env);
+  if (else_body_) {
+    ret &= else_body_->Check(env);
   }
   return ret;
 }
@@ -475,14 +475,14 @@ void IfStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   char *ifLabel = codegen->NewLabel();
   char *elseLabel = NULL;
 
-  test->Emit(falloc, codegen, env);
-  codegen->GenIfZ(test->GetFrameLocation(), ifLabel);
-  body->Emit(falloc, codegen, env);
-  if (elseBody) {
+  test_->Emit(falloc, codegen, env);
+  codegen->GenIfZ(test_->GetFrameLocation(), ifLabel);
+  body_->Emit(falloc, codegen, env);
+  if (else_body_) {
     elseLabel = codegen->NewLabel();
     codegen->GenGoto(elseLabel);
     codegen->GenLabel(ifLabel);
-    elseBody->Emit(falloc, codegen, env);
+    else_body_->Emit(falloc, codegen, env);
     codegen->GenLabel(elseLabel);
   } else {
     codegen->GenLabel(ifLabel);
@@ -516,11 +516,11 @@ void BreakStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
   Assert(e != NULL);
-  (expr = e)->set_parent(this);
+  (expr_ = e)->set_parent(this);
 }
 
 void ReturnStmt::PrintChildren(int indent_level) {
-  expr->Print(indent_level+1);
+  expr_->Print(indent_level+1);
 }
 
 bool ReturnStmt::Check(SymTable *env) {
@@ -528,9 +528,9 @@ bool ReturnStmt::Check(SymTable *env) {
   bool ret = true;
   fn = dynamic_cast<FnDecl*>(env->getRefNode());
   Assert(fn != 0);
-  ret &= expr->Check(env);
-  if (!expr->GetRetType()->IsConvertableTo(fn->GetReturnType())) {
-    ReportError::ReturnMismatch(this, expr->GetRetType(), fn->GetReturnType());
+  ret &= expr_->Check(env);
+  if (!expr_->GetRetType()->IsConvertableTo(fn->GetReturnType())) {
+    ReportError::ReturnMismatch(this, expr_->GetRetType(), fn->GetReturnType());
     ret = false;
   }
   return ret;
@@ -538,8 +538,8 @@ bool ReturnStmt::Check(SymTable *env) {
 
 void ReturnStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
                       SymTable *env) {
-  expr->Emit(falloc, codegen, env);
-  codegen->GenReturn(expr->GetFrameLocation());
+  expr_->Emit(falloc, codegen, env);
+  codegen->GenReturn(expr_->GetFrameLocation());
 }
 
 /* Class: PrintStmt
@@ -549,11 +549,11 @@ void ReturnStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   
 PrintStmt::PrintStmt(List<Expr*> *a) {    
   Assert(a != NULL);
-  (args = a)->SetParentAll(this);
+  (args_ = a)->SetParentAll(this);
 }
 
 void PrintStmt::PrintChildren(int indent_level) {
-  args->PrintAll(indent_level+1, "(args) ");
+  args_->PrintAll(indent_level+1, "(args) ");
 }
 
 bool PrintStmt::PrintableType(Type *type) {
@@ -564,11 +564,11 @@ bool PrintStmt::PrintableType(Type *type) {
 
 bool PrintStmt::Check(SymTable *env) {
   bool ret = true;
-  for (int i = 0; i < args->NumElements(); i++) {
-    ret &= args->Nth(i)->Check(env);
-    Type *argType = args->Nth(i)->GetRetType();
+  for (int i = 0; i < args_->NumElements(); i++) {
+    ret &= args_->Nth(i)->Check(env);
+    Type *argType = args_->Nth(i)->GetRetType();
     if (!PrintableType(argType)) {
-      ReportError::PrintArgMismatch(args->Nth(i), i+1, argType);
+      ReportError::PrintArgMismatch(args_->Nth(i), i+1, argType);
       ret = false;
     }
   }
@@ -581,8 +581,8 @@ void PrintStmt::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
   Location *argloc = NULL;
   Type *argtype = NULL;
 
-  for (int i = 0; i < args->NumElements(); i++) {
-    arg = args->Nth(i);
+  for (int i = 0; i < args_->NumElements(); i++) {
+    arg = args_->Nth(i);
     arg->Emit(falloc, codegen, env);
     argloc = arg->GetFrameLocation();
     argtype = arg->GetRetType();
