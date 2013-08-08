@@ -1,6 +1,0 @@
-#!/bin/sh
-
-./bootstrap
-./configure
-make
-make test
