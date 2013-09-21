@@ -171,7 +171,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 175 "decaf-parse.h"
+#line 175 "src/decaf-parse.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
