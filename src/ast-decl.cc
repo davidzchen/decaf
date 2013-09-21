@@ -5,9 +5,10 @@
 
 #include <config.h>
 #include "errors.h"
-#include "ast_decl.h"
-#include "ast_type.h"
-#include "ast_stmt.h"
+
+#include "ast-decl.h"
+#include "ast-type.h"
+#include "ast-stmt.h"
 
 /* Class: Decl 
  * -----------

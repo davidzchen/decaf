@@ -14,9 +14,9 @@
 #define DCC_AST_DECL_H__
 
 #include "ast.h"
-#include "ast_decl.h"
-#include "ast_stmt.h"
-#include "ast_type.h"
+#include "ast-decl.h"
+#include "ast-stmt.h"
+#include "ast-type.h"
 
 class Type;
 class NamedType;

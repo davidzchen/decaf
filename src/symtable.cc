@@ -3,12 +3,12 @@
  * Symbol table implementation
  */
 
-#include <config.h>
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include "symtable.h"
-#include "ast_decl.h"
+#include "ast-decl.h"
 
 /* Class: Symbol
  * -------------

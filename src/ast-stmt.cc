@@ -3,11 +3,10 @@
  * Implementation of statement node classes.
  */
 
-#include <config.h>
-#include "ast_stmt.h"
-#include "ast_type.h"
-#include "ast_decl.h"
-#include "ast_expr.h"
+#include "ast-stmt.h"
+#include "ast-type.h"
+#include "ast-decl.h"
+#include "ast-expr.h"
 
 SymTable *globalEnv = NULL;
 

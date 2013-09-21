@@ -14,9 +14,9 @@
 #define DCC_AST_EXPR_H__
 
 #include "ast.h"
-#include "ast_stmt.h"
-#include "ast_type.h"
-#include "ast_decl.h"
+#include "ast-stmt.h"
+#include "ast-type.h"
+#include "ast-decl.h"
 
 class NamedType; // for new
 class Type; // for NewArray

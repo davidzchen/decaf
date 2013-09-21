@@ -37,7 +37,7 @@
 #define DCC_AST_H__
 
 #include <iostream>
-#include <stdlib.h>   // for NULL
+#include <stdlib.h>
 
 #include "location.h"
 #include "symtable.h"

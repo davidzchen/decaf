@@ -21,10 +21,10 @@ dcc_SOURCES = \
 	src/codegen.cc \
 	src/framealloc.cc \
 	src/ast.cc \
-	src/ast_decl.cc \
-	src/ast_expr.cc \
-	src/ast_stmt.cc \
-	src/ast_type.cc \
+	src/ast-decl.cc \
+	src/ast-expr.cc \
+	src/ast-stmt.cc \
+	src/ast-type.cc \
 	src/decaf-parse.cc \
 	src/decaf-lex.cc \
 	src/dcc.cc
@@ -42,10 +42,10 @@ dcc_i386_SOURCES = \
 	src/codegen.cc \
 	src/framealloc.cc \
 	src/ast.cc \
-	src/ast_decl.cc \
-	src/ast_expr.cc \
-	src/ast_stmt.cc \
-	src/ast_type.cc \
+	src/ast-decl.cc \
+	src/ast-expr.cc \
+	src/ast-stmt.cc \
+	src/ast-type.cc \
 	src/decaf-parse.cc \
 	src/decaf-lex.cc \
 	src/dcc.cc

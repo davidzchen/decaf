@@ -7,6 +7,7 @@
 
 #include <config.h>
 #include <string.h>
+
 #include "codegen.h"
 #include "errors.h"
 #include <arch.h>

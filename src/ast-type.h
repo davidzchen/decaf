@@ -13,7 +13,7 @@
 #define _H_ast_type
 
 #include "ast.h"
-#include "ast_stmt.h"
+#include "ast-stmt.h"
 
 extern SymTable *globalEnv;
 

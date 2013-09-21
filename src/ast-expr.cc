@@ -6,9 +6,9 @@
 #include <config.h>
 #include <string.h>
 
-#include "ast_expr.h"
-#include "ast_type.h"
-#include "ast_decl.h"
+#include "ast-expr.h"
+#include "ast-type.h"
+#include "ast-decl.h"
 
 /* Class: IntConstant
  * ------------------

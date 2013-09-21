@@ -1,4 +1,3 @@
-#include <config.h>
 #include "framealloc.h"
 
 FrameAllocator::FrameAllocator(Segment s, FrameDirection d) {

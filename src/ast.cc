@@ -3,8 +3,9 @@
  */
 
 #include <config.h>
-#include <string.h> // strdup
-#include <stdio.h>  // printf
+#include <string.h>
+#include <stdio.h>
+
 #include "ast.h"
 
 Node::Node(yyltype loc) {
