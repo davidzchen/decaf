@@ -28,18 +28,8 @@ There are three executables built:
 
     dcc - the Decaf Compiler
     dcc_i386 - Decaf Compiler using x86 code generation
-    ltc - the Latte Compiler (Decaf with extensions)
 
 Executables may be found in the src directory
-
-
-PROGRESS
-=================
-
-As of pp4 submission, only the pp4 Decaf compiler dcc is complete. The Latte
-lexer and parser have been completed, adding syntax for closures. The x86
-code generator is also incomplete. These latter two projects will be completed
-in my spare time in the future.
 
 
 SIMPLE BUILDING
@@ -89,20 +79,8 @@ For additional configuration options, see:
     ./configure --help
 
 
-ADDITIONAL MAKE TARGETS
-============================
-
-There are some additional Make targets.
-
-To generate the test scripts, run:
-
-    make test
-
-The testsuite may now be run in two stages, one for testing the scanner
-and the other for testing the parser:
-
-    make check-scanner
-    make check-parse
+TESTING
+========
 
 To run all the tests:
 
@@ -150,132 +128,26 @@ the compiler is run again.
 EXTENSIONS
 ====================
 
-Latte is the extended dialect of Decaf. It supports a number of new features
-intended to make the language more full-featured. These extensions are developed
-as a hobby project.
- 
-
 Progress
 ------------------
 
-Closures		[IN PROGRESS]
-x86 codegen		[IN PROGRESS]
-Linker/loader		[PLANNED    ]
-Character literals	[PLANNED    ]
-Octal/binary ints	[PLANNED    ]
-Bit operators		[PLANNED    ]
-Class protection	[PLANNED    ]
+Closures              [IN PROGRESS]
+x86 codegen           [IN PROGRESS]
+Linker/loader         [PLANNED    ]
+Character literals    [PLANNED    ]
+Octal/binary ints     [PLANNED    ]
+Bit operators         [PLANNED    ]
+Class protection      [PLANNED    ]
 
-
-
-Closures
-------------------
-
-In the case of local functions are closures of outer scope variables, during 
-IR gen, turn the variables declared escaped into additional arguments 
-passed upon invocation.
-
-During lambda lifting, these functions are redeclared with the escaped 
-variables as additional arguments.
-
-
-int function(int, int) foo(int a, int b)
-{
-  int i;
-  int j;
-  
-  int bar(int a, int b) {
-    escaped int i;
-    escaped int j;
-  
-    return a + b + i + j;
-  }
-  
-  i = 0;
-  j = 2;
-  
-  return bar;
-}
-
-
-An example of a function returning a function that returns a function. 
-Note that the type signatures of the two returned functions are not the same.
-
-int function(int, int) function(string) foo(int a, int b)
-{
-  int i;
-  
-  i = a + b;
-  
-  return int function(int, int) function(string s) {
-    escaped int i;
-    
-    if (i > 0)
-      Print(s);
-
-    return int function(int a, int b) {
-      return a + b;
-    };
-  };
-}
-
-int foo(int function(int, int) bar)
-{
-  int i;
-
-  int baz(int c)
-  {
-    escaped int i;
-    int j;
-    
-    for (j = i; i < 10; i++)
-      c = c + i;
-    return c;
-  }
-  
-  i = 2;
-
-  return bar(2, 3) + baz(i);
-}
-
-
-int bar()
-{
-  int i;
-  
-  // Just a regular FnDecl
-  int clo(int a, int b);
-  
-  // Directly defining a lambda when passing it as a parameter
-  i = foo(int function(int a, int b) {
-    return a + b;
-  });
-  
-  // Assigning a lambda to a function variable
-  clo = int function(int a, int b) {
-    return a + b;
-  }
-  
-  // Passing function variable as a parameter.
-  i = foo(clo);
-  
-  return i;
-}
-
-
-
-  
 OTHER SOURCE MODIFICATIONS
 =============================
 
-I included the getopt-gnu module (and its dependencies) from gnulib and modified
-ParseCommandLine() to use getopt to facilitate testing of different components
-of the compiler through the -t flag. For example, running dcc or ltc with the
--tparser option will only run the the compiler up to the parser and dumpp the
-parse tree a la pp2. This is used to facilitate running the test suites
+I modified ParseCommandLine() to use getopt to facilitate testing of different 
+components of the compiler through the -t flag. For example, running dcc with 
+the -tparser option will only run the the compiler up to the parser and dump 
+the parse tree a la pp2. This is used to facilitate running the test suites
 incrementally while I go back and improve code from earlier assignments and
 work on the extensions.
-
 
 IR GENERATION
 ================
