@@ -3,7 +3,7 @@
 import os
 from subprocess import *
 
-TEST_DIRECTORY = 'test/codegen'
+TEST_DIRECTORY = 'test/parse'
 
 def main():
   for _, _, files in os.walk(TEST_DIRECTORY):
@@ -12,7 +12,7 @@ def main():
         continue
       ref_name = os.path.join(TEST_DIRECTORY, "%s.out" % file.split('.')[0])
       test_name = os.path.join(TEST_DIRECTORY, file)
-      result = Popen('./dcc ' + test_name + ' -o tmp.asm', 
+      result = Popen('./dcc ' + test_name + ' -t parser', 
                      shell = True, stderr = STDOUT, stdout = PIPE)
       result = Popen('diff - ' + ref_name, 
                      shell = True, stdin = result.stdout, stdout = PIPE)
