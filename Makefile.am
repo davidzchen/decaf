@@ -25,12 +25,12 @@ dcc_SOURCES = \
 	src/ast-expr.cc \
 	src/ast-stmt.cc \
 	src/ast-type.cc \
-	src/decaf-parse.cc \
-	src/decaf-lex.cc \
+	src/parse.cc \
+	src/lex.cc \
 	src/dcc.cc
 
 dcc_CPPFLAGS = -I$(top_srcdir)/src/arch/mips $(AM_CPPFLAGS)
-EXTRA_dcc_SOURCES = src/decaf-parse.yy src/decaf-lex.ll
+EXTRA_dcc_SOURCES = src/parse.yy src/lex.ll
 dcc_LDADD = -lc -lm -ll
 
 dcc_i386_SOURCES = \
@@ -46,18 +46,18 @@ dcc_i386_SOURCES = \
 	src/ast-expr.cc \
 	src/ast-stmt.cc \
 	src/ast-type.cc \
-	src/decaf-parse.cc \
-	src/decaf-lex.cc \
+	src/parse.cc \
+	src/lex.cc \
 	src/dcc.cc
 
 dcc_i386_CPPFLAGS = -I$(top_srcdir)/src/arch/x86 $(AM_CPPFLAGS)
-EXTRA_dcc_i386_SOURCES = src/decaf-parse.yy src/decaf-lex.ll
+EXTRA_dcc_i386_SOURCES = src/parse.yy src/lex.ll
 dcc_i386_LDADD = -lc -lm -ll
 
 BUILT_SOURCES = \
-	src/decaf-parse.cc \
-	src/decaf-lex.cc \
-	src/decaf-parse.output
+	src/parse.cc \
+	src/lex.cc \
+	src/parse.output
 
 check_SCRIPTS = \
 	test/test_codegen.py

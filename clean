@@ -18,10 +18,10 @@ rm -rf aclocal.m4 \
        test-driver \
        compile \
        ylwrap \
-       src/decaf-lex.cc \
-       src/decaf-parse.h \
-       src/decaf-parse.hh \
-       src/decaf-parse.cc \
-       src/decaf-parse.output \
+       src/lex.cc \
+       src/parse.h \
+       src/parse.hh \
+       src/parse.cc \
+       src/parse.output \
        `find . -name Makefile.in`
        
