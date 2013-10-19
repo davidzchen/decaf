@@ -60,10 +60,12 @@ BUILT_SOURCES = \
 	src/parse.output
 
 check_SCRIPTS = \
-	test/test_codegen.py
+	test/test-parse.py \
+	test/test-scope.py \
+	test/test-semantic.py \
+	test/test-codegen.py
 
 TESTS = $(check_SCRIPTS)
 
 TEST_ENVIRONMENT = 
-
 

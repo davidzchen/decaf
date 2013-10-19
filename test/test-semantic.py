@@ -32,6 +32,8 @@ def main():
     # Print results
     print "----------------------------"
     print "Semantic tests: %i/%i passed" % (passed_tests, total_tests)
+    if passed_tests < total_tests:
+      exit(1)
 
 if __name__ == '__main__':
   main()
