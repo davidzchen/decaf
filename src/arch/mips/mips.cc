@@ -203,14 +203,14 @@ void Mips::Emit(const char *fmt, ...) {
   vsprintf(buf, fmt, args);
   va_end(args);
   if (buf[strlen(buf) - 1] != ':') {
-    printf("\t"); // don't tab in labels
+    fprintf(kOutputFile, "\t"); // don't tab in labels
   }
   if (buf[0] != '#') {
-    printf("  ");   // outdent comments a little
+    fprintf(kOutputFile, "  ");   // outdent comments a little
   }
-  printf("%s", buf);
+  fprintf(kOutputFile, "%s", buf);
   if (buf[strlen(buf)-1] != '\n') {
-    printf("\n"); // end with a newline
+    fprintf(kOutputFile, "\n"); // end with a newline
   }
 }
 

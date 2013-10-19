@@ -13,6 +13,7 @@
 #include "dcc.h"
 
 int kTestFlag = 0;
+FILE* kOutputFile = NULL;
 
 /// @function main
 /// @brief Entry point to the entire program.  

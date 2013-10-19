@@ -12,8 +12,8 @@
 
 #define MaxIdentLen 31    // Maximum length for identifiers
 
-extern char *yytext;      // Text of lexeme just scanned
-
+extern char* yytext;      // Text of lexeme just scanned
+extern FILE* yyin;
 
 int yylex();              // Defined in the generated lex.yy.c file
 

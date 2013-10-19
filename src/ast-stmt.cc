@@ -23,7 +23,7 @@ Program::Program(List<Decl*> *d) {
 
 void Program::PrintChildren(int indent_level) {
   decls_->PrintAll(indent_level+1);
-  printf("\n");
+  fprintf(kOutputFile, "\n");
 }
 
 /* pp3: here is where the semantic analyzer is kicked off.

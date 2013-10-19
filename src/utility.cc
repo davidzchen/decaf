@@ -13,12 +13,15 @@
 #include <vector>
 #include <stdint.h>
 #include <ctype.h>
+#include <errno.h>
 #include "utility.h"
+#include "scanner.h"
 
 using std::vector;
 
 static vector<const char*> kDebugKeys;
 static const int kBufferSize = 2048;
+static const char* kDefaultOutputFile = "a.out";
 
 void Failure(const char *format, ...)  {
   va_list args;
@@ -68,30 +71,20 @@ void PrintDebug(const char *key, const char *format, ...) {
 
 void ParseCommandLine(int argc, char *argv[]) {
   int c;
-  char *dvalue = NULL;
-  char *tvalue = NULL;
-  kTestFlag = TEST_ALL;
-
-  while ((c = getopt(argc, argv, "d:t:")) != -1 || optind < argc) {
+  kTestFlag = TEST_NONE;
+  char* test_type = NULL;
+  char* debug_level = NULL;
+  char* output_file = NULL;
+  while ((c = getopt(argc, argv, "o:d:t:")) != -1) {
     switch (c) {
-     case -1:
-      //printf("Non-option argument %s\n", argv[optind]);
-      ++optind;
-      break;
      case 'd':
-      SetDebugForKey(optarg, true);
+      debug_level = strdup(optarg);
       break;
      case 't':
-      tvalue = optarg;
-      if (strcmp(optarg, "scanner") == 0) {
-        kTestFlag = TEST_SCANNER;
-      } else if (strcmp(optarg, "parser") == 0) {
-        kTestFlag = TEST_PARSER;
-      } else if (strcmp(optarg, "semantic") == 0) {
-        kTestFlag = TEST_SEMANT;
-      } else {
-        fprintf(stderr, "Unknown test option %s\n", optarg);
-      }
+      test_type = strdup(optarg);
+      break;
+     case 'o':
+      output_file = strdup(optarg);
       break;
      case '?':
       if (optopt == 'c') {
@@ -104,6 +97,45 @@ void ParseCommandLine(int argc, char *argv[]) {
         fprintf(stderr, "Unkonwn option character \\x%x \n", optopt);
       }
     }
+  }
+
+  if (optind != argc - 1) {
+    fprintf(stderr, "usage\n");
+    exit(1);
+  }
+  yyin = fopen(argv[optind], "r");
+  if (yyin == NULL) {
+    fprintf(stderr, "Cannot open input file %s\n", argv[optind]);
+    exit(1);
+  }
+
+  if (debug_level != NULL) {
+    SetDebugForKey(optarg, true);
+    free(debug_level);
+  }
+  if (test_type != NULL) {
+    if (strcmp(test_type, "scanner") == 0) {
+      kTestFlag = TEST_SCANNER;
+    } else if (strcmp(test_type, "parser") == 0) {
+      kTestFlag = TEST_PARSER;
+    } else if (strcmp(test_type, "semantic") == 0) {
+      kTestFlag = TEST_SEMANT;
+    } else {
+      fprintf(stderr, "Unknown test option %s\n", optarg);
+    }
+    free(test_type);
+  }
+  if (output_file != NULL) {
+    kOutputFile = fopen(output_file, "w");
+  } else {
+    if (kTestFlag == TEST_NONE) {
+      kOutputFile = fopen(kDefaultOutputFile, "w");
+    } else {
+      kOutputFile = stdout;
+    }
+  }
+  if (kOutputFile == NULL) {
+    fprintf(stderr, "Cannot open output file.\n");
   }
 }
 

@@ -28,14 +28,15 @@ Node::Node() {
  */
 void Node::Print(int indentLevel, const char *label) { 
   const int numSpaces = 3;
-  printf("\n");
+  fprintf(kOutputFile, "\n");
   if (location_ != NULL) {
-    printf("%*d", numSpaces, location_->first_line);
+    fprintf(kOutputFile, "%*d", numSpaces, location_->first_line);
   } else { 
-    printf("%*s", numSpaces, "");
+    fprintf(kOutputFile, "%*s", numSpaces, "");
   }
-  printf("%*s%s%s: ", indentLevel * numSpaces, "", 
-         label? label : "", GetPrintNameForNode());
+  fprintf(kOutputFile, "%*s%s%s: ", indentLevel * numSpaces, "", 
+         label? label : "", 
+         GetPrintNameForNode());
   PrintChildren(indentLevel);
 } 
 	 
@@ -44,7 +45,7 @@ Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
 }
 
 void Identifier::PrintChildren(int indentLevel) {
-  printf("%s", name_);
+  fprintf(kOutputFile, "%s", name_);
 }
 
 bool Identifier::Check(SymTable *env) {

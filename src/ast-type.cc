@@ -35,7 +35,7 @@ Type::Type(const char *n) {
 }
 
 void Type::PrintChildren(int indentLevel) {
-  printf("%s", typeName);
+  fprintf(kOutputFile, "%s", typeName);
 }
 
 /* Class: NamedType

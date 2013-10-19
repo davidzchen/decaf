@@ -13,7 +13,7 @@ Location::Location(Segment s, int o, const char *name)
 }
  
 void Instruction::Print() {
-  printf("\t%s ;\n", printed);
+  fprintf(kOutputFile, "\t%s ;\n", printed);
 }
 
 void Instruction::Emit(Mips *mips) {
@@ -128,7 +128,7 @@ Label::Label(const char *l) : label(strdup(l)) {
 }
 
 void Label::Print() {
-  printf("%s:\n", label);
+  fprintf(kOutputFile, "%s:\n", label);
 }
 
 void Label::EmitSpecific(Mips *mips) {
@@ -230,11 +230,11 @@ VTable::VTable(const char *l, List<const char *> *m)
 }
 
 void VTable::Print() {
-  printf("VTable %s =\n", label);
+  fprintf(kOutputFile, "VTable %s =\n", label);
   for (int i = 0; i < methodLabels->NumElements(); i++) {
-    printf("\t%s,\n", methodLabels->Nth(i));
+    fprintf(kOutputFile, "\t%s,\n", methodLabels->Nth(i));
   }
-  printf("; \n"); 
+  fprintf(kOutputFile, "; \n"); 
 }
 
 void VTable::EmitSpecific(Mips *mips) {

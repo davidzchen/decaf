@@ -14,10 +14,11 @@ enum {
   TEST_SCANNER = 1,
   TEST_PARSER,
   TEST_SEMANT,
-  TEST_ALL,
+  TEST_NONE,
 };
 
 extern int kTestFlag;
+extern FILE* kOutputFile;
 
 #define __DEBUG_TAC 1
 

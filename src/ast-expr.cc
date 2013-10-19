@@ -21,7 +21,7 @@ IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
 }
 
 void IntConstant::PrintChildren(int indent_level) { 
-  printf("%d", value_);
+  fprintf(kOutputFile, "%d", value_);
 }
 
 /* Class: DoubleConstant
@@ -35,7 +35,7 @@ DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
 }
 
 void DoubleConstant::PrintChildren(int indent_level) { 
-  printf("%g", value_);
+  fprintf(kOutputFile, "%g", value_);
 }
 
 /* Class: BoolConstant
@@ -49,7 +49,7 @@ BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
 }
 
 void BoolConstant::PrintChildren(int indent_level) { 
-  printf("%s", value_ ? "true" : "false");
+  fprintf(kOutputFile, "%s", value_ ? "true" : "false");
 }
 
 /* Class: StringConstant
@@ -64,7 +64,7 @@ StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) {
 }
 
 void StringConstant::PrintChildren(int indent_level) { 
-  printf("%s",value_);
+  fprintf(kOutputFile, "%s",value_);
 }
 
 /* Class: Operator
@@ -78,7 +78,7 @@ Operator::Operator(yyltype loc, const char* tok) : Node(loc) {
 }
 
 void Operator::PrintChildren(int indent_level) {
-  printf("%s",token_string_);
+  fprintf(kOutputFile, "%s",token_string_);
 }
 
 /* Class: CompoundExpr
@@ -629,8 +629,6 @@ void FieldAccess::Emit(FrameAllocator *falloc, CodeGenerator *codegen,
     //   off = offset of field in class of base
     //   loc = *(base + off)
     //   frame_location_ = loc
-
-
 
     base_->Emit(falloc, codegen, env);
     Symbol *class_sym = env->find(base_->GetRetType()->GetName(), S_CLASS);
