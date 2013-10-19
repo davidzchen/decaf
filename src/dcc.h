@@ -30,7 +30,7 @@
 // Managing C headers can be such a mess! 
 
 #ifndef YYBISON                 
-#  include "decaf-parse.h"
+#  include "decaf-parse.hh"
 #endif
 
 int yyparse();              // Defined in the generated y.tab.c file

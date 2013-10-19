@@ -57,8 +57,7 @@ dcc_i386_LDADD = -lc -lm -ll
 BUILT_SOURCES = \
 	src/decaf-parse.cc \
 	src/decaf-lex.cc \
-	src/decaf-parse.output \
-	src/decaf-parse.h
+	src/decaf-parse.output
 
 check_SCRIPTS = \
 	test/test_codegen.py
