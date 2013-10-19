@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([dcc], [0.5], [dzchen@stanford.edu])
+AC_INIT([dcc], [0.5], [david@davidzchen.com])
 AC_CONFIG_SRCDIR([src/utility.cc])
 AC_CONFIG_HEADERS([config.h])
 
