@@ -273,6 +273,11 @@ InterfaceDecl:
       Identifier *i = new Identifier(@2, $2);
       $$ = new InterfaceDecl(i, $4);
     }
+| T_Interface T_Identifier '{' '}'
+    {
+      Identifier *i = new Identifier(@2, $2);
+      $$ = new InterfaceDecl(i, new List<Decl*>);
+    }
 ;
 	
 FnDecl:
