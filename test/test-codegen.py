@@ -28,10 +28,16 @@ def main():
         result = Popen('spim -exception_file ' + EXCEPTION_FILE + ' -file tmp.asm',
                        shell = True, stderr = STDOUT, stdout = PIPE)
       
-      result = Popen('diff - ' + ref_name, 
+      result = Popen('diff -w - ' + ref_name, 
                      shell = True, stdin = result.stdout, stdout = PIPE)
       print 'Executing test "%s"' % test_name
-      print ''.join(result.stdout.readlines())
+      result = ''.join(result.stdout.readlines())
+      if len(result) > 0:
+        print 'FAIL'
+        print result
+      else:
+        print 'PASS'
+        passed_tests += 1
 
     # Print results
     print "---------------------------"
