@@ -4,6 +4,7 @@ import os
 from subprocess import *
 
 TEST_DIRECTORY = 'test/codegen'
+EXCEPTION_FILE = 'etc/exceptions.s'
 
 def main():
   total_tests = 0
@@ -18,8 +19,15 @@ def main():
       test_name = os.path.join(TEST_DIRECTORY, file)
       result = Popen('./dcc ' + test_name + ' -o tmp.asm', 
                      shell = True, stderr = STDOUT)
-      result = Popen('spim -file tmp.asm',
-                     shell = True, stderr = STDOUT, stdout = PIPE)
+     
+      input_name = os.path.join(TEST_DIRECTORY, "%s.in" % file.split('.')[0])
+      if os.path.exists(input_name):
+        result = Popen('spim -exception_file ' + EXCEPTION_FILE + ' -file tmp.asm < ' + input_name,
+                       shell = True, stderr = STDOUT, stdout = PIPE)
+      else:
+        result = Popen('spim -exception_file ' + EXCEPTION_FILE + ' -file tmp.asm',
+                       shell = True, stderr = STDOUT, stdout = PIPE)
+      
       result = Popen('diff - ' + ref_name, 
                      shell = True, stdin = result.stdout, stdout = PIPE)
       print 'Executing test "%s"' % test_name
