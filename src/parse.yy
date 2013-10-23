@@ -146,7 +146,7 @@ void yyerror(const char *msg); // standard error-handling routine
  * -----
  * All productions and actions should be placed between the start and stop
  * %% markers which delimit the Rules section.
-	 
+   
  */
 Program:
   DeclList 
@@ -157,38 +157,29 @@ Program:
        * it once you have other uses of @n*/
       Program *program = new Program($1);
       // if no errors, advance to next phase
-      if (ReportError::NumErrors() == 0)
-        {
-          if (kTestFlag == TEST_PARSER)
-            {
-              program->Print(0);
-            }
-          else
-            {
-	      
-              /*
-               * pp3: if no errors, check program
-               */
-              program->Check();
-            }
+      if (ReportError::NumErrors() == 0) {
+        if (kTestFlag == TEST_PARSER) {
+            program->Print(0);
+        } else {
+            // pp3: if no errors, check program
+            program->Check();
         }
-        
-      if (kTestFlag > TEST_SEMANT && ReportError::NumErrors() == 0)
-        {
+      }
+      if (kTestFlag > TEST_SEMANT && ReportError::NumErrors() == 0) {
           program->Emit();
-        }
+      }
     }
 ;
 
 DeclList:
-  DeclList Decl		       { ($$ = $1)->Append($2); }
+  DeclList Decl            { ($$ = $1)->Append($2); }
 | Decl                     { ($$ = new List<Decl*>)->Append($1); }
 ;
 
 Decl:
   VarDecl                  { $$ = $1; }
 | ClassDecl                { $$ = $1; }
-| InterfaceDecl	           { $$ = $1; }
+| InterfaceDecl            { $$ = $1; }
 | FnDecl                   { $$ = $1; }
 ;
 
@@ -207,7 +198,7 @@ Variable:
 Type:
   T_Void                   { $$ = Type::voidType; }
 | T_Bool                   { $$ = Type::boolType; }
-| T_Int	                   { $$ = Type::intType; }
+| T_Int                    { $$ = Type::intType; }
 | T_Double                 { $$ = Type::doubleType; }
 | T_String                 { $$ = Type::stringType; }
 | NamedType                { $$ = $1; } 
@@ -243,7 +234,7 @@ ClassExtends:
     }
 | /* empty */              { $$ = NULL; }
 ;
-	
+  
 ClassImplements
 : T_Implements ImplementsTypeList 
     { 
@@ -251,7 +242,7 @@ ClassImplements
     }
 | /* empty */              { $$ = new List<NamedType*>; }
 ;
-	
+  
 ImplementsTypeList:
   ImplementsTypeList ',' T_Identifier 
     { 
@@ -279,7 +270,7 @@ InterfaceDecl:
       $$ = new InterfaceDecl(i, new List<Decl*>);
     }
 ;
-	
+  
 FnDecl:
   FnDef StmtBlock
     { 
@@ -287,7 +278,7 @@ FnDecl:
       f->SetFunctionBody($2);
     }
 ;
-	
+  
 FieldList:
   FieldList VarDecl        { ($$ = $1)->Append($2); }
 | FieldList FnDecl         { ($$ = $1)->Append($2); }
@@ -353,12 +344,12 @@ VarDeclList:
 ;
 
 Stmt:
-  OptExpr ';'                 { $$ = $1; }
+  OptExpr ';'              { $$ = $1; }
 | T_While '(' Expr ')' Stmt 
     {
       $$ = new WhileStmt($3, $5);
     }
-| T_Return ';'		       { $$ = new ReturnStmt(@1, new EmptyExpr); }
+| T_Return ';'             { $$ = new ReturnStmt(@1, new EmptyExpr); }
 | T_Return Expr ';'        { $$ = new ReturnStmt(@2, $2); }
 | T_Break ';'              { $$ = new BreakStmt(@1); }
 | T_Print '(' ExprList ')' ';' 
@@ -400,7 +391,7 @@ CaseStmt:
       $$ = new CaseStmt(ic, new List<Stmt*>);
     }
 ;
-	
+  
 DefaultStmt:
   T_Default ':' StmtList %prec NONEMPTYDEFAULT 
     { 
@@ -453,15 +444,15 @@ Expr:
       $$ = new RelationalExpr($1, op, $3);
    }
 | Expr T_GreaterEqual Expr
-    {
-      Operator *op = new Operator(@2, ">=");
-      $$ = new RelationalExpr($1, op, $3);
-    }
+   {
+     Operator *op = new Operator(@2, ">=");
+     $$ = new RelationalExpr($1, op, $3);
+   }
 | Expr T_LessEqual Expr
-    {
-      Operator *op = new Operator(@2, "<=");
-      $$ = new RelationalExpr($1, op, $3);
-	}
+   {
+     Operator *op = new Operator(@2, "<=");
+     $$ = new RelationalExpr($1, op, $3);
+   }
 | Expr T_Equal Expr
     {
       Operator *op = new Operator(@2, "==");
@@ -526,11 +517,11 @@ Expr:
     {
       $$ = new NewArrayExpr(Join(@1, @6), $3, $5);
     }
-| LValue '=' Expr	
-  {
-    Operator *op = new Operator(@2, "=");
-    $$ = new AssignExpr($1, op, $3);
-  }
+| LValue '=' Expr 
+    {
+      Operator *op = new Operator(@2, "=");
+      $$ = new AssignExpr($1, op, $3);
+    }
 ;
 
 Call:
@@ -585,8 +576,7 @@ Constant:
  * Please be sure the variable is set to false when submitting your final
  * version.
  */
-void InitParser()
-{
+void InitParser() {
   PrintDebug("parser", "Initializing parser");
   yydebug = false;
 }
