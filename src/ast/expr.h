@@ -13,10 +13,10 @@
 #ifndef DCC_AST_EXPR_H__
 #define DCC_AST_EXPR_H__
 
-#include "ast.h"
-#include "ast-stmt.h"
-#include "ast-type.h"
-#include "ast-decl.h"
+#include <ast/ast.h>
+#include <ast/stmt.h>
+#include <ast/type.h>
+#include <ast/decl.h>
 
 class NamedType; // for new
 class Type; // for NewArray

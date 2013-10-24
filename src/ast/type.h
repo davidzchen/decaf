@@ -12,8 +12,8 @@
 #ifndef _H_ast_type
 #define _H_ast_type
 
-#include "ast.h"
-#include "ast-stmt.h"
+#include <ast/ast.h>
+#include <ast/stmt.h>
 
 extern SymTable *globalEnv;
 

@@ -8,9 +8,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "utility.h"
-#include "errors.h"
-#include "dcc.h"
+#include <utility.h>
+#include <errors.h>
+#include <dcc.h>
 
 int kTestFlag = 0;
 FILE* kOutputFile = NULL;

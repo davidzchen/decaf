@@ -39,12 +39,12 @@
 #include <iostream>
 #include <stdlib.h>
 
-#include "location.h"
-#include "symtable.h"
-#include "codegen.h"
-#include "errors.h"
-#include "list.h"
-#include "framealloc.h"
+#include <location.h>
+#include <symtable.h>
+#include <codegen.h>
+#include <errors.h>
+#include <list.h>
+#include <framealloc.h>
 
 using namespace std;
 

@@ -3,12 +3,11 @@
  * Implementation of expression node classes.
  */
 
-#include <config.h>
 #include <string.h>
 
-#include "ast-expr.h"
-#include "ast-type.h"
-#include "ast-decl.h"
+#include <ast/expr.h>
+#include <ast/type.h>
+#include <ast/decl.h>
 
 /* Class: IntConstant
  * ------------------

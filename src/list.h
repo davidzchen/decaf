@@ -29,7 +29,8 @@
 #define LIST_H__
 
 #include <deque>
-#include "utility.h"  // for Assert()
+
+#include <utility.h>
 
 using namespace std;
 

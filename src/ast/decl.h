@@ -13,10 +13,10 @@
 #ifndef DCC_AST_DECL_H__
 #define DCC_AST_DECL_H__
 
-#include "ast.h"
-#include "ast-decl.h"
-#include "ast-stmt.h"
-#include "ast-type.h"
+#include <ast/ast.h>
+#include <ast/decl.h>
+#include <ast/stmt.h>
+#include <ast/type.h>
 
 class Type;
 class NamedType;

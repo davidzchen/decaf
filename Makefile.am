@@ -10,7 +10,7 @@ AM_LFLAGS = -d
 
 EXTRA_DIST += src/hashtable.cc
 
-bin_PROGRAMS = dcc dcc_i386
+bin_PROGRAMS = dcc dcc-i386
 
 dcc_SOURCES = \
 	src/utility.cc \
@@ -20,11 +20,11 @@ dcc_SOURCES = \
 	src/arch/mips/mips.cc \
 	src/codegen.cc \
 	src/framealloc.cc \
-	src/ast.cc \
-	src/ast-decl.cc \
-	src/ast-expr.cc \
-	src/ast-stmt.cc \
-	src/ast-type.cc \
+	src/ast/ast.cc \
+	src/ast/decl.cc \
+	src/ast/expr.cc \
+	src/ast/stmt.cc \
+	src/ast/type.cc \
 	src/parse.cc \
 	src/lex.cc \
 	src/dcc.cc
@@ -41,11 +41,11 @@ dcc_i386_SOURCES = \
 	src/arch/x86/x86.cc \
 	src/codegen.cc \
 	src/framealloc.cc \
-	src/ast.cc \
-	src/ast-decl.cc \
-	src/ast-expr.cc \
-	src/ast-stmt.cc \
-	src/ast-type.cc \
+	src/ast/ast.cc \
+	src/ast/decl.cc \
+	src/ast/expr.cc \
+	src/ast/stmt.cc \
+	src/ast/type.cc \
 	src/parse.cc \
 	src/lex.cc \
 	src/dcc.cc

@@ -5,13 +5,13 @@
 
 %{
 
-#include <config.h>
 #include <string.h>
 #include <vector>
-#include "scanner.h"
-#include "utility.h" // for PrintDebug()
-#include "errors.h"
-#include "dcc.h" // for token codes, yylval
+
+#include <scanner.h>
+#include <utility.h> // for PrintDebug()
+#include <errors.h>
+#include <dcc.h> // for token codes, yylval
 
 using namespace std;
 

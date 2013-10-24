@@ -7,8 +7,8 @@
 #include <sstream>
 #include <string>
 
-#include "symtable.h"
-#include "ast-decl.h"
+#include <symtable.h>
+#include <ast/decl.h>
 
 /* Class: Symbol
  * -------------

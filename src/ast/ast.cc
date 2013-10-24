@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "ast.h"
+#include <ast/ast.h>
 
 Node::Node(yyltype loc) {
   location_ = new yyltype(loc);

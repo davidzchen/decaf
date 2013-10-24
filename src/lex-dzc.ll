@@ -11,14 +11,14 @@
  * or C++ variable declarations/prototypes that are needed by your code here.
  */
 
-#include <config.h>
 #include <cstring>
 #include <string>
+#include <vector>
+
 #include <utility.h> // for PrintDebug()
 #include <errors.h>
-#include <vector>
-#include "scanner.h"
-#include "parse.h"
+#include <scanner.h>
+#include <parse.h>
 
 using namespace std;
 

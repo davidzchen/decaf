@@ -17,10 +17,9 @@
  * by your code here.
  */
  
-#include <config.h>
-#include "errors.h"
-#include "scanner.h" // for yylex
-#include "dcc.h"
+#include <errors.h>
+#include <scanner.h> // for yylex
+#include <dcc.h>
 
 
 void yyerror(const char *msg); // standard error-handling routine

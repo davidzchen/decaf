@@ -6,7 +6,6 @@
 
 #define __STDC_LIMIT_MACROS
 
-#include <config.h>
 #include <getopt.h>
 #include <stdarg.h>
 #include <string.h>
@@ -14,8 +13,9 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <errno.h>
-#include "utility.h"
-#include "scanner.h"
+
+#include <utility.h>
+#include <scanner.h>
 
 using std::vector;
 

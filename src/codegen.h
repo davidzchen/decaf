@@ -15,10 +15,10 @@
 #define _H_codegen
 
 #include <stdlib.h>
-#include <tac.h>
 
-#include "list.h"
-#include "framealloc.h"
+#include <tac.h>
+#include <list.h>
+#include <framealloc.h>
  
 
 // These codes are used to identify the built-in functions
