@@ -8,8 +8,6 @@ AM_CXXFLAGS = -Wno-unused -Wno-sign-compare
 AM_YFLAGS = -dvty
 AM_LFLAGS = -d
 
-EXTRA_DIST += src/hashtable.cc
-
 bin_PROGRAMS = dcc dcc-i386
 
 dcc_SOURCES = \

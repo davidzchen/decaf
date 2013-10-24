@@ -1,203 +1,313 @@
-/* File:  scanner.l
- * ----------------
- * Lex input file to generate the scanner for the compiler.
- */
-
 %{
 
-#include <string.h>
+#include <cstring>
 #include <vector>
 
 #include <scanner.h>
-#include <utility.h> // for PrintDebug()
+#include <utility.h>
 #include <errors.h>
-#include <dcc.h> // for token codes, yylval
+#include <dcc.h>
 
 using namespace std;
 
 #define TAB_SIZE 8
 
-/* Global variables
- * ----------------
- * (For shame!) But we need a few to keep track of things that are
- * preserved between calls to yylex or used outside the scanner.
- */
-static int curLineNum, curColNum;
-vector<const char*> savedLines;
+// Globals to keep track of state preserved between calls to yylex or used
+// outside the lexer.
 
-static void DoBeforeEachAction(); 
-#define YY_USER_ACTION DoBeforeEachAction();
+static int current_line;
+static int current_column;
+vector<const char*> saved_lines;
+
+static void StartAction();
+#define YY_USER_ACTION StartAction();
 
 %}
 
-/* States
- * ------
- * A little wrinkle on states is the COPY exclusive state which
- * I added to first match each line and copy it ot the list of lines
- * read before re-processing it. This allows us to print the entire
- * line later to provide context on errors.
- */
+/* The COPY exclusive state matches each line and copies it to the vector of
+   lines read before re-processing it, allowing the line to be printed later
+   to provide context on errors. */
+
 %s N
-%x COPY COMM
+%x COPY
+%x COMMENT
 %option stack
 
-/* Definitions
- * -----------
- * To make our rules more readable, we establish some definitions here.
- */
-DIGIT             ([0-9])
-HEX_DIGIT         ([0-9a-fA-F])
-HEX_INTEGER       (0[Xx]{HEX_DIGIT}+)
-INTEGER           ({DIGIT}+)
-EXPONENT          ([Ee][-+]?{INTEGER})
-DOUBLE            ({INTEGER}"."{DIGIT}*{EXPONENT}?)
-BEG_STRING        (\"[^"\n]*)
-STRING            ({BEG_STRING}\")
-IDENTIFIER        ([a-zA-Z][a-zA-Z_0-9]*)
-OPERATOR          ([-+/*%=.,;!<>()[\]{}:])
-BEG_COMMENT       ("/*")
-END_COMMENT       ("*/")
-SINGLE_COMMENT    ("//"[^\n]*)
-
-%%             /* BEGIN RULES SECTION */
-
-<COPY>.*               { char curLine[512];
-                         //strncpy(curLine, yytext, sizeof(curLine));
-                         savedLines.push_back(strdup(yytext));
-                         curColNum = 1; yy_pop_state(); yyless(0); }
-<COPY><<EOF>>          { yy_pop_state(); }
-<*>\n                  { curLineNum++; curColNum = 1;
-                         if (YYSTATE == COPY) savedLines.push_back("");
-                         else yy_push_state(COPY); }
-
-[ ]+                   { /* ignore all spaces */  }
-<*>[\t]                { curColNum += TAB_SIZE - curColNum%TAB_SIZE + 1; }
-
- /* -------------------- Comments ----------------------------- */
-{BEG_COMMENT}          { BEGIN(COMM); }
-<COMM>{END_COMMENT}    { BEGIN(N); }
-<COMM><<EOF>>          { ReportError::UntermComment();
-                         return 0; }
-<COMM>.                { /* ignore everything else that doesn't match */ }
-{SINGLE_COMMENT}       { /* skip to end of line for // comment */ }
-
-
- /* --------------------- Keywords ------------------------------- */
-"void"              { return T_Void;        }
-"int"               { return T_Int;         }
-"double"            { return T_Double;      }
-"bool"              { return T_Bool;        }
-"string"            { return T_String;      }
-"null"              { return T_Null;        }
-"class"             { return T_Class;       }
-"extends"           { return T_Extends;     }
-"this"              { return T_This;        }
-"interface"         { return T_Interface;   }
-"implements"        { return T_Implements;  }
-"while"             { return T_While;       }
-"for"               { return T_For;         }
-"if"                { return T_If;          }
-"else"              { return T_Else;        }
-"return"            { return T_Return;      }
-"break"             { return T_Break;       }
-"new"               { return T_New;         }
-"NewArray"          { return T_NewArray;    }
-"Print"             { return T_Print;       }
-"ReadInteger"       { return T_ReadInteger; }
-"ReadLine"          { return T_ReadLine;    }
-"switch"            { return T_Switch;      }
-"default"           { return T_Default;     }
-"case"              { return T_Case;        }
-
-
- /* -------------------- Operators ----------------------------- */
-"<="                { return T_LessEqual;   }
-">="                { return T_GreaterEqual;}
-"=="                { return T_Equal;       }
-"!="                { return T_NotEqual;    }
-"&&"                { return T_And;         }
-"||"                { return T_Or;          }
-"[]"                { return T_Dims;        }
-"++"                { return T_Incr;        }
-"--"                { return T_Decr;        }
-{OPERATOR}          { return yytext[0];     }
-
- /* -------------------- Constants ------------------------------ */
-"true"|"false"      { yylval.boolConstant = (yytext[0] == 't');
-                         return T_BoolConstant; }
-{INTEGER}           { yylval.integerConstant = strtol(yytext, NULL, 10);
-                         return T_IntConstant; }
-{HEX_INTEGER}       { yylval.integerConstant = strtol(yytext, NULL, 16);
-                         return T_IntConstant; }
-{DOUBLE}            { yylval.doubleConstant = atof(yytext);
-                         return T_DoubleConstant; }
-{STRING}            { yylval.stringConstant = strdup(yytext); 
-                         return T_StringConstant; }
-{BEG_STRING}        { ReportError::UntermString(&yylloc, yytext); }
-
-
- /* -------------------- Identifiers --------------------------- */
-{IDENTIFIER}        { if (strlen(yytext) > MaxIdentLen)
-                         ReportError::LongIdentifier(&yylloc, yytext);
-                       strncpy(yylval.identifier, yytext, MaxIdentLen);
-                       yylval.identifier[MaxIdentLen] = '\0';
-                       return T_Identifier; }
-
-
- /* -------------------- Default rule (error) -------------------- */
-.                   { ReportError::UnrecogChar(&yylloc, yytext[0]); }
+DECIMAL_DIGIT   ([0-9])
+DECIMAL_INTEGER ({DECIMAL_DIGIT}+)
+HEX_DIGIT       ([0-9a-fA-F])
+HEX_INTEGER     (0[xX]{HEX_DIGIT}+)
+EXPONENT        ([eE][+-]?{DECIMAL_INTEGER})
+DOUBLE          ({DECIMAL_INTEGER}"."{DECIMAL_DIGIT}*{EXPONENT}?)
+START_STRING    (\"[^"\n]*)
+STRING          ({START_STRING}\")
+IDENTIFIER      ([a-zA-Z][a-zA-Z_0-9]*)
+OPERATOR        ([-+/*%=.,;!<>()[\]{}:])
+START_COMMENT   ("/*")
+END_COMMENT     ("*/")
+SINGLE_COMMENT  ("//"[^\n]*)
 
 %%
 
-
-/* Function: InitScanner
- * ---------------------
- * This function will be called before any calls to yylex().  It is designed
- * to give you an opportunity to do anything that must be done to initialize
- * the scanner (set global variables, configure starting state, etc.). One
- * thing it already does for you is assign the value of the global variable
- * yy_flex_debug that controls whether flex prints debugging information
- * about each token and what rule was matched. If set to false, no information
- * is printed. Setting it to true will give you a running trail that might
- * be helpful when debugging your scanner. Please be sure the variable is
- * set to false when submitting your final version.
- */
-void InitScanner()
-{
-    PrintDebug("lex", "Initializing scanner");
-    yy_flex_debug = false;
-    BEGIN(N);
-    yy_push_state(COPY); // copy first line at start
-    curLineNum = 1;
-    curColNum = 1;
+<COPY>.* {
+  saved_lines.push_back(strdup(yytext));
+  current_column = 1;
+  yy_pop_state();
+  yyless(0);
 }
 
-
-/* Function: DoBeforeEachAction()
- * ------------------------------
- * This function is installed as the YY_USER_ACTION. This is a place
- * to group code common to all actions.
- * On each match, we fill in the fields to record its location and
- * update our column counter.
- */
-static void DoBeforeEachAction()
-{
-   yylloc.first_line = curLineNum;
-   yylloc.first_column = curColNum;
-   yylloc.last_column = curColNum + yyleng - 1;
-   curColNum += yyleng;
+<COPY><<EOF>> {
+  yy_pop_state();
 }
 
-/* Function: GetLineNumbered()
- * ---------------------------
- * Returns string with contents of line numbered n or NULL if the
- * contents of that line are not available.  Our scanner copies
- * each line scanned and appends each to a list so we can later
- * retrieve them to report the context for errors.
- */
-const char *GetLineNumbered(int num) {
-   if (num <= 0 || num > savedLines.size()) return NULL;
-   return savedLines[num-1]; 
+<*>\n {
+  ++current_line;
+  current_column = 1;
+  if (YYSTATE == COPY) {
+    saved_lines.push_back("");
+  } else {
+    yy_push_state(COPY);
+  }
 }
 
+[ ]+ {
+}
 
+<*>[\t] {
+  current_column += TAB_SIZE - current_column % TAB_SIZE + 1;
+}
+
+{START_COMMENT} {
+  BEGIN(COMMENT);
+}
+
+<COMMENT>{END_COMMENT} {
+  BEGIN(N);
+}
+
+<COMMENT><<EOF>> {
+  ReportError::UntermComment();
+  return 0;
+}
+
+<COMMENT>. {
+}
+
+{SINGLE_COMMENT} {
+}
+
+"<=" {
+  return T_LessEqual;
+}
+
+">=" {
+  return T_GreaterEqual;
+}
+
+"==" {
+  return T_Equal;
+}
+
+"!=" {
+  return T_NotEqual;
+}
+
+"&&" {
+  return T_And;
+}
+
+"||" {
+  return T_Or;
+}
+
+"[]" {
+  return T_Dims;
+}
+
+"++" {
+  return T_Incr;
+}
+
+"--" {
+  return T_Decr;
+}
+
+{OPERATOR} {
+  return yytext[0];
+}
+
+"void" {
+  return T_Void;
+}
+
+"int" {
+  return T_Int;
+}
+
+"double" {
+  return T_Double;
+}
+
+"bool" {
+  return T_Bool;
+}
+
+"string" {
+  return T_String;
+}
+
+"class" {
+  return T_Class;
+}
+
+"null" {
+  return T_Null;
+}
+
+"while" {
+  return T_While;
+}
+
+"for" {
+  return T_For;
+}
+
+"if" {
+  return T_If;
+}
+
+"else" {
+  return T_Else;
+}
+
+"return" {
+  return T_Return;
+}
+
+"break" {
+  return T_Break;
+}
+
+"switch" {
+  return T_Switch;
+}
+
+"case" {
+  return T_Case;
+}
+
+"default" {
+  return T_Default;
+}
+
+"extends" {
+  return T_Extends;
+}
+
+"this" {
+  return T_This;
+}
+
+"implements" {
+  return T_Implements;
+}
+
+"interface" {
+  return T_Interface;
+}
+
+"new" {
+  return T_New;
+}
+
+"NewArray" {
+  return T_NewArray;
+}
+
+"Print" {
+  return T_Print;
+}
+
+"ReadInteger" {
+  return T_ReadInteger;
+}
+
+"ReadLine" {
+  return T_ReadLine;
+}
+
+"true" {
+  yylval.boolConstant = 1;
+  return T_BoolConstant;
+}
+
+"false" {
+  yylval.boolConstant = 0;
+  return T_BoolConstant;
+}
+
+{DECIMAL_INTEGER} {
+  yylval.integerConstant = atoi(yytext);
+  return T_IntConstant;
+}
+
+{HEX_INTEGER} {
+  yylval.integerConstant = xtoi(yytext);
+  return T_IntConstant;
+}
+
+{DOUBLE} {
+  yylval.doubleConstant = strtod(yytext, NULL);
+  return T_DoubleConstant;
+}
+
+{STRING} {
+  yylval.stringConstant = strdup(yytext);
+  return T_StringConstant;
+}
+
+{START_STRING} {
+  ReportError::UntermString(&yylloc, yytext);
+}
+
+{IDENTIFIER} {
+  int len = strlen(yytext);
+  if (len > MaxIdentLen) {
+    ReportError::LongIdentifier(&yylloc, yytext);
+    strncpy(yylval.identifier, yytext, MaxIdentLen);
+    yylval.identifier[MaxIdentLen] = '\0';
+  } else {
+    strncpy(yylval.identifier, yytext, len);
+    yylval.identifier[len] = '\0';
+  }
+  return T_Identifier;
+}
+
+. {
+  ReportError::UnrecogChar(&yylloc, yytext[0]);
+}
+
+%%
+
+void InitScanner() {
+  PrintDebug("lex", "Initializing scanner.");
+  yy_flex_debug = false;
+  BEGIN(N);
+  yy_push_state(COPY);
+  current_line = 1;
+  current_column = 1;
+}
+
+static void StartAction() {
+  yylloc.first_line = current_line;
+  yylloc.first_column = current_column;
+  yylloc.last_column = current_column + yyleng - 1;
+  current_column += yyleng;
+}
+
+const char* GetLineNumbered(int line) {
+  if (line <= 0 || line > saved_lines.size()) {
+    return NULL;
+  }
+  return saved_lines[line - 1];
+}
