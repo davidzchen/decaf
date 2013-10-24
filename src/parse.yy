@@ -78,6 +78,7 @@ void yyerror(const char *msg); // standard error-handling routine
  
 %token T_Void T_Bool T_Int T_Double T_String T_Class 
 %token T_LessEqual T_GreaterEqual T_Equal T_NotEqual T_Dims
+%token T_LeftShift T_RightShift
 %token T_And T_Or T_Null T_Extends T_This T_Interface T_Implements
 %token T_While T_For T_If T_Else T_Return T_Break
 %token T_New T_NewArray T_Print T_ReadInteger T_ReadLine
@@ -93,12 +94,14 @@ void yyerror(const char *msg); // standard error-handling routine
 %left '='
 %left T_Or
 %left T_And
+%nonassoc '&' '^' '|'
 %nonassoc T_Equal T_NotEqual
 %nonassoc '<' '>' T_LessEqual T_GreaterEqual
+%left T_LeftShift T_RightShift
 %left '+' '-'
 %left '*' '/' '%'
 %left T_Incr T_Decr
-%right NEG '!'
+%right NEG '!' '~'
 %nonassoc '.' '['
 %nonassoc NOELSE
 %nonassoc T_Else
@@ -486,6 +489,26 @@ Expr:
       Operator *op = new Operator(@2, "%");
       $$ = new ArithmeticExpr($1, op, $3);
     }
+| Expr '^' Expr {
+    Operator *op = new Operator(@2, "^");
+    $$ = new BitwiseExpr($1, op, $3);
+  }
+| Expr '|' Expr {
+    Operator *op = new Operator(@2, "|");
+    $$ = new BitwiseExpr($1, op, $3);
+  }
+| Expr '&' Expr {
+    Operator *op = new Operator(@2, "&");
+    $$ = new BitwiseExpr($1, op, $3);
+  }
+| Expr T_LeftShift Expr {
+    Operator *op = new Operator(@2, "<<");
+    $$ = new BitwiseExpr($1, op, $3);
+  }
+| Expr T_RightShift Expr {
+    Operator *op = new Operator(@2, ">>");
+    $$ = new BitwiseExpr($1, op, $3);
+  }
 | '-' Expr %prec NEG
     {
       Operator *op = new Operator(@1, "-");
@@ -496,6 +519,10 @@ Expr:
       Operator *op = new Operator(@1, "!");
       $$ = new LogicalExpr(op, $2);
     }
+| '~' Expr {
+    Operator *op = new Operator(@1, "~");
+    $$ = new BitwiseExpr(op, $2);
+  }
 | Expr T_Incr
     {
       Operator *op = new Operator(@2, "++");

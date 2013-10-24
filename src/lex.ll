@@ -35,14 +35,16 @@ static void StartAction();
 
 DECIMAL_DIGIT   ([0-9])
 DECIMAL_INTEGER ({DECIMAL_DIGIT}+)
+OCTAL_DIGIT     ([0-7])
+OCTAL_INTEGER   (0{OCTAL_DIGIT});
 HEX_DIGIT       ([0-9a-fA-F])
 HEX_INTEGER     (0[xX]{HEX_DIGIT}+)
 EXPONENT        ([eE][+-]?{DECIMAL_INTEGER})
 DOUBLE          ({DECIMAL_INTEGER}"."{DECIMAL_DIGIT}*{EXPONENT}?)
 START_STRING    (\"[^"\n]*)
 STRING          ({START_STRING}\")
-IDENTIFIER      ([a-zA-Z][a-zA-Z_0-9]*)
-OPERATOR        ([-+/*%=.,;!<>()[\]{}:])
+IDENTIFIER      ([a-zA-Z_][a-zA-Z_0-9]*)
+OPERATOR        ([-+/*%=.,;!<>^&\|~()[\]{}:])
 START_COMMENT   ("/*")
 END_COMMENT     ("*/")
 SINGLE_COMMENT  ("//"[^\n]*)
@@ -130,6 +132,14 @@ SINGLE_COMMENT  ("//"[^\n]*)
 
 "--" {
   return T_Decr;
+}
+
+">>" {
+  return T_RightShift;
+}
+
+"<<" {
+  return T_LeftShift;
 }
 
 {OPERATOR} {
@@ -248,6 +258,12 @@ SINGLE_COMMENT  ("//"[^\n]*)
 
 {DECIMAL_INTEGER} {
   yylval.integerConstant = atoi(yytext);
+  return T_IntConstant;
+}
+
+{OCTAL_INTEGER} {
+  int len = strlen(yytext);
+  yylval.integerConstant = strtol(yytext, NULL, 8);
   return T_IntConstant;
 }
 

@@ -192,6 +192,16 @@ class LogicalExpr : public CompoundExpr {
   void Emit(FrameAllocator* falloc, CodeGenerator* codegen, SymTable* env);
 };
 
+class BitwiseExpr : public CompoundExpr {
+ public:
+  BitwiseExpr(Expr* lhs, Operator* op, Expr* rhs)
+    : CompoundExpr(lhs, op, rhs) {}
+  BitwiseExpr(Operator* op, Expr* rhs) : CompoundExpr(op,rhs) {}
+  const char* GetPrintNameForNode() { return "BitwiseExpr"; }
+  bool Check(SymTable* env);
+  void Emit(FrameAllocator* falloc, CodeGenerator* codegen, SymTable* env);
+};
+
 class PostfixExpr : public CompoundExpr {
  public:
   PostfixExpr(Expr* lhs, Operator* op) : CompoundExpr(lhs, op) {}

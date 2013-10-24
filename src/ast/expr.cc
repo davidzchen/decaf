@@ -332,6 +332,14 @@ void LogicalExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
   frame_location_ = loc;
 }
 
+bool BitwiseExpr::Check(SymTable* env) {
+}
+
+void BitwiseExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
+                       SymTable* env) {
+
+}
+
 /* Class: PostfixExpr
  * ------------------
  * Implementation for PostfixExpr class
