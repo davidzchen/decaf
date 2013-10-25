@@ -19,6 +19,7 @@ def main():
       test_name = os.path.join(TEST_DIRECTORY, file)
       result = Popen('./dcc ' + test_name + ' -o tmp.asm', 
                      shell = True, stderr = STDOUT)
+      result.wait()
      
       input_name = os.path.join(TEST_DIRECTORY, "%s.in" % file.split('.')[0])
       if os.path.exists(input_name):
