@@ -333,11 +333,53 @@ void LogicalExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
 }
 
 bool BitwiseExpr::Check(SymTable* env) {
+  bool ret = true;
+  Type* left_type = NULL;
+  Type* right_type = NULL;
+
+  if (left_ != NULL) {
+    ret &= left_->Check(env);
+    left_type = left_->GetRetType();
+  }
+
+  ret &= right_->Check(env);
+  right_type = right_->GetRetType();
+  SetRetType(Type::intType);
+  if (left_ != NULL) {
+    if (!left_type->IsConvertableTo(Type::intType) ||
+        !right_type->IsConvertableTo(Type::intType)) {
+      ReportError::IncompatibleOperands(op_, left_type, right_type);
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+  } else {
+    if (!right_type->IsConvertableTo(Type::intType)) {
+      ReportError::IncompatibleOperand(op_, right_type);
+      SetRetType(Type::errorType);
+      ret = false;
+    }
+  }
+
+  return ret;
 }
 
 void BitwiseExpr::Emit(FrameAllocator* falloc, CodeGenerator* codegen,
                        SymTable* env) {
+  Location* loc = NULL;
+  if (left_ != NULL) {
+    left_->Emit(falloc, codegen, env);
+  }
+  right_->Emit(falloc, codegen, env);
 
+  if (left_ == NULL) {
+    loc = codegen->GenUnaryOp(falloc, op_->GetTokenString(),
+                              right_->GetFrameLocation());
+  } else {
+    loc = codegen->GenBinaryOp(falloc, op_->GetTokenString(),
+                               left_->GetFrameLocation(),
+                               right_->GetFrameLocation());
+  }
+  frame_location_ = loc;
 }
 
 /* Class: PostfixExpr

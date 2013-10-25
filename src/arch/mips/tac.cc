@@ -97,7 +97,7 @@ void Store::EmitSpecific(Mips *mips) {
 }
  
 const char* const BinaryOp::opName[BinaryOp::NumOps] = {
-  "+", "-", "*", "/", "%", "==", "<", "&&", "||"
+  "+", "-", "*", "/", "%", "==", "<", "&&", "||", "^", "<<", ">>"
 };
 
 BinaryOp::OpCode BinaryOp::OpCodeForName(const char *name) {

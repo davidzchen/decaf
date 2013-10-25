@@ -395,6 +395,9 @@ X86::X86()
   x86Name[BinaryOp::Less] = "";
   x86Name[BinaryOp::And]  = "";
   x86Name[BinaryOp::Or]   = "";
+  x86Name[BinaryOp::Xor]  = "";
+  x86Name[BinaryOp::Shl]  = "";
+  x86Name[BinaryOp::Shr]  = "";
   regs[eax]    = (RegContents) { false, NULL, "%eax",    true };
   regs[ebx]    = (RegContents) { false, NULL, "%ebx",    true };
   regs[ecx]    = (RegContents) { false, NULL, "%ecx",    true };

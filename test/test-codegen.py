@@ -38,11 +38,11 @@ def main():
       else:
         print 'PASS'
         passed_tests += 1
+      os.remove('tmp.asm')
 
     # Print results
     print "---------------------------"
     print "Codegen tests: %i/%i passed" % (passed_tests, total_tests)
-    os.remove('tmp.asm')
     if passed_tests < total_tests:
       exit(1)
 

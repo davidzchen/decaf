@@ -1,0 +1,4 @@
+void main() {
+  Print(1 << 5);
+  Print(32 >> 5);
+}

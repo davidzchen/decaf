@@ -517,6 +517,9 @@ Mips::Mips() {
   mipsName[BinaryOp::Less] = "slt";
   mipsName[BinaryOp::And] = "and";
   mipsName[BinaryOp::Or] = "or";
+  mipsName[BinaryOp::Xor] = "xor";
+  mipsName[BinaryOp::Shl] = "sllv";
+  mipsName[BinaryOp::Shr] = "srlv";
   regs[zero] = (RegContents){false, NULL, "$zero", false};
   regs[at] = (RegContents){false, NULL, "$at", false};
   regs[v0] = (RegContents){false, NULL, "$v0", false};

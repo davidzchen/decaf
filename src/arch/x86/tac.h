@@ -152,7 +152,7 @@ class BinaryOp: public Instruction
 {
 
   public:
-    typedef enum {Add, Sub, Mul, Div, Mod, Eq, Less, And, Or, NumOps} OpCode;
+    typedef enum {Add, Sub, Mul, Div, Mod, Eq, Less, And, Or, Xor, Shl, Shr, NumOps} OpCode;
     static const char * const opName[NumOps];
     static OpCode OpCodeForName(const char *name);
     

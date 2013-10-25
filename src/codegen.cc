@@ -126,46 +126,56 @@ Location *CodeGenerator::GenBinaryOp(FrameAllocator *falloc,
     Location *lt = GenBinaryOp(falloc, "<", op1, op2);
     result = GenUnaryOp(falloc, "!", lt);
   } else {
+    BinaryOp::OpCode opcode;
+    if (strcmp(opName, "|") == 0) {
+      opcode = BinaryOp::Or;
+    } else if (strcmp(opName, "&") == 0) {
+      opcode = BinaryOp::And;
+    } else {
+      opcode = BinaryOp::OpCodeForName(opName);
+    }
+
     result = GenTempVar(falloc);
-    code->Append(new BinaryOp(BinaryOp::OpCodeForName(opName), result, op1, op2));
+    code->Append(new BinaryOp(opcode, result, op1, op2));
     return result;
   }
 }
 
 Location *CodeGenerator::GenUnaryOp(FrameAllocator *falloc,
-    const char *opName, Location *op) {
+                                    const char *opName, Location *op) {
   Location *result = NULL;
   if (strcmp(opName, "!") == 0) {
-    /* Currently, logical negation is implemented as:
-     *   _tmp0 = 1
-     *   _tmp1 = _tmp0 - op
-     * We can do this because bool literals are implemented as integer 0 or 1
-     *
-     * We could instead extend Tac and Mips classes to include the xor
-     * operator, in which case we can instead, do this (assuming op
-     * is in $t1):
-     *   addi $t0, $zero, -1        # -1 is all 1's in two's complement
-     *   xor  $t1, $t1, $t0
-     */
+    // Currently, logical negation is implemented as:
+    //   _tmp0 = 1
+    //   _tmp1 = _tmp0 - op
+    // We can do this because bool literals are implemented as integer 0 or 1
+    //
+    // We could instead extend Tac and Mips classes to include the xor
+    // operator, in which case we can instead, do this (assuming op
+    // is in $t1):
+    //   addi $t0, $zero, -1        # -1 is all 1's in two's complement
+    //   xor  $t1, $t1, $t0
 
     Location *tmp1 = GenLoadConstant(falloc, 1);
     result = GenBinaryOp(falloc, "-", tmp1, op);
   } else if (strcmp(opName, "-") == 0) {
     // _tmp0 = 0
     // _tmp1 = _tmp0 - op
-
     Location *tmp0 = GenLoadConstant(falloc, 0);
     result = GenBinaryOp(falloc, "-", tmp0, op);
+  } else if (strcmp(opName, "~") == 0) {
+    // _tmp0 = -1
+    // _tmp1 = _tmp0 ^ op
+    Location *tmp0 = GenLoadConstant(falloc, -1);
+    result = GenBinaryOp(falloc, "^", tmp0, op);
   } else if (strcmp(opName, "++") == 0) {
     // _tmp0 = 1
     // _tmp1 = _tmp0 + op
-
     Location *tmp1 = GenLoadConstant(falloc, 1);
     result = GenBinaryOp(falloc, "+", tmp1, op);
   } else if (strcmp(opName, "--") == 0) {
     // _tmp0 = 1
     // _tmp1 = _tmp0 + op
-
     Location *tmp1 = GenLoadConstant(falloc, 1);
     result = GenBinaryOp(falloc, "-", tmp1, op);
   }

@@ -1,0 +1,6 @@
+void main() {
+  Print(3 ^ 5);
+  Print(3 & 5);
+  Print(3 | 5);
+  Print(~3);
+}
