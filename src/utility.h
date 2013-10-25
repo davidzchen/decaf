@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 enum {
-  TEST_SCANNER = 1,
+  TEST_LEXER = 1,
   TEST_PARSER,
   TEST_SEMANT,
   TEST_NONE,

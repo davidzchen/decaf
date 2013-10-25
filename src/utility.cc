@@ -15,7 +15,7 @@
 #include <errno.h>
 
 #include <utility.h>
-#include <scanner.h>
+#include <lexer.h>
 
 using std::vector;
 
@@ -114,8 +114,8 @@ void ParseCommandLine(int argc, char *argv[]) {
     free(debug_level);
   }
   if (test_type != NULL) {
-    if (strcmp(test_type, "scanner") == 0) {
-      kTestFlag = TEST_SCANNER;
+    if (strcmp(test_type, "lexer") == 0) {
+      kTestFlag = TEST_LEXER;
     } else if (strcmp(test_type, "parser") == 0) {
       kTestFlag = TEST_PARSER;
     } else if (strcmp(test_type, "semantic") == 0) {

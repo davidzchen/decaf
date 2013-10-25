@@ -10,7 +10,7 @@
 // here we need to include things needed for the yylval union
 // (types, classes, constants, etc.)
   
-#include <scanner.h>            // for MaxIdentLen
+#include <lexer.h>              // for MaxIdentLen
 #include <list.h>               // because we use all these types
 #include <ast/ast.h>            // in the union, we need their declarations
 #include <symtable.h>

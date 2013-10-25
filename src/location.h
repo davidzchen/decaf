@@ -11,7 +11,7 @@
 
 /* Typedef: yyltype
  * ----------------
- * Defines the struct type that is used by the scanner to store
+ * Defines the struct type that is used by the lexer to store
  * position information about each lexeme scanned.
  */
 typedef struct yyltype {

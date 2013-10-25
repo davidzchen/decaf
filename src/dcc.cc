@@ -20,13 +20,13 @@ FILE* kOutputFile = NULL;
 ///
 /// We parse the command line and turn on any debugging flags requested by the 
 /// user when invoking the program.
-/// InitScanner() is used to set up the scanner.
+/// InitLexer() is used to set up the scanner.
 /// InitParser() is used to set up the parser. The call to yyparse() will
 /// attempt to parse a complete program from the input. 
 
 int main(int argc, char *argv[]) {
   ParseCommandLine(argc, argv);
-  InitScanner();
+  InitLexer();
   InitParser();
   yyparse();
   return (ReportError::NumErrors() == 0 ? 0 : -1);

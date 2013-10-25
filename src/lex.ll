@@ -3,7 +3,7 @@
 #include <cstring>
 #include <vector>
 
-#include <scanner.h>
+#include <lexer.h>
 #include <utility.h>
 #include <errors.h>
 #include <dcc.h>
@@ -305,8 +305,8 @@ SINGLE_COMMENT  ("//"[^\n]*)
 
 %%
 
-void InitScanner() {
-  PrintDebug("lex", "Initializing scanner.");
+void InitLexer() {
+  PrintDebug("lex", "Initializing lexer.");
   yy_flex_debug = false;
   BEGIN(N);
   yy_push_state(COPY);

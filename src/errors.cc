@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #include <errors.h>
-#include <scanner.h> // for GetLineNumbered
+#include <lexer.h>
 #include <ast/type.h>
 #include <ast/expr.h>
 #include <ast/stmt.h>

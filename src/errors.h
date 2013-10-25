@@ -59,7 +59,7 @@ typedef enum {
 
 class ReportError {
  public:
-  // Errors used by scanner
+  // Errors used by lexer
   static void UntermComment();
   static void LongIdentifier(yyltype *loc, const char *ident);
   static void UntermString(yyltype *loc, const char *str);
