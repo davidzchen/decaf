@@ -131,12 +131,12 @@ EXTENSIONS
 Progress
 ------------------
 
+Bit operators         [DONE       ]
+Octal ints            [IN PROGRESS]
 Closures              [IN PROGRESS]
 x86 codegen           [IN PROGRESS]
 Linker/loader         [PLANNED    ]
 Character literals    [PLANNED    ]
-Octal/binary ints     [PLANNED    ]
-Bit operators         [PLANNED    ]
 Class protection      [PLANNED    ]
 
 OTHER SOURCE MODIFICATIONS
