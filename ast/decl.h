@@ -28,10 +28,10 @@ class FnDecl;
 class Decl : public Node {
  public:
   Decl(Identifier *name);
-  friend ostream& operator<<(ostream& out, Decl *d) {
+  friend std::ostream& operator<<(std::ostream& out, Decl *d) {
     return out << d->id_;
   }
-  void PrintToStream(ostream& out) { out << id_; }
+  void PrintToStream(std::ostream& out) { out << id_; }
   virtual bool CheckDecls(SymTable *env) { return true; }
   virtual bool Check(SymTable *env) { return true; }
   virtual void Emit(FrameAllocator *falloc, CodeGenerator *codegen,

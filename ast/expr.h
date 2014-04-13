@@ -125,7 +125,7 @@ class Operator : public Node {
   Operator(yyltype loc, const char* tok);
   const char* GetPrintNameForNode() { return "Operator"; }
   void PrintChildren(int indent_level);
-  friend ostream& operator<<(ostream& out, Operator* o) {
+  friend std::ostream& operator<<(std::ostream& out, Operator* o) {
     return out << o->token_string_;
   }
   bool Check(SymTable* env) { return true; }

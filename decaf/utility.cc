@@ -17,9 +17,7 @@
 #include "decaf/utility.h"
 #include "decaf/lexer.h"
 
-using std::vector;
-
-static vector<const char*> kDebugKeys;
+static std::vector<const char*> kDebugKeys;
 static const int kBufferSize = 2048;
 static const char* kDefaultOutputFile = "a.out";
 

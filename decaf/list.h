@@ -32,14 +32,12 @@
 
 #include "decaf/utility.h"
 
-using namespace std;
-
 class Node;
 
 template<class Element>
 class List {
  private:
-  deque<Element> elems;
+  std::deque<Element> elems;
 
  public:
   // Create a new empty list

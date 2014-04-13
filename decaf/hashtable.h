@@ -36,8 +36,6 @@
 #include <map>
 #include <string.h>
 
-using namespace std;
-
 struct ltstr {
   bool operator()(const char* s1, const char* s2) const {
     return strcmp(s1, s2) < 0;
@@ -50,7 +48,7 @@ class Iterator;
 template<class Value>
 class Hashtable {
  private:
-  multimap<const char*, Value, ltstr> mmap;
+  std::multimap<const char*, Value, ltstr> mmap;
 
  public:
   // ctor creates a new empty hashtable
@@ -92,8 +90,8 @@ template <class Value>
 class Iterator {
   friend class Hashtable<Value>;
  private:
-  typename multimap<const char*, Value , ltstr>::iterator cur, end;
-  Iterator(multimap<const char*, Value, ltstr>& t)
+  typename std::multimap<const char*, Value , ltstr>::iterator cur, end;
+  Iterator(std::multimap<const char*, Value, ltstr>& t)
     : cur(t.begin()), end(t.end()) {
   }
 
@@ -116,7 +114,7 @@ void Hashtable<Value>::Enter(const char *key, Value val, bool overwrite) {
   Value prev;
   if (overwrite && (prev = Lookup(key)))
     Remove(key, prev);
-  mmap.insert(make_pair(strdup(key), val));
+  mmap.insert(std::make_pair(strdup(key), val));
 }
 
 /* Hashtable::Remove
@@ -130,7 +128,7 @@ void Hashtable<Value>::Remove(const char *key, Value val) {
     return;
   }
 
-  typename multimap<const char *, Value>::iterator itr;
+  typename std::multimap<const char *, Value>::iterator itr;
   itr = mmap.find(key); // start at first occurrence
   while (itr != mmap.upper_bound(key)) {
     if (itr->second == val) { // iterate to find matching pair
@@ -150,7 +148,7 @@ template <class Value>
 Value Hashtable<Value>::Lookup(const char *key) {
   Value found = NULL;
   if (mmap.count(key) > 0) {
-    typename multimap<const char *, Value>::iterator cur, last, prev;
+    typename std::multimap<const char *, Value>::iterator cur, last, prev;
     cur = mmap.find(key); // start at first occurrence
     last = mmap.upper_bound(key);
     while (cur != last) { // iterate to find last entered

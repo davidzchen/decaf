@@ -8,8 +8,6 @@
 #include "decaf/errors.h"
 #include "decaf/dcc.h"
 
-using namespace std;
-
 #define TAB_SIZE 8
 
 // Globals to keep track of state preserved between calls to yylex or used
@@ -17,7 +15,7 @@ using namespace std;
 
 static int current_line;
 static int current_column;
-vector<const char*> saved_lines;
+std::vector<const char*> saved_lines;
 
 static void StartAction();
 #define YY_USER_ACTION StartAction();

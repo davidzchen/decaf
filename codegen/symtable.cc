@@ -42,7 +42,7 @@ Symbol::Symbol(int t, Node *n, SymTable *e)
 void Symbol::print(int indentLevel)
 {
   const int numSpaces = 3;
-  ostringstream stream;
+  std::ostringstream stream;
 
   stream << dynamic_cast<Decl*>(node);
 

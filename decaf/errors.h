@@ -17,8 +17,6 @@
 
 #include "decaf/location.h"
 
-using namespace std;
-
 class Type;
 class Identifier;
 class Expr;
@@ -110,7 +108,7 @@ class ReportError {
 
  private:
   static void UnderlineErrorInLine(const char *line, yyltype *pos);
-  static void OutputError(yyltype *loc, string msg);
+  static void OutputError(yyltype *loc, std::string msg);
 
  private:
   static int num_errors_;

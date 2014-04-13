@@ -16,7 +16,8 @@
 #include "ast/stmt.h"
 #include "ast/decl.h"
 
-using namespace std;
+using std::cerr;
+using std::endl;
 
 int ReportError::num_errors_ = 0;
 
@@ -31,7 +32,7 @@ void ReportError::UnderlineErrorInLine(const char *line, yyltype *pos) {
   cerr << endl;
 }
 
-void ReportError::OutputError(yyltype *loc, string msg) {
+void ReportError::OutputError(yyltype *loc, std::string msg) {
   ++num_errors_;
   fflush(stdout); // make sure any buffered text has been output
   if (loc) {
@@ -57,38 +58,38 @@ void ReportError::UntermComment() {
 }
 
 void ReportError::LongIdentifier(yyltype *loc, const char *ident) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Identifier too long: \"" << ident << "\"";
   OutputError(loc, s.str());
 }
 
 void ReportError::UntermString(yyltype *loc, const char *str) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Unterminated string constant: " << str;
   OutputError(loc, s.str());
 }
 
 void ReportError::UnrecogChar(yyltype *loc, char ch) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Unrecognized char: '" << ch << "'";
   OutputError(loc, s.str());
 }
 
 void ReportError::DeclConflict(Decl *decl, Decl *prevDecl) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Declaration of '" << decl << "' here conflicts with declaration on line "
     << prevDecl->location()->first_line;
   OutputError(decl->location(), s.str());
 }
 
 void ReportError::OverrideMismatch(Decl *fnDecl) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Method '" << fnDecl << "' must match inherited type signature";
   OutputError(fnDecl->location(), s.str());
 }
 
 void ReportError::InterfaceNotImplemented(Decl *cd, Type *interfaceType) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Class '" << cd << "' does not implement entire interface '"
     << interfaceType << "'";
   OutputError(interfaceType->location(), s.str());
@@ -96,7 +97,7 @@ void ReportError::InterfaceNotImplemented(Decl *cd, Type *interfaceType) {
 
 void ReportError::IdentifierNotDeclared(Identifier *ident,
                                         LookingReason whyNeeded) {
-  ostringstream s;
+  std::ostringstream s;
   static const char *names[] =  {
     "type", "class", "interface", "variable", "function"
   };
@@ -106,13 +107,13 @@ void ReportError::IdentifierNotDeclared(Identifier *ident,
 }
 
 void ReportError::IncompatibleOperands(Operator *op, Type *lhs, Type *rhs) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Incompatible operands: " << lhs << " " << op << " " << rhs;
   OutputError(op->location(), s.str());
 }
 
 void ReportError::IncompatibleOperand(Operator *op, Type *rhs) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Incompatible operand: " << op << " " << rhs;
   OutputError(op->location(), s.str());
 }
@@ -135,7 +136,7 @@ void ReportError::NewArraySizeNotInteger(Expr *sizeExpr) {
 
 void ReportError::NumArgsMismatch(Identifier *fnIdent, int numExpected,
                                   int numGiven) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Function '"<< fnIdent << "' expects " << numExpected
     << " argument" << (numExpected == 1 ? "" : "s")
     << " but " << numGiven << " given";
@@ -144,33 +145,33 @@ void ReportError::NumArgsMismatch(Identifier *fnIdent, int numExpected,
 
 void ReportError::ArgMismatch(Expr *arg, int argIndex, Type *given,
                               Type *expected) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Incompatible argument " << argIndex << ": " << given << " given, "
     << expected << " expected";
   OutputError(arg->location(), s.str());
 }
 
 void ReportError::ReturnMismatch(ReturnStmt *rStmt, Type *given,
-    Type *expected) {
-  ostringstream s;
+                                 Type *expected) {
+  std::ostringstream s;
   s << "Incompatible return: " << given << " given, " << expected << " expected";
   OutputError(rStmt->location(), s.str());
 }
 
 void ReportError::FieldNotFoundInBase(Identifier *field, Type *base) {
-  ostringstream s;
+  std::ostringstream s;
   s << base << " has no such field '" << field <<"'";
   OutputError(field->location(), s.str());
 }
 
 void ReportError::InaccessibleField(Identifier *field, Type *base) {
-  ostringstream s;
+  std::ostringstream s;
   s  << base << " field '" << field << "' only accessible within class scope";
   OutputError(field->location(), s.str());
 }
 
 void ReportError::PrintArgMismatch(Expr *arg, int argIndex, Type *given) {
-  ostringstream s;
+  std::ostringstream s;
   s << "Incompatible argument " << argIndex << ": " << given
     << " given, int/bool/string expected";
   OutputError(arg->location(), s.str());

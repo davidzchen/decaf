@@ -26,7 +26,7 @@ class Type : public Node {
   Type(const char *str);
 
   const char *GetPrintNameForNode() { return "Type"; }
-  friend ostream& operator<<(ostream& out, Type *t) {
+  friend std::ostream& operator<<(std::ostream& out, Type *t) {
     t->PrintToStream(out); return out;
   }
   void PrintChildren(int indentLevel);
@@ -41,7 +41,7 @@ class Type : public Node {
     }
     return false;
   }
-  virtual void PrintToStream(ostream& out) { out << typeName; }
+  virtual void PrintToStream(std::ostream& out) { out << typeName; }
   virtual bool Check(SymTable *env) { return true; }
   virtual char *GetName() { return typeName; }
   virtual int GetQualifier() { return 0; }
@@ -57,7 +57,7 @@ class NamedType : public Type {
 
   const char *GetPrintNameForNode() { return "NamedType"; }
   void PrintChildren(int indentLevel);
-  void PrintToStream(ostream& out) { out << id; }
+  void PrintToStream(std::ostream& out) { out << id; }
   char *GetName() { return id->name(); }
   Identifier *GetIdent() { return id; }
 
@@ -77,7 +77,7 @@ class ArrayType : public Type {
 
   const char *GetPrintNameForNode() { return "ArrayType"; }
   void PrintChildren(int indentLevel);
-  void PrintToStream(ostream& out) { out << elemType << "[]"; }
+  void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
   bool Check(SymTable *env);
   Type *getElemType() { return elemType; }
 

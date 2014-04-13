@@ -1,7 +1,5 @@
-/* File: ast_decl.cc
- * -----------------
- * Implementation of Decl node classes.
- */
+/// @file ast_decl.cc
+/// @brief Implementation of Decl node classes.
 
 #include "decaf/errors.h"
 #include "ast/decl.h"
