@@ -1,27 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
-make distclean
+rm -rf `find . -name CMakeCache.txt` \
+       `find . -name CMakeFiles` \
+       `find . -name CTestTestfile.cmake` \
+       `find . -name Makefile` \
+       `find . -name cmake_install.cmake`
 
-echo Cleaning root
-rm -rf aclocal.m4 \
-       autom4te.cache \
-       config.guess \
-       config.h.in \
-       config.h.in~ \
-       config.sub \
-       configure \
-       depcomp \
-       snippet \
-       install-sh \
-       ltmain.sh \
-       missing \
-       test-driver \
-       compile \
-       ylwrap \
-       src/lex.cc \
-       src/parse.h \
-       src/parse.hh \
-       src/parse.cc \
-       src/parse.output \
-       `find . -name Makefile.in`
-       

@@ -16,10 +16,10 @@
 
 #include <stdlib.h>
 
-#include <tac.h>
+#include <arch/mips/tac.h>
+
 #include <list.h>
 #include <framealloc.h>
- 
 
 // These codes are used to identify the built-in functions
 typedef enum {

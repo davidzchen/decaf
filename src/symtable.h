@@ -10,7 +10,7 @@
 
 #include <cstdlib>
 
-#include <tac.h>
+#include <arch/mips/tac.h>
 #include <ast/ast.h>
 #include <hashtable.h>
 #include <list.h>

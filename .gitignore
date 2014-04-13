@@ -1,0 +1,14 @@
+*.swp
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+CTestTestfile.cmake
+*.a
+*.so
+*.dylib
+parse.cc
+parse.hh
+parse.output
+lex.cc
+dcc
