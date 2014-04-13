@@ -9,16 +9,10 @@
 
 #include <codegen.h>
 #include <errors.h>
-#include <arch.h>
-#include <tac.h>
 
-#ifdef __TARGET_X86
-# include <x86.h>
-#endif
-#ifdef __TARGET_MIPS
-# include <mips.h>
-#endif
-  
+#include <arch/mips/tac.h>
+#include <arch/mips/mips.h>
+
 CodeGenerator::CodeGenerator() {
   code = new List<Instruction*>();
   mainFound = false;
@@ -73,25 +67,25 @@ Location *CodeGenerator::GenLoadConstant(FrameAllocator *falloc, int value) {
   return result;
 }
 
-Location *CodeGenerator::GenLoadConstant(FrameAllocator *falloc, 
+Location *CodeGenerator::GenLoadConstant(FrameAllocator *falloc,
     const char *s) {
   Location *result = GenTempVar(falloc);
   code->Append(new LoadStringConstant(result, s));
   return result;
-} 
+}
 
-Location *CodeGenerator::GenLoadLabel(FrameAllocator *falloc, 
+Location *CodeGenerator::GenLoadLabel(FrameAllocator *falloc,
     const char *label) {
   Location *result = GenTempVar(falloc);
   code->Append(new LoadLabel(result, label));
   return result;
-} 
+}
 
 void CodeGenerator::GenAssign(Location *dst, Location *src) {
   code->Append(new Assign(dst, src));
 }
 
-Location *CodeGenerator::GenLoad(FrameAllocator *falloc, Location *ref, 
+Location *CodeGenerator::GenLoad(FrameAllocator *falloc, Location *ref,
     int offset) {
   Location *result = GenTempVar(falloc);
   code->Append(new Load(result, ref, offset));
@@ -115,7 +109,7 @@ Location *CodeGenerator::GenBinaryOp(FrameAllocator *falloc,
     Location *lt = GenBinaryOp(falloc, "<", op1, op2);
     Location *neq = GenUnaryOp(falloc, "!", eq);
     Location *nlt = GenUnaryOp(falloc, "!", lt);
-    result = GenBinaryOp(falloc, "&&", neq, nlt); 
+    result = GenBinaryOp(falloc, "&&", neq, nlt);
   } else if (strcmp(opName, "<=") == 0) {
     // (op1 == op2) || (op1 < op2)
     Location *eq = GenBinaryOp(falloc, "==", op1, op2);
@@ -236,7 +230,7 @@ Location *CodeGenerator::GenACall(FrameAllocator *falloc, Location *fnAddr,
   code->Append(new ACall(fnAddr, result));
   return result;
 }
- 
+
 static struct _builtin {
   const char *label;
   int numArgs;
@@ -281,7 +275,7 @@ Location *CodeGenerator::GenBuiltInCall(FrameAllocator *falloc, BuiltIn bn,
   return result;
 }
 
-void CodeGenerator::GenPrintError(FrameAllocator *falloc, 
+void CodeGenerator::GenPrintError(FrameAllocator *falloc,
     const char * const message) {
   Location *errString = GenLoadConstant(falloc, message);
   GenBuiltInCall(falloc, PrintString, errString, NULL);

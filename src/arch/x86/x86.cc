@@ -1,5 +1,4 @@
 
-#include <config.h>
 #include <stdarg.h>
 #include <string.h>
 #include "x86.h"

@@ -12,7 +12,6 @@
  * by elementary school children.
  */
 
-#include <config.h>
 #include <stdarg.h>
 #include <string.h>
 #include "mips.h"

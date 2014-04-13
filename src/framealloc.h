@@ -1,7 +1,7 @@
 #ifndef _H_FRAMEALLOC
 #define _H_FRAMEALLOC
 
-#include <tac.h>
+#include <arch/mips/tac.h>
 
 typedef enum {
   FRAME_UP,

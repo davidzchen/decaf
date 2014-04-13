@@ -3,7 +3,6 @@
  * Implementation of Location class and Instruction class/subclasses.
  */
 
-#include <config.h>
 #include <string.h>
 #include "x86.h"
 #include "tac.h"
