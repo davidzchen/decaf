@@ -1,3 +1,5 @@
-decaf-lex.cc
-decaf-parse.cc
-decaf-parse.output
+parse.cc
+parse.hh
+parse.output
+lex.cc
+

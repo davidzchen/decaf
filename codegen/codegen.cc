@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-#include "decaf/codegen.h"
+#include "codegen/codegen.h"
 #include "decaf/errors.h"
 
 #include "arch/mips/tac.h"
@@ -300,21 +300,11 @@ void CodeGenerator::DoFinalCodeGen() {
       code->Nth(i)->Print();
     }
   } else {
-#ifdef __TARGET_X86
-    X86 x86;
-    x86.EmitPreamble();
-    for (int i = 0; i < code->NumElements(); i++) {
-      code->Nth(i)->Emit(&x86);
-    }
-#endif
-
-#ifdef __TARGET_MIPS
     Mips mips;
     mips.EmitPreamble();
     for (int i = 0; i < code->NumElements(); i++) {
       code->Nth(i)->Emit(&mips);
     }
-#endif
   }
 }
 

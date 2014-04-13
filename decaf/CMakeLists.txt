@@ -17,10 +17,7 @@ set_source_files_properties(parse.cc GENERATED)
 
 list(APPEND DECAF_SOURCES
   utility.cc
-  symtable.cc
   errors.cc
-  codegen.cc
-  framealloc.cc
   parse.cc
   lex.cc
   dcc.cc)

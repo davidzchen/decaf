@@ -7,7 +7,3 @@ CTestTestfile.cmake
 *.a
 *.so
 *.dylib
-parse.cc
-parse.hh
-parse.output
-lex.cc

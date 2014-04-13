@@ -39,12 +39,12 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include "codegen/symtable.h"
+#include "codegen/codegen.h"
+#include "codegen/framealloc.h"
 #include "decaf/location.h"
-#include "decaf/symtable.h"
-#include "decaf/codegen.h"
 #include "decaf/errors.h"
 #include "decaf/list.h"
-#include "decaf/framealloc.h"
 
 using namespace std;
 

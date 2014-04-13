@@ -17,9 +17,8 @@
 #include <stdlib.h>
 
 #include "arch/mips/tac.h"
-
 #include "decaf/list.h"
-#include "decaf/framealloc.h"
+#include "codegen/framealloc.h"
 
 // These codes are used to identify the built-in functions
 typedef enum {

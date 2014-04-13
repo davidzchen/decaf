@@ -1,8 +1,13 @@
 #!/bin/bash
 
+make clean
 rm -rf `find . -name CMakeCache.txt` \
        `find . -name CMakeFiles` \
        `find . -name CTestTestfile.cmake` \
        `find . -name Makefile` \
-       `find . -name cmake_install.cmake`
+       `find . -name cmake_install.cmake` \
+       decaf/parse.cc \
+       decaf/parse.hh \
+       decaf/parse.output \
+       decaf/lex.cc
 

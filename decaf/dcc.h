@@ -12,7 +12,7 @@
 
 #include "decaf/lexer.h"              // for MaxIdentLen
 #include "decaf/list.h"               // because we use all these types
-#include "decaf/symtable.h"
+#include "codegen/symtable.h"
 #include "ast/ast.h"                  // in the union, we need their declarations
 #include "ast/type.h"
 #include "ast/decl.h"

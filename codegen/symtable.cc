@@ -8,7 +8,7 @@
 #include <string>
 
 #include "ast/decl.h"
-#include "decaf/symtable.h"
+#include "codegen/symtable.h"
 
 /* Class: Symbol
  * -------------

@@ -19,5 +19,6 @@ find_package(BISON REQUIRED)
 
 add_subdirectory(arch/mips)
 add_subdirectory(ast)
+add_subdirectory(codegen)
 add_subdirectory(decaf)
 add_subdirectory(dcc)
