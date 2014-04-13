@@ -5,7 +5,7 @@ set(decaf_VERSION_MAJOR 0)
 set(decaf_VERSION_MINOR 6)
 set(decaf_VERSION_PATCH 0)
 
-include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PROJECT_SOURCE_DIR}")
 
 # Set CXXFLAGS
 #set(CMAKE_CXX_FLAGS "-Werror -Wall")
@@ -17,4 +17,7 @@ enable_testing()
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-add_subdirectory(src)
+add_subdirectory(arch/mips)
+add_subdirectory(ast)
+add_subdirectory(decaf)
+add_subdirectory(dcc)

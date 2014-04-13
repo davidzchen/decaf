@@ -11,4 +11,3 @@ parse.cc
 parse.hh
 parse.output
 lex.cc
-dcc
